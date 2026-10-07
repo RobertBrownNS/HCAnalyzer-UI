@@ -104,9 +104,10 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | P2-09 | View-as-table toggle | FE | P2-08 | done |
 | P2-10 | Mobile-first layout, chip row, bottom sheet | FE | P2-07 | done |
 | P2-11 | Minimal source/provenance display | FE | P2-05 | done |
-| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13, P2-14 | in-progress |
+| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13, P2-14, P2-15 | in-progress |
 | P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | done |
 | P2-14 | Deployable static build: GitHub Pages sub-path and IIS (decisions D-12) | FE | P2-05 | todo |
+| P2-15 | Skeleton loaders (user request) | FE | P2-14 | todo |
 
 Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - **Conditions to close Phase 2:** QA-11 (chart zoom not in view state, P2-08) and QA-12 (Back/forward, P2-06).
@@ -193,6 +194,21 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - [ ] `docs/deploy.md` gives step-by-step instructions for both hosts: build command with base href, files to copy, IIS prerequisites (URL Rewrite module), GitHub Pages settings, and how to verify a deploy (load a shared URL, check data checksums/version).
 - [ ] A shared URL with query params opened on each host reproduces the same view (same check as P2-06).
 
+**P2-15 Skeleton loaders**
+- [ ] Load waits are measured on a throttled mobile profile (for example DevTools "Slow 4G" + 4× CPU slowdown), before and after. The results (time to first data, ECharts chunk ready) are recorded in the task notes or `docs/`.
+- [ ] Skeletons replace the progress bar for: KPI cards, the chart tile, the Notes and Sources tiles, and the phone chip row.
+- [ ] No layout shift on load. Skeletons match final dimensions. CLS ≈ 0, measured with a Lighthouse/Performance trace on the throttled profile.
+- [ ] Skeletons appear only after a ~150–200 ms delay, so fast loads show no flash.
+- [ ] The chart skeleton stays until the lazy ECharts chunk is loaded and the first render is done. It is never replaced by an empty chart.
+- [ ] Accessibility:
+  - the loading region has `aria-busy="true"`;
+  - exactly one polite live-region message is announced per load;
+  - skeleton shapes are `aria-hidden`.
+- [ ] Under `prefers-reduced-motion: reduce`, skeletons are static, with no shimmer or pulse.
+- [ ] Skeleton colors come from the design tokens only and work in light and dark (meeting the contrast rules for non-text UI where they apply).
+- [ ] Error, Retry and schema/version-error states take precedence over skeletons. A failed load never leaves a skeleton showing.
+- [ ] QA verifies all of the above under P2-12.
+
 **P2-12 QA review**
 - [ ] Neutrality sweep: no editorial copy, no adjectives about growth ("soaring", "modest"), no verdicts, and no advocacy-group data anywhere in the UI or assets.
 - [ ] Spot-check 3 chart values against `data/validation.md` and the raw xlsx, by hand, for each measure.
@@ -223,6 +239,7 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
+- **Phase 3:** any new long-running operation (category breakdowns, a second dataset such as expenditures alongside revenues) reuses the P2-15 skeleton components and follows the same rules: delay, no layout shift, a11y, reduced motion, errors take precedence. No new loader styles.
 - Phase 4 is on hold (D-11).
 
 ---
@@ -315,7 +332,7 @@ Method: production build (`ng build`) served statically from a clean clone of `b
 | QA-21 | P2-07 / P2-08 self-description | minor | When the chart tile is screenshotted or cropped, it doesn't carry all methodology. In inflation-adjusted modes the caption reads "FY 2024-25 dollars" with no CPI index or period, and desktop hides the chips (the filters pane shows them). R-03 says the index is "always shown in a chip and the axis label". The phone header and visible title don't name the jurisdiction ("Hillsborough County" is screen-reader-only in the title). This matters for Phase 5 PNG export. | FE | **deferred** to Phase 5 (PNG export) by DR-33. |
 | | | | *Suggested fix:* add the CPI index and period to the caption when real, and show the jurisdiction in the visible title on phone. | | |
 | QA-22 | P2-08 / P2-10 phone polish | note | At 390 px the chip row is clipped at the right edge with no scroll cue. Annotation labels at FY 2020-21 to FY 2023-24 crowd ("Note 3", "Note 4", "Notes 5, 6" next to the GASB label). P2-08's "dataZoom slider" is implemented as a range slider (fine once QA-11 ties zoom to the range). | FE | **resolved** (re-verified at `06821ea`): the phone chip row fades at the edge (scroll cue). Annotation lines on phone carry note numbers only ("1, 2", "3", "4", "5, 6") with no crowding. |
-| QA-23 | P2-06 history | minor | On desktop, one mouse drag of a range-slider thumb adds **two** history entries: the press itself moves the range one step (FY 2005-06 → FY 2006-07), then the release sets the final range. The first Back lands on a range the user never chose. On phone, a touch drag adds one entry (`slider-drag.mjs`). Synthetic input may overstate this. | FE | open |
+| QA-23 | P2-06 history | minor | On desktop, one mouse drag of a range-slider thumb adds **two** history entries: the press itself moves the range one step (FY 2005-06 → FY 2006-07), then the release sets the final range. The first Back lands on a range the user never chose. On phone, a touch drag adds one entry (`slider-drag.mjs`). Synthetic input may overstate this. | FE | **resolved** (re-verified at `a9f86d6`): the slider commits on drag end. `slider-drag.mjs`, run twice: one drag = 1 history entry on desktop (mouse) and phone (touch), and one Back restores the previous range. Keyboard still works (`slider-keys.mjs`): each arrow key moves a thumb one year and adds one entry, and the URL follows. |
 | | | | *Suggested fix:* commit the range on the slider's drag end only (`dragEnd`), or replace (not push) when consecutive updates arrive within the debounce window. | | |
 
 **P2-12 re-check at `06821ea` (2026-10-06):** clean clone, 231 tests pass, production build driven in headless Chrome. QA-11, QA-12, QA-14, QA-19, QA-20 and QA-22 are resolved (statuses above). QA-17 is closed by DR-32, and QA-15 and QA-21 are deferred by DR-33. **No open major findings remain in Phase 2.** Open minors: QA-23. Still to check: sub-path base href and IIS (CLAUDE.md) with P2-14 deploy.
@@ -329,7 +346,7 @@ Method: production build (`ng build`) served statically from a clean clone of `b
 | ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
 |---|---|---|---|---|---|
 | QA-24 | P2-14 web.config | minor | The SPA fallback rewrites **every** missing path to `index.html` with 200, including missing static files. After a partial deploy, a missing `chunk-*.js`, font or `assets/data/*.json` comes back as HTML. The browser reports a MIME/parse error ("Http failure during parsing") instead of a 404, which hides the real problem. The outbound header rule is header-only, so it should be fine with compression, but it is unverified on a live IIS (deploy.md already flags the first-deploy checks). | FE | open |
-| | | | *Suggested fix:* add a condition so the fallback applies only to extension-less paths (e.g. `<add input="{REQUEST_URI}" pattern="\.[a-z0-9]+(\?|$)" negate="true" />`) or skip `assets/`. On the first IIS deploy, also request a missing `assets/data/x.json` and check for a 404. | | |
+| | | | *Suggested fix:* add a condition so the fallback applies only to extension-less paths (e.g. `<add input="{REQUEST_URI}" pattern="\.[a-z0-9]+(\?|$)" negate="true" />`) or skip `assets/`. On the first IIS deploy, also request a missing `assets/data/x.json` and check for a 404. Also request `index.html` with `Accept-Encoding: gzip` and Static Compression on, and confirm a 200 (URL Rewrite outbound rules can raise 500.52 on compressed responses; this header-only rule should not, but it is unverified). | | |
 | QA-25 | P2-14 docs/deploy.md | minor | Problems in the gh-pages recipe: (a) `git worktree add -b gh-pages ../gh-pages` branches from `HEAD`, so the Pages branch carries the full source history and the tracked root dotfiles (`.editorconfig`, `.gitattributes`, `.gitignore`, `.vscode/`). `rm -rf ../gh-pages/*` doesn't remove dotfiles, so they get published. (b) On that branch the main `.gitattributes` applies (`* text=auto eol=lf`), but its byte-exact exemption `src/assets/data/** -text` no longer matches the published `assets/data/`. Today's outputs are LF, so the bytes are unchanged, but the guarantee is gone. (c) A custom-domain `CNAME` added to the published files is deleted by the same `rm` on every deploy. | FE, PM | open |
 | | | | *Suggested fix:* use an orphan branch, `git worktree add --orphan -b gh-pages ../gh-pages` (Git ≥ 2.42; 2.49 is installed), and clear it with `git -C ../gh-pages rm -rfq .` so dotfiles go too. Keep `CNAME` in `src/` and add it to `angular.json` assets so every build emits it. Optionally add a `.gitattributes` with `* -text` to the published output. | | |
 
