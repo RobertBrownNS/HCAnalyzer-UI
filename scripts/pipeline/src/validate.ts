@@ -14,6 +14,7 @@ import { buildOutputs } from './build.js';
 import { indexComparisonSection } from './index-comparison.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import {
+  ANNOTATION_TOPICS,
   findGaps,
   GAP_DROP,
   GAP_MAX_YEARS,
@@ -429,15 +430,16 @@ async function main() {
     for (const sheets of [revenues.sheets, expenditures.sheets]) {
       for (const g of findGaps(sheets)) {
         total++;
-        const isApproved = approved.some((a) => a.flow === g.flow && g.years.includes(a.fiscalYear) && a.scopes.includes(g.scope));
+        const match = approved.find((a) => a.flow === g.flow && g.years.includes(a.fiscalYear) && a.scopes.includes(g.scope));
+        const isApproved = !!match;
         if (!isApproved) open++;
         gapRows.push(
-          `| ${county.slug} | ${g.flow} | ${scopeLabel(g.scope)} | ${fiscalYearLabel(g.before.fiscalYear)}: ${money(g.before.value)} | ${g.values.map((v) => `${fiscalYearLabel(v.fiscalYear)}: ${money(v.value)}`).join('<br>')} | ${fiscalYearLabel(g.after.fiscalYear)}: ${money(g.after.value)} | ${isApproved ? 'annotated' : 'not annotated (awaiting review)'} |`,
+          `| ${county.slug} | ${g.flow} | ${scopeLabel(g.scope)} | ${fiscalYearLabel(g.before.fiscalYear)}: ${money(g.before.value)} | ${g.values.map((v) => `${fiscalYearLabel(v.fiscalYear)}: ${money(v.value)}`).join('<br>')} | ${fiscalYearLabel(g.after.fiscalYear)}: ${money(g.after.value)} | ${match ? (match.coveredBy ? `annotated (in ${match.coveredBy} annotation)` : `annotated (${match.topic ?? 'fund-gap'})`) : 'listed for reference; not annotated'} |`,
         );
       }
     }
     add(tag2(county.slug, `Drop-and-recover gaps: fund type or section falls more than ${GAP_DROP * 100}% and recovers within ${GAP_MAX_YEARS} years (non-custodial, baseline at least ${usd(GAP_MIN_BASELINE)})`), true,
-      `${total} found; ${total - open} annotated (config/approved-gaps.ts), ${open} awaiting review. Listed under "Drop-and-recover gaps"`, true);
+      `${total} found; ${total - open} annotated (config/approved-gaps.ts), ${open} listed for reference only. Listed under "Drop-and-recover gaps"`, true);
   }
 
   // --- Annotations: every one resolves and is well-formed ----------------------------------
@@ -450,9 +452,11 @@ async function main() {
       !['methodology', 'policy', 'event'].includes(a.kind) ||
       (a.flow !== undefined && !['revenue', 'expenditure'].includes(a.flow)) ||
       (a.custodial !== undefined && !['included', 'excluded'].includes(a.custodial)) ||
-      (a.refs ?? []).some((r) => !REF_PATTERN.test(r)),
+      (a.refs ?? []).some((r) => !REF_PATTERN.test(r)) ||
+      !a.topic ||
+      !(ANNOTATION_TOPICS as readonly string[]).includes(a.topic),
   );
-  add('Annotations: sourceId resolves, fields valid, cell references well-formed', !badAnnotations.length,
+  add('Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed', !badAnnotations.length,
     badAnnotations.length ? badAnnotations.map((a) => `${a.fiscalYear} ${a.label}`).join('; ') : `${annotationsJson.length} annotations`);
   // Every ref must point to a non-empty cell in the workbook it names (QA-08).
   const refWorkbooks = new Map<string, Map<string, Workbook>>();
@@ -626,7 +630,7 @@ async function main() {
     '',
     '## Drop-and-recover gaps (informational)',
     '',
-    `Non-custodial fund-type totals and sections that fall by more than ${GAP_DROP * 100}% from the prior year and come back to at least ${(1 - GAP_DROP) * 100}% of the prior-year value within ${GAP_MAX_YEARS} years, in either flow. Only scopes with a prior-year value of at least ${usd(GAP_MIN_BASELINE)} are scanned. Annotated gaps are listed in \`scripts/pipeline/config/approved-gaps.ts\`.`,
+    `Non-custodial fund-type totals and sections that fall by more than ${GAP_DROP * 100}% from the prior year and come back to at least ${(1 - GAP_DROP) * 100}% of the prior-year value within ${GAP_MAX_YEARS} years, in either flow. Only scopes with a prior-year value of at least ${usd(GAP_MIN_BASELINE)} are scanned. Annotated gaps are listed in \`scripts/pipeline/config/approved-gaps.ts\`. Per the user decision recorded in docs/decisions.md, only filing breaks are annotated: the FY 2023-24 proprietary-fund and component-unit gaps, and the FY 2022-23 and FY 2023-24 court-related and public safety gaps, which are described in the transfer-imbalance annotations for those years. The other rows are listed for reference only and are not annotated.`,
     '',
     '| Jurisdiction | Flow | Scope | Before | During | After | Status |',
     '|---|---|---|---|---|---|---|',

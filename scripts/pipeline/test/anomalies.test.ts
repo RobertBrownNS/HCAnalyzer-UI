@@ -62,6 +62,7 @@ describe('transfer balance', () => {
     const { annotations, caveats } = generateAnomalies(input(rev, exp));
     const a = annotations.find((x) => x.fiscalYear === 2024 && x.flow === 'expenditure' && x.label.startsWith('Transfers'));
     expect(a?.label).toContain('$600.0M');
+    expect(a?.topic).toBe('transfer-imbalance');
     expect(a?.refs).toContain('expenditures:2024!K6'); // custodial 581 cell cited because it is excluded
     expect(caveats.get('exp')?.some((c) => c.includes('$600,000,000'))).toBe(true);
   });
@@ -112,6 +113,7 @@ describe('population basis changes', () => {
     const popNotes = annotations.filter((a) => a.sourceId === 'pop');
     expect(popNotes.map((a) => a.fiscalYear)).toEqual([2010, 2021]);
     expect(popNotes[0].measures).toEqual(['per_capita', 'real_per_capita']);
+    expect(popNotes.every((x) => x.topic === 'population-source')).toBe(true);
     expect(popNotes[0].detail).toContain('2.7%');
   });
 });
@@ -153,10 +155,20 @@ describe('drop-and-recover gaps', () => {
     const ok = generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2024, scopes: ['fund:general'] }] });
     const a = ok.annotations.find((x) => x.label.startsWith('General funds'));
     expect(a?.label).toBe('General funds $0');
+    expect(a?.topic).toBe('fund-gap');
     expect(a?.detail).toContain('account 536');
     expect(a?.refs).toEqual(['expenditures:2024!D6']);
     expect(() =>
       generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2023, scopes: ['fund:general'] }] }),
+    ).toThrow(/not found/);
+  });
+
+  it('adds no separate annotation for a gap covered by another annotation, but still checks it exists', () => {
+    const exp = years([[2023, 200e6], [2024, 0], [2025, 210e6]]);
+    const covered = generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2024, scopes: ['fund:general'], coveredBy: 'transfer-imbalance' }] });
+    expect(covered.annotations.some((x) => x.label.startsWith('General funds'))).toBe(false);
+    expect(() =>
+      generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2023, scopes: ['fund:general'], coveredBy: 'transfer-imbalance' }] }),
     ).toThrow(/not found/);
   });
 });

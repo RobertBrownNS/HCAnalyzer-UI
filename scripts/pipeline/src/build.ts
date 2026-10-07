@@ -237,6 +237,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       fiscalYear: 2021,
       label: 'Custodial fund reporting begins (GASB 84).',
       kind: 'methodology' as const,
+      topic: 'gasb84' as const,
       sourceId: sourceIds.countyFiscalPage,
     },
     ...generatedAnnotations,

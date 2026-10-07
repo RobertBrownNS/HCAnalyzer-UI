@@ -78,8 +78,8 @@ Inputs (sha256 verified against `data/raw/manifest.json`):
 | NOTE | hillsborough: Inter-fund transfers: 581 out vs 381 in, non-custodial (threshold $1,000,000) | 18 of 20 years within threshold (largest gap $2,000); over threshold: FY 2022-23 $624,603,841; FY 2023-24 $535,878,141. Annotated in annotations.json. |
 | NOTE | hillsborough: revenues: year-over-year changes above 25% (non-custodial) | 31 changes over the threshold across totals and sections; listed under "Year-over-year changes" |
 | NOTE | hillsborough: expenditures: year-over-year changes above 25% (non-custodial) | 29 changes over the threshold across totals and sections; listed under "Year-over-year changes" |
-| NOTE | hillsborough: Drop-and-recover gaps: fund type or section falls more than 50% and recovers within 2 years (non-custodial, baseline at least $1,000,000) | 19 found; 4 annotated (config/approved-gaps.ts), 15 awaiting review. Listed under "Drop-and-recover gaps" |
-| PASS | Annotations: sourceId resolves, fields valid, cell references well-formed | 21 annotations |
+| NOTE | hillsborough: Drop-and-recover gaps: fund type or section falls more than 50% and recovers within 2 years (non-custodial, baseline at least $1,000,000) | 19 found; 6 annotated (config/approved-gaps.ts), 13 listed for reference only. Listed under "Drop-and-recover gaps" |
+| PASS | Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed | 21 annotations |
 | PASS | Annotation refs resolve to a non-empty cell in the named workbook (format workbook:sheet!cell) | 44 refs resolved |
 | PASS | GASB 84 annotation present at FY 2020-21 | sourceId edr-cntyfiscal-page |
 | NOTE | hillsborough: revenues: account codes present in some years only | 202 distinct codes; 67 in every year (FY 2005-06 to FY 2024-25); 135 appear, disappear or have gaps (listed under "Account codes by year") |
@@ -326,29 +326,29 @@ Revenue account 381 (inter-fund group transfers in) and expenditure account 581 
 
 ## Drop-and-recover gaps (informational)
 
-Non-custodial fund-type totals and sections that fall by more than 50% from the prior year and come back to at least 50% of the prior-year value within 2 years, in either flow. Only scopes with a prior-year value of at least $1,000,000 are scanned. Annotated gaps are listed in `scripts/pipeline/config/approved-gaps.ts`.
+Non-custodial fund-type totals and sections that fall by more than 50% from the prior year and come back to at least 50% of the prior-year value within 2 years, in either flow. Only scopes with a prior-year value of at least $1,000,000 are scanned. Annotated gaps are listed in `scripts/pipeline/config/approved-gaps.ts`. Per the user decision recorded in docs/decisions.md, only filing breaks are annotated: the FY 2023-24 proprietary-fund and component-unit gaps, and the FY 2022-23 and FY 2023-24 court-related and public safety gaps, which are described in the transfer-imbalance annotations for those years. The other rows are listed for reference only and are not annotated.
 
 | Jurisdiction | Flow | Scope | Before | During | After | Status |
 |---|---|---|---|---|---|---|
-| hillsborough | revenue | Capital funds | FY 2007-08: $140.3M | FY 2008-09: $70.0M | FY 2009-10: $85.4M | not annotated (awaiting review) |
-| hillsborough | revenue | Debt Service funds | FY 2009-10: $130.7M | FY 2010-11: $52.1M | FY 2011-12: $159.1M | not annotated (awaiting review) |
-| hillsborough | revenue | Debt Service funds | FY 2011-12: $159.1M | FY 2012-13: $57.2M<br>FY 2013-14: $54.5M | FY 2014-15: $342.4M | not annotated (awaiting review) |
-| hillsborough | revenue | Debt Service funds | FY 2018-19: $336.9M | FY 2019-20: $132.2M | FY 2020-21: $409.3M | not annotated (awaiting review) |
-| hillsborough | revenue | Capital funds | FY 2019-20: $73.3M | FY 2020-21: $30.3M | FY 2021-22: $40.4M | not annotated (awaiting review) |
-| hillsborough | revenue | miscellaneous section | FY 2019-20: $82.1M | FY 2020-21: $36.5M<br>FY 2021-22: $3.2M | FY 2022-23: $157.5M | not annotated (awaiting review) |
-| hillsborough | revenue | Component Units | FY 2020-21: $8.5M | FY 2021-22: $3.5M | FY 2022-23: $10.0M | not annotated (awaiting review) |
-| hillsborough | revenue | other sources section | FY 2020-21: $1.59B | FY 2021-22: $401.0M<br>FY 2022-23: $734.2M | FY 2023-24: $951.6M | not annotated (awaiting review) |
-| hillsborough | expenditure | Capital funds | FY 2007-08: $132.4M | FY 2008-09: $60.5M | FY 2009-10: $91.7M | not annotated (awaiting review) |
-| hillsborough | expenditure | Debt Service funds | FY 2009-10: $170.4M | FY 2010-11: $51.2M | FY 2011-12: $153.6M | not annotated (awaiting review) |
-| hillsborough | expenditure | Debt Service funds | FY 2011-12: $153.6M | FY 2012-13: $57.2M<br>FY 2013-14: $54.8M | FY 2014-15: $333.4M | not annotated (awaiting review) |
-| hillsborough | expenditure | Debt Service funds | FY 2018-19: $344.8M | FY 2019-20: $130.6M | FY 2020-21: $393.8M | not annotated (awaiting review) |
-| hillsborough | expenditure | other uses section | FY 2020-21: $1.24B | FY 2021-22: $402.7M | FY 2022-23: $1.18B | not annotated (awaiting review) |
-| hillsborough | expenditure | court related section | FY 2021-22: $77.6M | FY 2022-23: $24.6M<br>FY 2023-24: $24.5M | FY 2024-25: $65.9M | not annotated (awaiting review) |
-| hillsborough | expenditure | public safety section | FY 2021-22: $883.3M | FY 2022-23: $387.4M<br>FY 2023-24: $368.2M | FY 2024-25: $1.30B | not annotated (awaiting review) |
-| hillsborough | expenditure | Component Units | FY 2022-23: $7.5M | FY 2023-24: $0 | FY 2024-25: $8.5M | annotated |
-| hillsborough | expenditure | Enterprise funds | FY 2022-23: $543.3M | FY 2023-24: $126.5M | FY 2024-25: $665.7M | annotated |
-| hillsborough | expenditure | Internal Service funds | FY 2022-23: $252.1M | FY 2023-24: $18.9M | FY 2024-25: $344.8M | annotated |
-| hillsborough | expenditure | physical environment section | FY 2022-23: $586.4M | FY 2023-24: $188.3M | FY 2024-25: $770.6M | annotated |
+| hillsborough | revenue | Capital funds | FY 2007-08: $140.3M | FY 2008-09: $70.0M | FY 2009-10: $85.4M | listed for reference; not annotated |
+| hillsborough | revenue | Debt Service funds | FY 2009-10: $130.7M | FY 2010-11: $52.1M | FY 2011-12: $159.1M | listed for reference; not annotated |
+| hillsborough | revenue | Debt Service funds | FY 2011-12: $159.1M | FY 2012-13: $57.2M<br>FY 2013-14: $54.5M | FY 2014-15: $342.4M | listed for reference; not annotated |
+| hillsborough | revenue | Debt Service funds | FY 2018-19: $336.9M | FY 2019-20: $132.2M | FY 2020-21: $409.3M | listed for reference; not annotated |
+| hillsborough | revenue | Capital funds | FY 2019-20: $73.3M | FY 2020-21: $30.3M | FY 2021-22: $40.4M | listed for reference; not annotated |
+| hillsborough | revenue | miscellaneous section | FY 2019-20: $82.1M | FY 2020-21: $36.5M<br>FY 2021-22: $3.2M | FY 2022-23: $157.5M | listed for reference; not annotated |
+| hillsborough | revenue | Component Units | FY 2020-21: $8.5M | FY 2021-22: $3.5M | FY 2022-23: $10.0M | listed for reference; not annotated |
+| hillsborough | revenue | other sources section | FY 2020-21: $1.59B | FY 2021-22: $401.0M<br>FY 2022-23: $734.2M | FY 2023-24: $951.6M | listed for reference; not annotated |
+| hillsborough | expenditure | Capital funds | FY 2007-08: $132.4M | FY 2008-09: $60.5M | FY 2009-10: $91.7M | listed for reference; not annotated |
+| hillsborough | expenditure | Debt Service funds | FY 2009-10: $170.4M | FY 2010-11: $51.2M | FY 2011-12: $153.6M | listed for reference; not annotated |
+| hillsborough | expenditure | Debt Service funds | FY 2011-12: $153.6M | FY 2012-13: $57.2M<br>FY 2013-14: $54.8M | FY 2014-15: $333.4M | listed for reference; not annotated |
+| hillsborough | expenditure | Debt Service funds | FY 2018-19: $344.8M | FY 2019-20: $130.6M | FY 2020-21: $393.8M | listed for reference; not annotated |
+| hillsborough | expenditure | other uses section | FY 2020-21: $1.24B | FY 2021-22: $402.7M | FY 2022-23: $1.18B | listed for reference; not annotated |
+| hillsborough | expenditure | court related section | FY 2021-22: $77.6M | FY 2022-23: $24.6M<br>FY 2023-24: $24.5M | FY 2024-25: $65.9M | annotated (in transfer-imbalance annotation) |
+| hillsborough | expenditure | public safety section | FY 2021-22: $883.3M | FY 2022-23: $387.4M<br>FY 2023-24: $368.2M | FY 2024-25: $1.30B | annotated (in transfer-imbalance annotation) |
+| hillsborough | expenditure | Component Units | FY 2022-23: $7.5M | FY 2023-24: $0 | FY 2024-25: $8.5M | annotated (proprietary-fund-gap) |
+| hillsborough | expenditure | Enterprise funds | FY 2022-23: $543.3M | FY 2023-24: $126.5M | FY 2024-25: $665.7M | annotated (proprietary-fund-gap) |
+| hillsborough | expenditure | Internal Service funds | FY 2022-23: $252.1M | FY 2023-24: $18.9M | FY 2024-25: $344.8M | annotated (proprietary-fund-gap) |
+| hillsborough | expenditure | physical environment section | FY 2022-23: $586.4M | FY 2023-24: $188.3M | FY 2024-25: $770.6M | annotated (proprietary-fund-gap) |
 
 ## Year-over-year changes (informational)
 

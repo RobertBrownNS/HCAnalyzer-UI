@@ -9,6 +9,19 @@ import type { PopulationValue } from './population.js';
  * figures can't drift from the data. Nothing here changes a published value.
  */
 
+export const ANNOTATION_TOPICS = [
+  'gasb84',
+  'transfer-imbalance',
+  'proprietary-fund-gap',
+  'fund-gap',
+  'rounding',
+  'source-anomaly',
+  'custodial-accounts',
+  'custodial-zero',
+  'population-source',
+] as const;
+export type AnnotationTopic = (typeof ANNOTATION_TOPICS)[number];
+
 /** Measure names as used by the app (src/app/core/models.ts `Measure`). */
 export type Measure = 'nominal' | 'per_capita' | 'real' | 'real_per_capita';
 
@@ -17,6 +30,8 @@ export interface Annotation {
   label: string;
   kind: 'methodology' | 'policy' | 'event';
   sourceId: string;
+  /** Machine-readable category, so the UI can match annotations without parsing labels. */
+  topic?: AnnotationTopic;
   /** Present when the annotation is specific to one jurisdiction. */
   jurisdiction?: string;
   /** Present when the annotation applies to revenues or expenditures only. */
@@ -159,7 +174,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
     const neighbours = [nearestUnflagged(b.fiscalYear, -1), nearestUnflagged(b.fiscalYear, 1)].filter((y): y is number => y !== null);
     const side = (fy: number) => {
       const s = exp.get(fy)!;
-      return `${fiscalYearLabel(fy)}: account 521 ${money(accountTotal(s, '521', true))}, public safety ${money(sectionTotal(s, 'public_safety', true))}, General Fund 581 ${money(generalFund(s, TRANSFERS_OUT))}`;
+      return `${fiscalYearLabel(fy)}: account 521 ${money(accountTotal(s, '521', true))}, public safety section ${money(sectionTotal(s, 'public_safety', true))}, court-related section ${money(sectionTotal(s, 'court_related', true))}, General Fund 581 ${money(generalFund(s, TRANSFERS_OUT))}`;
     };
     const refs = [
       rowTotalRef(rev.get(b.fiscalYear)!, TRANSFERS_IN),
@@ -182,6 +197,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       fiscalYear: b.fiscalYear,
       label: `Transfers out (581) ${direction} transfers in (381) by ${money(Math.abs(b.difference))}; account 521 Law Enforcement ${money(accountTotal(sheet, '521', true))}`,
       kind: 'methodology',
+      topic: 'transfer-imbalance',
       sourceId: input.expenditureSourceId,
       jurisdiction,
       flow: 'expenditure',
@@ -198,7 +214,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       const round = cells.filter(({ v }) => v.amount % 1000 === 0);
       if (!cells.length || round.length / cells.length <= ROUNDED_SHARE) continue;
       const text = `${fiscalYearLabel(s.fiscalYear)} ${flow}s: ${round.length} of ${cells.length} non-zero amounts are whole multiples of $1,000.`;
-      annotations.push({ fiscalYear: s.fiscalYear, label: 'Amounts reported rounded to $1,000', kind: 'methodology', sourceId, jurisdiction, flow, detail: text });
+      annotations.push({ fiscalYear: s.fiscalYear, label: 'Amounts reported rounded to $1,000', kind: 'methodology', topic: 'rounding', sourceId, jurisdiction, flow, detail: text });
       pushCaveat(caveats, sourceId, text);
       for (const { a, v } of cells.filter(({ v }) => v.amount % 1000 !== 0)) {
         const ref = qref(s, v.address);
@@ -212,6 +228,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
           fiscalYear: s.fiscalYear,
           label: `Account ${a.account} ${v.fundType} amount ${exact(v.amount)} is not rounded like the rest of the year`,
           kind: 'methodology',
+          topic: 'source-anomaly',
           sourceId,
           jurisdiction,
           flow,
@@ -233,7 +250,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       const total = s.grandTotal.cached['custodial'] ?? 0;
       if (total === 0) {
         const detail = `${fiscalYearLabel(s.fiscalYear)}: the Custodial column is present and every custodial ${flow} amount is $0 (${ref}).`;
-        annotations.push({ fiscalYear: s.fiscalYear, label: `Custodial column present; all custodial ${flow}s are $0`, kind: 'methodology', sourceId, jurisdiction, flow, custodial: 'included', detail, refs: [ref] });
+        annotations.push({ fiscalYear: s.fiscalYear, label: `Custodial column present; all custodial ${flow}s are $0`, kind: 'methodology', topic: 'custodial-zero', sourceId, jurisdiction, flow, custodial: 'included', detail, refs: [ref] });
         pushCaveat(caveats, sourceId, detail);
         continue;
       }
@@ -252,6 +269,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
         fiscalYear: s.fiscalYear,
         label: `Custodial ${flow}s: ${listed.map(({ a, v }) => `${a.account} ${money(v.amount)}`).join(', ')}`,
         kind: 'methodology',
+        topic: 'custodial-accounts',
         sourceId,
         jurisdiction,
         flow,
@@ -269,6 +287,14 @@ export function generateAnomalies(input: AnomalyInput): Generated {
     ['expenditure', findGaps(input.expenditures)],
   ]);
   for (const approved of (input.approvedGaps ?? []).filter((g) => g.jurisdiction === jurisdiction)) {
+    if (approved.coveredBy) {
+      // Described inside another annotation; only check that the scan still finds it.
+      for (const scope of approved.scopes) {
+        const found = gapsByFlow.get(approved.flow)!.some((g) => g.scope === scope && g.years.includes(approved.fiscalYear));
+        if (!found) throw new Error(`Approved gap ${approved.flow} ${scope} FY ${approved.fiscalYear} is not found by findGaps; review the approval`);
+      }
+      continue;
+    }
     const sheets = byYear(approved.flow === 'revenue' ? input.revenues : input.expenditures);
     const [, , sourceId] = flows.find(([f]) => f === approved.flow)!;
     const parts: string[] = [];
@@ -300,6 +326,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       fiscalYear: approved.fiscalYear,
       label: labels.join('; '),
       kind: 'methodology',
+      topic: approved.topic ?? 'fund-gap',
       sourceId,
       jurisdiction,
       flow: approved.flow,
@@ -329,6 +356,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       fiscalYear: fy,
       label: `Population source changes: ${basisText(prev)} to ${basisText(cur)}`,
       kind: 'methodology',
+      topic: 'population-source',
       sourceId: input.populationSourceId,
       jurisdiction,
       measures: ['per_capita', 'real_per_capita'],
@@ -402,6 +430,10 @@ export interface ApprovedGap {
   flow: Flow;
   fiscalYear: number;
   scopes: string[];
+  /** Annotation topic; defaults to 'fund-gap'. */
+  topic?: AnnotationTopic;
+  /** Set when the gap is described in another generated annotation instead of its own. */
+  coveredBy?: AnnotationTopic;
 }
 
 export function scopeLabel(scope: string): string {

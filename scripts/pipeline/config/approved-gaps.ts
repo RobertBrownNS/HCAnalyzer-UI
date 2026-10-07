@@ -12,5 +12,15 @@ export const APPROVED_GAPS: ApprovedGap[] = [
     flow: 'expenditure',
     fiscalYear: 2024,
     scopes: ['fund:enterprise', 'fund:internal_service', 'fund:component_unit', 'section:physical_environment'],
+    topic: 'proprietary-fund-gap',
+  },
+  // User decision 2026-10-06 (decisions.md): annotate filing breaks only. Court-related and public
+  // safety, FY 2022-23 and FY 2023-24, are described in the transfer-imbalance annotations for those years.
+  {
+    jurisdiction: 'hillsborough',
+    flow: 'expenditure',
+    fiscalYear: 2023,
+    scopes: ['section:court_related', 'section:public_safety'],
+    coveredBy: 'transfer-imbalance',
   },
 ];
