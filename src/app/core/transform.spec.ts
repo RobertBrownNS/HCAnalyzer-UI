@@ -16,6 +16,8 @@ import {
   fiscalYearLabel,
   formatUsd,
   isTransferAccount,
+  isTransferImbalanceNote,
+  TRANSFER_IMBALANCE_NOTE_PREFIX,
   TRANSFER_ACCOUNTS,
   TRANSFER_IMBALANCE_NOTE_SHARE,
   selectCpi,
@@ -939,6 +941,17 @@ describe('buildSeries: transfers', () => {
     const en = byYear(buildSeries(d, settings({ flow: 'expenditure', transfers: 'net' })), 2020);
     expect(en.notes).toEqual([cust, 'Interfund transfers (account 581, $600) are excluded.', net]);
     expect(en.sourceIds).toEqual([EXP, REV]);
+  });
+
+  it('isTransferImbalanceNote recognises exactly the imbalance note', () => {
+    const d = transferFixture();
+    for (const transfers of ['gross', 'net'] as const) {
+      const notes = byYear(buildSeries(d, settings({ transfers, includeCustodial: true })), 2020).notes;
+      expect(notes.filter(isTransferImbalanceNote)).toHaveLength(1);
+      expect(notes.filter((n) => !isTransferImbalanceNote(n)).length).toBeGreaterThan(0);
+    }
+    expect(TRANSFER_IMBALANCE_NOTE_PREFIX).toBe('Transfers out (581) and transfers in (381) differ in ');
+    expect(isTransferImbalanceNote('Interfund transfers (account 381, $1) are excluded.')).toBe(false);
   });
 
   it('a balanced year has no imbalance note and no extra source', () => {

@@ -244,6 +244,15 @@ export const TRANSFER_ACCOUNTS: Readonly<Record<Flow, number>> = Object.freeze({
  */
 export const TRANSFER_IMBALANCE_NOTE_SHARE = 0.001;
 
+/** Every transfer-imbalance note starts with this text. Use isTransferImbalanceNote to match. */
+export const TRANSFER_IMBALANCE_NOTE_PREFIX =
+  `Transfers out (${TRANSFER_ACCOUNTS.expenditure}) and transfers in (${TRANSFER_ACCOUNTS.revenue}) differ in `;
+
+/** True for the per-point note buildSeries adds when 381 and 581 don't balance. */
+export function isTransferImbalanceNote(note: string): boolean {
+  return note.startsWith(TRANSFER_IMBALANCE_NOTE_PREFIX);
+}
+
 /** True for 381 / 581 and any sub-account (e.g. "381.1"). */
 export function isTransferAccount(account: string, flow: Flow): boolean {
   return Math.trunc(Number(account)) === TRANSFER_ACCOUNTS[flow];
@@ -311,7 +320,7 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
     const imbalance = tIn && tOut ? tOut.transfers - tIn.transfers : undefined;
     if (imbalance !== undefined && Math.abs(imbalance) > TRANSFER_IMBALANCE_NOTE_SHARE * Math.max(tIn!.transfers, tOut!.transfers)) {
       notes.push(
-        `Transfers out (${TRANSFER_ACCOUNTS.expenditure}) and transfers in (${TRANSFER_ACCOUNTS.revenue}) differ in ${fiscalYearLabel(fy)}: ` +
+        `${TRANSFER_IMBALANCE_NOTE_PREFIX}${fiscalYearLabel(fy)}: ` +
           `${formatUsd(tOut!.transfers)} out, ${formatUsd(tIn!.transfers)} in (difference ${formatUsd(imbalance)}).` +
           (net ? ' Removing transfers reduces revenue and expenditure by different amounts.' : ''),
       );
