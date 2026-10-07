@@ -101,48 +101,88 @@ export function crossCheckByYear(
   return new Map(years.map((fy) => [fy, crossCheckRange(fy, coverage)]));
 }
 
+/** What is in view: county, flow, fund selection (none = all), custodial, and a category (drawer). */
+export interface CrossCheckScope {
+  jurisdiction: string;
+  flow: Flow;
+  funds?: readonly string[];
+  includeCustodial?: boolean;
+  category?: string | null;
+}
+
 /**
- * Applies the fund selection to each year's cross-check (QA-40). A reconciliation difference
- * between funds (annotation topic `reconciliation-difference` with `funds`) moves an amount from
- * one fund to another, so the all-funds total matches the county filing. When the selection holds
- * some but not all of those funds, the selection's total differs by that amount: the sum of the
- * EDR cells the annotation names (`cells`, account + fund, same county, flow and year). No
- * selection (= all funds), or a selection holding none or all of them, leaves the year unchanged.
+ * One year's cross-check for what is in view (QA-40 and its addendum). A mismatch year's
+ * difference is a reclassification recorded as a `reconciliation-difference` annotation: `cells`
+ * (account + fund) name the EDR amount, `funds` (optional) the pair of funds it moves between.
+ * - The fund selection holds one side of `funds`, and the amount's category is in view: the
+ *   selection's total differs from the county filing by the amount (`selectionDifference`).
+ * - Otherwise, when no reclassified cell is in view (another fund or category), every difference
+ *   the source counted is outside the view, so the view matches the filing: status `full`.
+ * - Otherwise (the amount is in view with both sides selected) the year is unchanged: "Total
+ *   matches; 1 amount classified differently".
+ * The view only counts as matching when the annotations account for every counted difference
+ * (classification differences only, one annotation each); anything else is left as the source says.
  */
-export function withFundSelection(
+export function crossCheckInScope(
+  range: CrossCheckRange | null,
+  fiscalYear: number,
+  annotations: readonly AnnotationRecord[],
+  observations: readonly AfrObservation[],
+  scope: CrossCheckScope,
+): YearCrossCheck | null {
+  if (!range || range.status !== 'mismatch') return range;
+  const notes = annotations.filter(
+    (a) =>
+      a.topic === 'reconciliation-difference' &&
+      a.cells?.length &&
+      a.fiscalYear === fiscalYear &&
+      (a.jurisdiction === undefined || a.jurisdiction === scope.jurisdiction) &&
+      (a.flow === undefined || a.flow === scope.flow),
+  );
+  if (!notes.length) return range;
+  const selected = scope.funds && scope.funds.length ? scope.funds : null;
+  const fundInView = (fund: string) =>
+    fund === 'custodial' ? !!scope.includeCustodial : selected === null || selected.includes(fund);
+
+  let difference = 0;
+  let inView = 0;
+  for (const a of notes) {
+    const cells = a.cells!;
+    const amounts = observations.filter(
+      (o) =>
+        o.jurisdiction === scope.jurisdiction &&
+        o.flow === scope.flow &&
+        o.fiscalYear === fiscalYear &&
+        cells.some((c) => c.fundType === o.fundType && Number(c.account) === Number(o.account)),
+    );
+    // A category view only sees amounts in that category (both sides of a pair share it).
+    if (scope.category && !amounts.some((o) => o.category === scope.category)) continue;
+    const sides = a.funds ? a.funds.filter(fundInView).length : 0;
+    if (a.funds && sides > 0 && sides < a.funds.length) {
+      difference += Math.abs(amounts.reduce((sum, o) => sum + o.amount, 0));
+    } else if (amounts.some((o) => fundInView(o.fundType))) {
+      inView++;
+    }
+  }
+  if (difference) return { ...range, totalsMatch: false, selectionDifference: difference };
+  const explained =
+    !range.valueDifferences && !range.unmatchedAmounts && notes.length >= (range.classificationDifferences ?? 1);
+  if (inView === 0 && explained) {
+    const { classificationDifferences: _c, totalsMatch: _t, ...rest } = range;
+    return { ...rest, status: 'full' };
+  }
+  return range;
+}
+
+/** crossCheckInScope for every year of a view (the total line: no category). */
+export function crossCheckByYearInScope(
   byYear: ReadonlyMap<number, CrossCheckRange | null> | null,
   annotations: readonly AnnotationRecord[],
   observations: readonly AfrObservation[],
-  scope: { jurisdiction: string; flow: Flow; funds?: readonly string[] },
+  scope: CrossCheckScope,
 ): Map<number, YearCrossCheck | null> | null {
   if (!byYear) return null;
-  const out = new Map<number, YearCrossCheck | null>(byYear);
-  const selected = scope.funds;
-  if (!selected || selected.length === 0) return out;
-  for (const a of annotations) {
-    if (a.topic !== 'reconciliation-difference' || !a.funds || !a.cells) continue;
-    if (a.jurisdiction !== undefined && a.jurisdiction !== scope.jurisdiction) continue;
-    if (a.flow !== undefined && a.flow !== scope.flow) continue;
-    const range = out.get(a.fiscalYear);
-    if (!range) continue;
-    const inSelection = a.funds.filter((f) => selected.includes(f)).length;
-    if (inSelection === 0 || inSelection === a.funds.length) continue;
-    const cells = a.cells;
-    const amount = observations
-      .filter(
-        (o) =>
-          o.jurisdiction === scope.jurisdiction &&
-          o.flow === scope.flow &&
-          o.fiscalYear === a.fiscalYear &&
-          cells.some((c) => c.fundType === o.fundType && Number(c.account) === Number(o.account)),
-      )
-      .reduce((sum, o) => sum + o.amount, 0);
-    if (!amount) continue;
-    out.set(a.fiscalYear, {
-      ...range,
-      totalsMatch: false,
-      selectionDifference: ((range as YearCrossCheck).selectionDifference ?? 0) + Math.abs(amount),
-    });
-  }
-  return out;
+  return new Map(
+    [...byYear].map(([fy, range]) => [fy, crossCheckInScope(range, fy, annotations, observations, { ...scope, category: null })]),
+  );
 }

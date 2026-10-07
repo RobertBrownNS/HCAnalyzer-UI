@@ -81,6 +81,8 @@ export interface AnnotationRecord extends Annotation {
   cells?: readonly { account: string; fundType: string }[];
   /** Never a chart marker; shown only in the source drawer via `cells`. */
   drawerOnly?: boolean;
+  /** Reconciliation rows (QA-40): the amount involved, whole USD. Informational; not a filter. */
+  amount?: number;
 }
 
 export type AnnotationTopic =

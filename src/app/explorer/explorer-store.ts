@@ -8,7 +8,7 @@ import { fundScopeLabel } from '../core/labels';
 import { formatShare } from './category-chart';
 import { DrawerContent, accountName, drawerAnnotations, drawerSources } from './source-drawer';
 import { categoryLabel, fundLabel, fundScopeText, fundsIncludedText, isAllFundsScope } from '../core/scope';
-import { coverageFor, crossCheckByYear, crossCheckYearText, withFundSelection } from '../core/cross-check';
+import { coverageFor, crossCheckByYear, crossCheckByYearInScope, crossCheckInScope, crossCheckYearText } from '../core/cross-check';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
@@ -253,8 +253,8 @@ export class ExplorerStore {
       this.points().map((p) => p.fiscalYear),
       coverage,
     );
-    // A fund selection that splits a reclassified pair no longer matches the county filing (QA-40).
-    return withFundSelection(byYear, data.annotations, data.observations, s);
+    // Each year's line says what holds for the funds in view (QA-40 and addendum).
+    return crossCheckByYearInScope(byYear, data.annotations, data.observations, s);
   });
 
   readonly cpiSelection = computed(() => {
@@ -345,7 +345,14 @@ export class ExplorerStore {
       amount: o.amount,
       ref: o.ref,
     }));
-    const range = this.crossCheck()?.get(fiscalYear) ?? null;
+    // The drawer's line is for this point: its category too, not only the funds (QA-40 addendum).
+    const coverage = coverageFor(data.sources, data.observations, this.county(), s.flow);
+    const range = coverage
+      ? crossCheckInScope(crossCheckByYear([fiscalYear], coverage)!.get(fiscalYear) ?? null, fiscalYear, data.annotations, data.observations, {
+          ...s,
+          category,
+        })
+      : null;
     const annotations = drawerAnnotations(
       this.annotations().filter((a) => a.fiscalYear === fiscalYear),
       annotationsForPoint(data, s, fiscalYear, category ?? undefined),

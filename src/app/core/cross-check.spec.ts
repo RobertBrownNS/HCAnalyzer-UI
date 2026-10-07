@@ -5,7 +5,8 @@ import {
   crossCheckStatus,
   crossCheckYearText,
   mismatchLegendLabel,
-  withFundSelection,
+  crossCheckByYearInScope,
+  crossCheckInScope,
 } from './cross-check';
 import { AfrObservation, AnnotationRecord, CrossCheckRange, SourceRecord } from './models';
 
@@ -120,70 +121,103 @@ describe('mismatch wording (QA-35): the yearly total matches; never implies the 
   });
 });
 
-describe('withFundSelection (QA-40)', () => {
-  const range: CrossCheckRange = {
+describe('crossCheckInScope (QA-40 and addendum)', () => {
+  const mismatch: CrossCheckRange = {
     fromFiscalYear: 2013,
     toFiscalYear: 2025,
     status: 'mismatch',
     totalsMatch: true,
     classificationDifferences: 1,
   };
-  const full: CrossCheckRange = { fromFiscalYear: 2013, toFiscalYear: 2025, status: 'full' };
-  const byYear = new Map<number, CrossCheckRange | null>([
-    [2015, range],
-    [2016, full],
-  ]);
-  const note: AnnotationRecord = {
-    fiscalYear: 2015,
-    kind: 'methodology',
-    label: 'Reclassified',
-    sourceId: 's',
-    topic: 'reconciliation-difference',
-    jurisdiction: 'hillsborough',
-    flow: 'expenditure',
-    funds: ['component_unit', 'internal_service'],
+  const obs = (jurisdiction: string, flow: 'revenue' | 'expenditure', fiscalYear: number, account: string, fundType: string, category: string, amount: number): AfrObservation => ({
+    jurisdiction, flow, fiscalYear, account, fundType, category, amount, section: category, ref: 'x', sourceId: 's',
+  });
+  // Hillsborough FY 2014-15 expenditure: 559 moves between Internal Service (EDR) and Component Units (filing).
+  const hb: AnnotationRecord = {
+    fiscalYear: 2015, kind: 'methodology', label: 'HB', sourceId: 's', topic: 'reconciliation-difference',
+    jurisdiction: 'hillsborough', flow: 'expenditure', funds: ['component_unit', 'internal_service'],
     cells: [{ account: '559', fundType: 'internal_service' }],
   };
-  const obs = (account: string, fundType: string, amount: number): AfrObservation => ({
-    jurisdiction: 'hillsborough',
-    flow: 'expenditure',
-    fiscalYear: 2015,
-    account,
-    fundType,
-    amount,
-    category: 'economic_environment',
-    section: 'economic_environment',
-    ref: 'x',
-    sourceId: 's',
-  });
-  const observations = [obs('559', 'internal_service', 1_164_281), obs('559', 'general', 99), obs('513', 'internal_service', 7)];
-  const scope = (funds?: string[]) => ({ jurisdiction: 'hillsborough', flow: 'expenditure' as const, funds });
+  // Pinellas FY 2013-14 revenue: 335.8 vs 335.9, both Special Revenue and Intergovernmental (drawer-only).
+  const pn: AnnotationRecord = {
+    fiscalYear: 2014, kind: 'methodology', label: 'PN', sourceId: 's', topic: 'reconciliation-difference',
+    jurisdiction: 'pinellas', flow: 'revenue', drawerOnly: true,
+    cells: [{ account: '335.8', fundType: 'special_revenue' }],
+  };
+  const observations = [
+    obs('hillsborough', 'expenditure', 2015, '559', 'internal_service', 'economic_environment', 1_164_281),
+    obs('hillsborough', 'expenditure', 2015, '521', 'general', 'public_safety', 500),
+    obs('pinellas', 'revenue', 2014, '335.8', 'special_revenue', 'intergovernmental', 2_309_587),
+    obs('pinellas', 'revenue', 2014, '311', 'general', 'ad_valorem', 900),
+  ];
+  const hbScope = (funds?: string[], category?: string) => ({ jurisdiction: 'hillsborough', flow: 'expenditure' as const, funds, category });
+  const pnScope = (funds?: string[], category?: string) => ({ jurisdiction: 'pinellas', flow: 'revenue' as const, funds, category });
+  const text = (r: ReturnType<typeof crossCheckInScope>, form: 'long' | 'short' = 'long') => crossCheckYearText(r!, form);
+  const notes = [hb, pn];
 
-  it('a selection holding only one side of the pair: the total differs by the cells amount', () => {
-    for (const funds of [['internal_service'], ['component_unit'], ['general', 'internal_service']]) {
-      const y = withFundSelection(byYear, [note], observations, scope(funds))!.get(2015)!;
-      expect(y.selectionDifference).toBe(1_164_281);
-      expect(y.totalsMatch).toBe(false);
-      expect(crossCheckYearText(y)).toBe(
-        'Total for this fund selection differs from the county filing by $1,164,281 (an amount classified differently)',
+  describe('Hillsborough FY 2014-15', () => {
+    it('reclassified amount not in view (General Fund only, or another category): matches', () => {
+      for (const scope of [hbScope(['general']), hbScope(undefined, 'public_safety'), hbScope(['internal_service'], 'public_safety')]) {
+        const r = crossCheckInScope(mismatch, 2015, notes, observations, scope)!;
+        expect(r.status).toBe('full');
+        expect(text(r)).toBe('Cross-checked: matches the county-filed AFR');
+        expect(text(r, 'short')).toBe('Matches');
+      }
+    });
+
+    it('one side of the pair selected: the selection differs by the amount', () => {
+      for (const scope of [hbScope(['internal_service']), hbScope(['component_unit']), hbScope(['general', 'internal_service']), hbScope(['internal_service'], 'economic_environment')]) {
+        expect(text(crossCheckInScope(mismatch, 2015, notes, observations, scope))).toBe(
+          'Total for this fund selection differs from the county filing by $1,164,281 (an amount classified differently)',
+        );
+      }
+      expect(text(crossCheckInScope(mismatch, 2015, notes, observations, hbScope(['internal_service'])), 'short')).toBe(
+        'Total for these funds differs by $1,164,281; an amount classified differently',
       );
-      expect(crossCheckYearText(y, 'short')).toBe('Total for these funds differs by $1,164,281; an amount classified differently');
-    }
+    });
+
+    it('both sides in view (all funds, or both selected): total matches; 1 amount classified differently', () => {
+      for (const scope of [hbScope(), hbScope(['component_unit', 'internal_service']), hbScope(undefined, 'economic_environment')]) {
+        expect(text(crossCheckInScope(mismatch, 2015, notes, observations, scope))).toBe('Total matches; 1 amount classified differently');
+      }
+    });
   });
 
-  it('all funds, both sides, or neither side: unchanged ("Total matches")', () => {
-    for (const funds of [undefined, [], ['component_unit', 'internal_service'], ['general']]) {
-      const y = withFundSelection(byYear, [note], observations, scope(funds))!.get(2015)!;
-      expect(y.selectionDifference).toBeUndefined();
-      expect(crossCheckYearText(y)).toBe('Total matches; 1 amount classified differently');
-    }
+  describe('Pinellas FY 2013-14', () => {
+    it('reclassified cell not in view (General Fund only, or Ad Valorem): matches', () => {
+      for (const scope of [pnScope(['general']), pnScope(undefined, 'ad_valorem'), pnScope(['special_revenue'], 'ad_valorem')]) {
+        expect(crossCheckInScope(mismatch, 2014, notes, observations, scope)!.status).toBe('full');
+      }
+    });
+
+    it('no fund pair, so no split: a selection holding the cell keeps the classification note', () => {
+      for (const scope of [pnScope(['special_revenue']), pnScope(['general', 'special_revenue'])]) {
+        expect(text(crossCheckInScope(mismatch, 2014, notes, observations, scope))).toBe('Total matches; 1 amount classified differently');
+      }
+    });
+
+    it('cell in view (all funds, Intergovernmental): total matches; 1 amount classified differently', () => {
+      for (const scope of [pnScope(), pnScope(undefined, 'intergovernmental')]) {
+        expect(text(crossCheckInScope(mismatch, 2014, notes, observations, scope))).toBe('Total matches; 1 amount classified differently');
+      }
+    });
   });
 
-  it('other years, counties and flows are untouched; no coverage stays null', () => {
-    const out = withFundSelection(byYear, [note], observations, scope(['internal_service']))!;
-    expect(out.get(2016)).toEqual(byYear.get(2016));
-    expect(withFundSelection(byYear, [note], observations, { ...scope(['internal_service']), jurisdiction: 'pinellas' })!.get(2015)).toBe(range);
-    expect(withFundSelection(byYear, [note], observations, { ...scope(['internal_service']), flow: 'revenue' })!.get(2015)).toBe(range);
-    expect(withFundSelection(null, [note], observations, scope(['internal_service']))).toBeNull();
+  it('never claims a match the annotations do not explain', () => {
+    const twoDiffs = { ...mismatch, classificationDifferences: 2 };
+    expect(crossCheckInScope(twoDiffs, 2015, notes, observations, hbScope(['general']))).toBe(twoDiffs);
+    const valueDiff = { ...mismatch, valueDifferences: 1 };
+    expect(crossCheckInScope(valueDiff, 2015, notes, observations, hbScope(['general']))).toBe(valueDiff);
+  });
+
+  it('non-mismatch years, years without notes and no coverage pass through', () => {
+    const full: CrossCheckRange = { fromFiscalYear: 2013, toFiscalYear: 2025, status: 'full' };
+    expect(crossCheckInScope(full, 2015, notes, observations, hbScope(['internal_service']))).toBe(full);
+    expect(crossCheckInScope(mismatch, 2016, notes, observations, hbScope(['internal_service']))).toBe(mismatch);
+    expect(crossCheckInScope(null, 2015, notes, observations, hbScope())).toBeNull();
+    expect(crossCheckByYearInScope(null, notes, observations, hbScope())).toBeNull();
+    const byYear = crossCheckByYearInScope(new Map([[2015, mismatch], [2016, full]]), notes, observations, hbScope(['general']))!;
+    expect(byYear.get(2015)!.status).toBe('full');
+    expect(byYear.get(2016)).toBe(full);
   });
 });

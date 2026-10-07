@@ -20,6 +20,9 @@ import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
 import { kpiCards, measureCaption, unitPhrase } from './kpi';
+
+/** Caption of the 100% share chart: what its values are, whatever the measure. */
+export const SHARE_CAPTION = 'Share of the selected total (%)';
 import { KpiRowComponent } from './kpi-row.component';
 import { MethodologyComponent } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
@@ -112,13 +115,17 @@ export class ExplorerComponent {
   );
 
   readonly chartTitle = computed(() => `${FLOW_LABELS[this.store.settings().flow]} by fiscal year`);
-  readonly caption = computed(() => measureCaption(this.store.displaySettings()));
-  /** Said whenever index-to-100 is on but this chart type shows values (QA-39). */
-  readonly indexNote = computed(() =>
-    this.store.indexNotShown()
-      ? `Index to 100 applies to the line charts only; this chart shows values in ${unitPhrase(this.store.displaySettings())}.`
-      : null,
+  /** Units of the plotted values; the 100% share chart plots percentages, not dollars (QA-39). */
+  readonly caption = computed(() =>
+    this.chartType() === 'share' ? SHARE_CAPTION : measureCaption(this.store.displaySettings()),
   );
+  /** Said whenever index-to-100 is on but this chart type doesn't apply it (QA-39). */
+  readonly indexNote = computed(() => {
+    if (!this.store.indexNotShown()) return null;
+    const shows =
+      this.chartType() === 'share' ? 'shares of the selected total' : `values in ${unitPhrase(this.store.displaySettings())}`;
+    return `Index to 100 applies to the line charts only; this chart shows ${shows}.`;
+  });
   /** Annotations that apply to every view (e.g. GASB 84), spelled out under the chart on phones. */
   readonly keyAnnotations = computed(() => this.store.annotationNotes().filter((a) => a.universal));
 
