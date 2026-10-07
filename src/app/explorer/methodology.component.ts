@@ -5,20 +5,13 @@ import { CpiSeriesFile, SourceRecord } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
 
-/** Source caveats that must be visible, not only in the collapsed caveat list. */
-const NOT_CROSS_CHECKED = /^Not cross-checked against the county/i;
-
 /**
- * The caveat saying a county's EDR figures weren't cross-checked against the county-filed AFR.
- * Uses a structured flag when the data provides one (requested from the pipeline), else the
- * caveat's opening words. Exported for tests.
+ * The visible cross-check line for a county's EDR AFR source: the data's own summary of how the
+ * figures were checked against the county-filed AFR ("Not cross-checked…", "Spot check: …").
+ * Keyed off the structured `countyAfrCrossCheck` field; null for sources without it. Exported for tests.
  */
 export function crossCheckNotice(src: SourceRecord): string | null {
-  const flags = src as SourceRecord & { countyAfrCrossCheck?: string; crossCheckedAgainstCountyAfr?: boolean };
-  const flagged = flags.countyAfrCrossCheck === 'not-checked' || flags.crossCheckedAgainstCountyAfr === false;
-  const text = src.caveats.find((c) => NOT_CROSS_CHECKED.test(c));
-  if (flagged) return text ?? "Not cross-checked against the county's own Annual Financial Report.";
-  return text ?? null;
+  return src.countyAfrCrossCheck ? (src.crossCheckSummary ?? null) : null;
 }
 
 /** Plain statement of the active settings and every source in view. */

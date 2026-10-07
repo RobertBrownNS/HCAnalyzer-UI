@@ -29,9 +29,11 @@ function obs(jurisdiction: string, fiscalYear: number, amount: number): AfrObser
   };
 }
 
-const source = (id: string, title: string, caveats: string[] = []): SourceRecord => ({
-  id, publisher: 'EDR', title, url: 'https://example.test/' + id, retrieved: '2026-10-07', sha256: 'x', caveats,
+const source = (id: string, title: string, caveats: string[] = [], extra: Partial<SourceRecord> = {}): SourceRecord => ({
+  id, publisher: 'EDR', title, url: 'https://example.test/' + id, retrieved: '2026-10-07', sha256: 'x', caveats, ...extra,
 });
+const PINELLAS_SUMMARY = 'Not cross-checked against the county-filed Annual Financial Report.';
+const HILLSBOROUGH_SUMMARY = 'Spot check: 14 values in the county-filed Annual Financial Reports match the EDR workbook.';
 
 const cpiSeries = { sourceId: 'cpi', fiscalYear: {}, calendarYear: {}, fiscalYearUnavailable: {}, calendarYearUnavailable: {} };
 
@@ -48,8 +50,12 @@ const shared = {
   ],
   sources: [
     source('page', 'County Government Revenues and Expenditures (index page)'),
-    source('edr-afr-revenues-hillsborough', 'Hillsborough County Government Revenues Reported by Account'),
-    source('edr-afr-revenues-pinellas', 'Pinellas County Government Revenues Reported by Account', [PINELLAS_CAVEAT]),
+    source('edr-afr-revenues-hillsborough', 'Hillsborough County Government Revenues Reported by Account', [], {
+      countyAfrCrossCheck: 'spot-check', crossCheckSummary: HILLSBOROUGH_SUMMARY,
+    }),
+    source('edr-afr-revenues-pinellas', 'Pinellas County Government Revenues Reported by Account', [PINELLAS_CAVEAT], {
+      countyAfrCrossCheck: 'not-checked', crossCheckSummary: PINELLAS_SUMMARY,
+    }),
   ],
 };
 
@@ -110,10 +116,16 @@ describe('Explorer with a county selected', () => {
     const el = await open('/?county=pinellas');
     const sources = el.querySelector('app-methodology .sources')?.textContent ?? '';
     expect(sources).toContain('Pinellas County Government Revenues Reported by Account');
-    expect(sources).toContain(PINELLAS_CAVEAT);
-    // Visible on its own line, not only inside the collapsed caveat list.
+    expect(sources).toContain(PINELLAS_CAVEAT); // the explanation, in the caveat list
+    // The data's cross-check summary, visible on its own line (keyed off countyAfrCrossCheck).
     const notices = [...el.querySelectorAll('app-methodology .sources .notice')].map((n) => n.textContent?.trim());
-    expect(notices).toEqual([PINELLAS_CAVEAT]);
+    expect(notices).toEqual([PINELLAS_SUMMARY]);
+  });
+
+  it("shows Hillsborough's spot-check summary for Hillsborough", async () => {
+    const el = await open('/?county=hillsborough');
+    const notices = [...el.querySelectorAll('app-methodology .sources .notice')].map((n) => n.textContent?.trim());
+    expect(notices).toEqual([HILLSBOROUGH_SUMMARY]);
   });
 
   it('annotations follow the county', async () => {

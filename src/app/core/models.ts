@@ -96,6 +96,10 @@ export interface AfrObservation extends Observation {
 export interface SourceRecord extends Source {
   rawFile?: string;
   accessUrl?: string;
+  /** EDR AFR sources: how far the county's figures were checked against its own filed AFR. */
+  countyAfrCrossCheck?: 'not-checked' | 'spot-check' | 'full';
+  /** Plain-language statement of that check, for display. */
+  crossCheckSummary?: string;
 }
 
 export interface PopulationValue {
