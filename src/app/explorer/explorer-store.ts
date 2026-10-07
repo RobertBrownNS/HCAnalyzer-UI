@@ -7,8 +7,6 @@ import { coverageFor, crossCheckByYear } from '../core/cross-check';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
-  DEFAULT_JURISDICTION,
-  DEFAULT_SETTINGS,
   TransformSettings,
   annotationsInRange,
   availableYears,
@@ -16,7 +14,9 @@ import {
   defaultSettingsFor,
   fiscalYearLabel,
   selectCpi,
+  settingsWithDefaults,
 } from '../core/transform';
+import { DEFAULT_COUNTY } from '../core/site-config';
 import { SKELETON_DELAY_MS } from './skeleton';
 import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
@@ -60,7 +60,7 @@ export class ExplorerStore {
    * it. Settled first, because the data, the available years and the defaults all depend on it.
    */
   readonly county = computed(
-    () => normalizeCounty(parseSettings(this.queryParams()), this.counties()).jurisdiction ?? DEFAULT_JURISDICTION,
+    () => normalizeCounty(parseSettings(this.queryParams()), this.counties()).jurisdiction || DEFAULT_COUNTY,
   );
 
   /** "Pinellas County" and "Pinellas", from the data's own names. */
@@ -217,7 +217,7 @@ export class ExplorerStore {
     const jurisdiction = this.county();
     return data
       ? defaultSettingsFor(data, flow, jurisdiction)
-      : { ...DEFAULT_SETTINGS, flow, jurisdiction, range: [...DEFAULT_SETTINGS.range] };
+      : settingsWithDefaults(jurisdiction, { flow });
   }
 
   retry(): void {

@@ -1,8 +1,8 @@
 import { Component, computed, input } from '@angular/core';
 
-import { CROSS_CHECK_SHORT } from '../core/cross-check';
+import { crossCheckYearText } from '../core/cross-check';
 import { formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
-import { CrossCheckStatus } from '../core/models';
+import { CrossCheckRange } from '../core/models';
 import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
 
@@ -117,10 +117,10 @@ export class SeriesTableComponent {
   readonly settings = input.required<TransformSettings>();
   readonly valueLabel = input.required<string>();
   /** Cross-check status per year; null = the source has no coverage, so no column. */
-  readonly crossCheck = input<ReadonlyMap<number, CrossCheckStatus | null> | null>(null);
+  readonly crossCheck = input<ReadonlyMap<number, CrossCheckRange | null> | null>(null);
 
-  checkLabel(status: CrossCheckStatus | null): string {
-    return status ? CROSS_CHECK_SHORT[status] : '—';
+  checkLabel(range: CrossCheckRange | null): string {
+    return range ? crossCheckYearText(range, 'short') : '—';
   }
 
   readonly showPopulation = computed(() => isPerCapita(this.settings().measure));

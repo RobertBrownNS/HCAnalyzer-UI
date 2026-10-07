@@ -49,8 +49,12 @@ export interface TransformSettings {
   cpiPeriod: CpiPeriod;
   /** Interfund transfers. Missing = 'gross'. */
   transfers?: TransferMode;
-  /** Key into observations and population.json. Defaults to DEFAULT_JURISDICTION. */
-  jurisdiction?: string;
+  /**
+   * County slug: key into observations and population.json. Required; the
+   * transform has no default county (the app's default is
+   * manifest.defaultJurisdiction, from the pipeline county config).
+   */
+  jurisdiction: string;
 }
 
 export interface SeriesPoint {
@@ -94,16 +98,17 @@ export interface TransformData {
   sources: readonly SourceRecord[];
 }
 
-/** The jurisdiction used when settings don't name one. */
-export const DEFAULT_JURISDICTION = 'hillsborough';
+/** Every setting except the jurisdiction, which has no default here. */
+export type SettingsDefaults = Omit<TransformSettings, 'jurisdiction'>;
 
 /**
- * Static fallback defaults. The years are placeholders that cover the EDR
- * county files as of the 2026-10-06 build; buildSeries clips to the years that
- * exist. Prefer defaultSettingsFor(), which derives range and base year from
- * the loaded data for the chosen jurisdiction. Frozen: copy before changing.
+ * Static methodology defaults, with no jurisdiction. The years are placeholders
+ * that cover the EDR county files as of the 2026-10-06 build; buildSeries clips
+ * to the years that exist. Prefer defaultSettingsFor(), which derives range and
+ * base year from the loaded data for a jurisdiction. Frozen: copy before
+ * changing, or use settingsWithDefaults().
  */
-export const DEFAULT_SETTINGS: TransformSettings = Object.freeze({
+export const DEFAULT_SETTINGS: Readonly<SettingsDefaults> = Object.freeze({
   flow: 'revenue',
   measure: 'nominal',
   baseYear: 2025,
@@ -113,25 +118,23 @@ export const DEFAULT_SETTINGS: TransformSettings = Object.freeze({
   cpiIndex: 'cpi-u-us',
   cpiPeriod: 'fiscal',
   transfers: 'gross',
-  jurisdiction: DEFAULT_JURISDICTION,
-}) as TransformSettings;
+}) as SettingsDefaults;
+
+/** DEFAULT_SETTINGS for a jurisdiction, with `over` applied; a fresh, mutable object. */
+export function settingsWithDefaults(jurisdiction: string, over: Partial<SettingsDefaults> = {}): TransformSettings {
+  return { ...DEFAULT_SETTINGS, range: [...DEFAULT_SETTINGS.range], ...over, jurisdiction };
+}
 
 /**
  * DEFAULT_SETTINGS for one jurisdiction and flow, with range = that
  * jurisdiction's available years and baseYear = its latest year.
  */
-export function defaultSettingsFor(
-  data: TransformData,
-  flow: Flow = DEFAULT_SETTINGS.flow,
-  jurisdiction: string = DEFAULT_JURISDICTION,
-): TransformSettings {
+export function defaultSettingsFor(data: TransformData, flow: Flow, jurisdiction: string): TransformSettings {
   const years = availableYears(data, flow, jurisdiction);
-  if (years.length === 0) {
-    return { ...DEFAULT_SETTINGS, flow, jurisdiction, range: [...DEFAULT_SETTINGS.range] };
-  }
+  if (years.length === 0) return settingsWithDefaults(jurisdiction, { flow });
   const first = years[0];
   const last = years[years.length - 1];
-  return { ...DEFAULT_SETTINGS, flow, jurisdiction, baseYear: last, range: [first, last] };
+  return settingsWithDefaults(jurisdiction, { flow, baseYear: last, range: [first, last] });
 }
 
 /** Sorted jurisdictions that have at least one observation. */
@@ -140,11 +143,7 @@ export function availableJurisdictions(data: TransformData): string[] {
 }
 
 /** Sorted fiscal years that have at least one observation for the flow. */
-export function availableYears(
-  data: TransformData,
-  flow: Flow,
-  jurisdiction: string = DEFAULT_JURISDICTION,
-): number[] {
+export function availableYears(data: TransformData, flow: Flow, jurisdiction: string): number[] {
   const years = new Set<number>();
   for (const o of data.observations) {
     if (o.flow === flow && o.jurisdiction === jurisdiction) years.add(o.fiscalYear);
@@ -161,7 +160,7 @@ export function availableYears(
 export function annotationsInRange(data: TransformData, s: TransformSettings): AnnotationRecord[] {
   const [lo, hi] = normalizeRange(s.range);
   const custodial = s.includeCustodial ? 'included' : 'excluded';
-  const jurisdiction = s.jurisdiction ?? DEFAULT_JURISDICTION;
+  const { jurisdiction } = s;
   return data.annotations
     .filter(
       (a) =>
@@ -292,7 +291,7 @@ interface Measured {
 }
 
 export function buildSeries(data: TransformData, s: TransformSettings): SeriesPoint[] {
-  const jurisdiction = s.jurisdiction ?? DEFAULT_JURISDICTION;
+  const { jurisdiction } = s;
   const [lo, hi] = normalizeRange(s.range);
   const net = s.transfers === 'net';
   const allSums = sumByYear(data.observations, jurisdiction, s.includeCustodial, net);

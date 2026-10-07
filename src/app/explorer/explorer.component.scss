@@ -66,35 +66,6 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   gap: var(--fx-space-2);
 }
 
-.check-legend {
-  list-style: none;
-  padding: 0;
-  flex-wrap: wrap;
-  gap: var(--fx-space-1) var(--fx-space-3);
-
-  li {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--fx-space-1);
-  }
-}
-
-.marker {
-  flex: none;
-  width: var(--fx-space-3);
-  height: var(--fx-space-3);
-  color: var(--series-color);
-
-  .hollow {
-    fill: var(--fx-color-tile);
-    stroke: currentColor;
-    stroke-width: 1.5; // SVG user units (icon geometry)
-  }
-  .filled {
-    fill: currentColor;
-  }
-}
-
 .swatch {
   flex: none;
   width: var(--fx-space-3);

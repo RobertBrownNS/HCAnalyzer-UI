@@ -1,4 +1,4 @@
-import { coverageFor, crossCheckByYear, crossCheckStatus } from './cross-check';
+import { CROSS_CHECK_LABELS, coverageFor, crossCheckByYear, crossCheckStatus, crossCheckYearText } from './cross-check';
 import { CrossCheckRange, SourceRecord } from './models';
 
 // Revenue example from the pipeline: FY 2005-06..FY 2011-12 not checked, FY 2012-13..FY 2024-25 full.
@@ -52,11 +52,38 @@ describe('coverageFor / crossCheckByYear', () => {
 
   it('maps every year in view to its status', () => {
     const map = crossCheckByYear([2011, 2012, 2013, 2023], coverage)!;
-    expect([...map]).toEqual([
+    expect([...map].map(([fy, r]) => [fy, r?.status])).toEqual([
       [2011, 'not-checked'],
       [2012, 'not-checked'],
       [2013, 'full'],
       [2023, 'mismatch'],
     ]);
+  });
+});
+
+describe('mismatch wording (QA-35): the yearly total matches; never implies the plotted number is disputed', () => {
+  const mismatch = { fromFiscalYear: 2014, toFiscalYear: 2014, status: 'mismatch' as const };
+
+  it('legend states the total matches and an amount is classified differently', () => {
+    expect(CROSS_CHECK_LABELS.mismatch).toBe(
+      'Cross-checked: yearly total matches; an amount is classified differently in the county filing',
+    );
+  });
+
+  it('tooltip and table use the count from the data when it is there', () => {
+    expect(crossCheckYearText({ ...mismatch, classificationDifferences: 1 })).toBe('Total matches; 1 amount classified differently');
+    expect(crossCheckYearText({ ...mismatch, classificationDifferences: 3 }, 'short')).toBe(
+      'Total matches; 3 amounts classified differently',
+    );
+  });
+
+  it('falls back to "an amount" without a count', () => {
+    expect(crossCheckYearText(mismatch)).toBe('Total matches; an amount classified differently');
+    expect(crossCheckYearText(mismatch, 'short')).toBe('Total matches; an amount classified differently');
+  });
+
+  it('no wording suggests a disputed or wrong value', () => {
+    const all = [CROSS_CHECK_LABELS.mismatch, crossCheckYearText(mismatch)].join(' ');
+    expect(all).not.toMatch(/dispute|wrong|error|incorrect|not resolved|discrepan/i);
   });
 });

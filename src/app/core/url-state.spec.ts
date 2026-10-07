@@ -1,5 +1,8 @@
-import { DEFAULT_SETTINGS, TransformSettings } from './transform';
+import { TransformSettings, settingsWithDefaults } from './transform';
 import { normalizeSettings, parseSettings, sameParams, serializeSettings } from './url-state';
+
+/** Full settings for the default county (county names are fine in fixtures). */
+const DEFAULT_SETTINGS = settingsWithDefaults('hillsborough');
 
 const params = (q: string) => new URLSearchParams(q);
 

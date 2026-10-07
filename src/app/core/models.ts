@@ -1,5 +1,5 @@
 export interface Observation {
-  jurisdiction: string;   // "hillsborough"
+  jurisdiction: string;   // county slug, as listed in manifest.jurisdictions
   fiscalYear: number;     // 2021 = FY 2020-21
   account: string;        // e.g. "311" ad valorem taxes
   category: string;       // "ad_valorem" | "public_safety" | ...
@@ -27,7 +27,7 @@ export type YearSeries = Record<number, number>;
 
 /** Population estimates for one jurisdiction, keyed by year. */
 export interface PopulationSeries {
-  jurisdiction: string;   // "hillsborough" | "florida"
+  jurisdiction: string;   // county slug, or "florida" for statewide
   values: YearSeries;
   sourceId: string;
 }
@@ -112,6 +112,8 @@ export interface CrossCheckRange {
   fromFiscalYear: number;
   toFiscalYear: number;
   status: CrossCheckStatus;
+  /** Mismatch ranges: how many values are classified differently (if the data provides it). */
+  classificationDifferences?: number;
 }
 
 export interface PopulationValue {
@@ -131,7 +133,7 @@ export interface PopulationEntry {
   sourceId: string;
 }
 
-/** population.json: keyed by jurisdiction ("hillsborough"). */
+/** population.json: keyed by jurisdiction slug. */
 export type PopulationFile = Record<string, PopulationEntry>;
 
 /** One BLS series in cpi.json. Year maps are keyed by year as a string. */
@@ -175,7 +177,7 @@ export interface CpiFile {
   tampa_semiannual: CpiSeriesFile;
 }
 
-/** One row of hillsborough.workbook-totals.json (reference values for QA). */
+/** One row of <jurisdiction>.workbook-totals.json (reference values for QA). */
 export interface WorkbookTotal {
   fiscalYear: number;
   flow: Flow;

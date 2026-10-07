@@ -1,7 +1,7 @@
 import { crossCheckNotice } from './methodology.component';
 import { cssLengthToPx } from '../core/chart-palette';
 import { formatAxisValue, formatValue } from '../core/format';
-import { DEFAULT_SETTINGS, SeriesPoint, isTransferImbalanceNote } from '../core/transform';
+import { SeriesPoint, isTransferImbalanceNote, settingsWithDefaults } from '../core/transform';
 import { AnnotationRecord, SourceRecord } from '../core/models';
 import {
   annotationNotes,
@@ -14,6 +14,9 @@ import {
   markLineGroups,
 } from './view-notes';
 import { crossCheckMarker, tooltipHtml } from './series-chart.component';
+
+/** Full settings for the default county (county names are fine in fixtures). */
+const DEFAULT_SETTINGS = settingsWithDefaults('hillsborough');
 
 const point = (fy: number, notes: string[] = [], extra: Partial<SeriesPoint> = {}): SeriesPoint => ({
   fiscalYear: fy,
@@ -288,7 +291,11 @@ describe('cross-check markers and tooltip line', () => {
   });
 
   it('adds one line with the year’s cross-check status to the tooltip', () => {
-    const html = tooltipHtml(point(2010), DEFAULT_SETTINGS, 'Revenues', [], 'not-checked');
+    const html = tooltipHtml(point(2010), DEFAULT_SETTINGS, 'Revenues', [], {
+      fromFiscalYear: 2006,
+      toFiscalYear: 2012,
+      status: 'not-checked',
+    });
     expect(html).toContain('Not cross-checked against the county-filed AFR');
     expect(tooltipHtml(point(2010), DEFAULT_SETTINGS, 'Revenues')).not.toContain('cross-check');
   });

@@ -1,8 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { TransformSettings } from '../core/transform';
-import { DEFAULT_SETTINGS } from '../core/transform';
+import { TransformSettings, settingsWithDefaults } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
 import { RangeControlComponent } from './range-control.component';
 
@@ -10,7 +9,7 @@ class FakeStore {
   readonly years = signal([2006, 2007, 2008, 2009, 2010]);
   readonly loading = signal(false);
   readonly revealSkeleton = signal(true);
-  readonly settings = signal<TransformSettings>({ ...DEFAULT_SETTINGS, range: [2006, 2010] });
+  readonly settings = signal<TransformSettings>(settingsWithDefaults('hillsborough', { range: [2006, 2010] }));
   update = vi.fn((patch: Partial<TransformSettings>) => this.settings.update((s) => ({ ...s, ...patch })));
 }
 

@@ -161,7 +161,24 @@ describe('Explorer with a county selected', () => {
 
     it('shows a separate legend entry for years with unresolved differences', async () => {
       const el = await open('/?county=hillsborough&from=2020&to=2023');
-      expect(legend(el)).toEqual(['Cross-checked: differences with the county-filed AFR not resolved']);
+      expect(legend(el)).toEqual([
+        'Cross-checked: yearly total matches; an amount is classified differently in the county filing',
+      ]);
+    });
+
+    it('legend sits inside the fixed-height chart box, after the chart (no layout shift, QA-34)', async () => {
+      const el = await open('/?county=pinellas&from=2020&to=2023');
+      const legendEl = el.querySelector('.check-legend')!;
+      expect(legendEl.parentElement?.classList).toContain('figure');
+      expect(legendEl.previousElementSibling?.tagName).toBe('APP-SERIES-CHART');
+    });
+
+    it('chip accessible names are not doubled (QA-37)', async () => {
+      const el = await open('/?county=pinellas');
+      const names = [...el.querySelectorAll('.fx-chip')].map((c) => c.getAttribute('aria-label'));
+      expect(names[0]).toBe('County: Pinellas. Change');
+      expect(names[1]).toBe('Data: Revenues. Change');
+      expect(names.some((n) => /County: County/.test(n ?? ''))).toBe(false);
     });
 
     it('legend uses a marker shape plus text, not colour alone', async () => {

@@ -165,6 +165,39 @@
   }
 }
 
+// Legend of chart point markers: a marker shape (SVG) plus text per entry. Set --series-color.
+.fx-marker-legend {
+  flex: none;
+  display: flex;
+  margin: var(--fx-space-1) 0 0;
+  list-style: none;
+  padding: 0;
+  flex-wrap: wrap;
+  gap: var(--fx-space-1) var(--fx-space-3);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fx-space-1);
+  }
+}
+
+.fx-marker {
+  flex: none;
+  width: var(--fx-space-3);
+  height: var(--fx-space-3);
+  color: var(--series-color);
+
+  .hollow {
+    fill: var(--fx-color-tile);
+    stroke: currentColor;
+    stroke-width: 1.5; // SVG user units (icon geometry)
+  }
+  .filled {
+    fill: currentColor;
+  }
+}
+
 // Setting chip: opens a bottom sheet (phone).
 .fx-chip {
   flex: 0 0 auto;

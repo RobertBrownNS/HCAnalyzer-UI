@@ -2,8 +2,11 @@ import { Directive, input, output } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { NgxEchartsDirective } from 'ngx-echarts';
 
-import { DEFAULT_SETTINGS } from '../core/transform';
+import { settingsWithDefaults } from '../core/transform';
 import { SeriesChartComponent } from './series-chart.component';
+
+/** Full settings for the default county (county names are fine in fixtures). */
+const DEFAULT_SETTINGS = settingsWithDefaults('hillsborough');
 
 /** Stand-in for ngx-echarts (no canvas in jsdom); lets a test fire chartRendered. */
 @Directive({ selector: '[echarts]', exportAs: 'fakeEcharts' })

@@ -9,7 +9,7 @@ import { TransformData } from './transform';
 export interface ManifestFile {
   schemaVersion: number;
   dataVersion: string;
-  /** Counties with data, e.g. ["hillsborough", "pinellas"]. */
+  /** Counties with data, as lowercase slugs (see manifest.json). */
   jurisdictions: string[];
   /** Display names, e.g. { pinellas: "Pinellas County" }. */
   jurisdictionNames?: Record<string, string>;

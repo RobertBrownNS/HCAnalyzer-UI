@@ -30,6 +30,8 @@ export interface SettingChip {
   label: string;
   /** Accessible name: what the chip opens. */
   aria: string;
+  /** Full accessible name, e.g. "Data: Revenues. Change"; no doubled prefix (QA-37). */
+  ariaLabel?: string;
 }
 
 @Component({
@@ -96,7 +98,7 @@ export class ExplorerComponent {
   readonly crossCheckLegend = computed(() => {
     const check = this.store.crossCheck();
     if (!check) return [];
-    const present = new Set([...check.values()]);
+    const present = new Set([...check.values()].map((r) => r?.status));
     return (['not-checked', 'mismatch'] as const)
       .filter((status) => present.has(status))
       .map((status) => ({ status, label: CROSS_CHECK_LABELS[status] }));
@@ -155,7 +157,11 @@ export class ExplorerComponent {
         aria: 'Inflation index',
       });
     }
-    return chips;
+    // Labels that already name their setting ("County: Pinellas") aren't prefixed again (QA-37).
+    return chips.map((c) => ({
+      ...c,
+      ariaLabel: `${c.label.startsWith(`${c.aria}:`) ? c.label : `${c.aria}: ${c.label}`}. Change`,
+    }));
   });
 
   openSheet(group: ControlGroup): void {

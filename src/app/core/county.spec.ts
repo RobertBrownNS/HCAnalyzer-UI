@@ -1,6 +1,9 @@
 import { countyLabel, countyShortName } from './county';
 import { AnnotationRecord } from './models';
-import { DEFAULT_SETTINGS, TransformData, annotationsInRange } from './transform';
+import { TransformData, annotationsInRange, settingsWithDefaults } from './transform';
+
+/** Full settings for the default county (county names are fine in fixtures). */
+const DEFAULT_SETTINGS = settingsWithDefaults('hillsborough');
 
 describe('county names', () => {
   const names = { hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' };

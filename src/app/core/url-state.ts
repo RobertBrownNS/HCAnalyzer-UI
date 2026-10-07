@@ -3,12 +3,12 @@
 import {
   CpiIndex,
   CpiPeriod,
-  DEFAULT_JURISDICTION,
-  DEFAULT_SETTINGS,
   Measure,
   TransferMode,
   TransformSettings,
+  settingsWithDefaults,
 } from './transform';
+import { DEFAULT_COUNTY } from './site-config';
 import { Flow } from './models';
 
 export const QUERY_KEYS = ['flow', 'measure', 'base', 'idx', 'from', 'to', 'cust', 'cpi', 'cpiper', 'xfer', 'county'] as const;
@@ -35,7 +35,7 @@ function year(value: string | null): number | null {
   return Number(value);
 }
 
-/** County ids are lowercase slugs ("hillsborough", "miami-dade"); anything else is not a county. */
+/** County ids are lowercase slugs ("miami-dade"); anything else is not a county. */
 function county(value: string | null): string | null {
   return value !== null && /^[a-z]+(-[a-z]+)*$/.test(value) ? value : null;
 }
@@ -47,7 +47,10 @@ function flag(value: string | null, fallback: boolean): boolean {
 }
 
 /** Parses query params. Each invalid value falls back to the matching default on its own. */
-export function parseSettings(params: ParamSource, defaults: TransformSettings = DEFAULT_SETTINGS): TransformSettings {
+/** Methodology defaults for the default county (the URL can name another). */
+const SITE_DEFAULTS = (): TransformSettings => settingsWithDefaults(DEFAULT_COUNTY);
+
+export function parseSettings(params: ParamSource, defaults: TransformSettings = SITE_DEFAULTS()): TransformSettings {
   const from = year(params.get('from')) ?? defaults.range[0];
   const to = year(params.get('to')) ?? defaults.range[1];
   return {
@@ -60,7 +63,7 @@ export function parseSettings(params: ParamSource, defaults: TransformSettings =
     cpiIndex: oneOf(params.get('cpi'), CPI_INDEXES, defaults.cpiIndex),
     cpiPeriod: oneOf(params.get('cpiper'), CPI_PERIODS, defaults.cpiPeriod),
     transfers: oneOf(params.get('xfer'), TRANSFER_MODES, defaults.transfers ?? 'gross'),
-    jurisdiction: county(params.get('county')) ?? defaults.jurisdiction ?? DEFAULT_JURISDICTION,
+    jurisdiction: county(params.get('county')) ?? defaults.jurisdiction,
   };
 }
 
@@ -77,7 +80,7 @@ export function serializeSettings(s: TransformSettings): QueryParams {
     cpi: s.cpiIndex,
     cpiper: s.cpiPeriod,
     xfer: s.transfers ?? 'gross',
-    county: s.jurisdiction ?? DEFAULT_JURISDICTION,
+    county: s.jurisdiction,
   };
 }
 
@@ -88,10 +91,10 @@ export function serializeSettings(s: TransformSettings): QueryParams {
 export function normalizeCounty(
   s: TransformSettings,
   counties: readonly string[],
-  defaults: TransformSettings = DEFAULT_SETTINGS,
+  defaults: TransformSettings = SITE_DEFAULTS(),
 ): TransformSettings {
   if (counties.length === 0) return s;
-  const fallback = defaults.jurisdiction ?? DEFAULT_JURISDICTION;
+  const fallback = defaults.jurisdiction;
   const jurisdiction = s.jurisdiction && counties.includes(s.jurisdiction) ? s.jurisdiction : fallback;
   return jurisdiction === s.jurisdiction ? s : { ...s, jurisdiction };
 }
@@ -104,7 +107,7 @@ export function normalizeCounty(
 export function normalizeSettings(
   s: TransformSettings,
   years: readonly number[],
-  defaults: TransformSettings = DEFAULT_SETTINGS,
+  defaults: TransformSettings = SITE_DEFAULTS(),
 ): TransformSettings {
   if (years.length === 0) return s;
   const min = years[0];

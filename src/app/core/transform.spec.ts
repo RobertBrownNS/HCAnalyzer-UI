@@ -16,6 +16,8 @@ import {
   availableYears,
   buildSeries,
   DEFAULT_SETTINGS,
+  settingsWithDefaults,
+  type SettingsDefaults,
   defaultSettingsFor,
   fiscalYearLabel,
   formatUsd,
@@ -150,6 +152,7 @@ function settings(over: Partial<TransformSettings> = {}): TransformSettings {
     includeCustodial: false,
     cpiIndex: 'cpi-u-us',
     cpiPeriod: 'fiscal',
+    jurisdiction: 'hillsborough',
     ...over,
   };
 }
@@ -196,8 +199,8 @@ describe('DEFAULT_SETTINGS', () => {
       cpiIndex: 'cpi-u-us',
       cpiPeriod: 'fiscal',
       transfers: 'gross',
-      jurisdiction: 'hillsborough',
     });
+    expect('jurisdiction' in DEFAULT_SETTINGS).toBe(false);
   });
 
   it('is frozen, including the range tuple', () => {
@@ -206,17 +209,43 @@ describe('DEFAULT_SETTINGS', () => {
   });
 });
 
+describe('settingsWithDefaults', () => {
+  it('adds the jurisdiction and applies overrides to a fresh copy', () => {
+    const s = settingsWithDefaults('pasco', { measure: 'real', range: [2010, 2012] });
+    expect(s).toEqual({ ...DEFAULT_SETTINGS, measure: 'real', range: [2010, 2012], jurisdiction: 'pasco' });
+    const t = settingsWithDefaults('pasco');
+    expect(t).toEqual({ ...DEFAULT_SETTINGS, jurisdiction: 'pasco' });
+    expect(t.range).not.toBe(DEFAULT_SETTINGS.range);
+    t.range[0] = 1;
+    expect(DEFAULT_SETTINGS.range[0]).toBe(2005);
+  });
+
+  it('the jurisdiction argument wins over an override', () => {
+    const over = { jurisdiction: 'other' } as Partial<SettingsDefaults>;
+    expect(settingsWithDefaults('pasco', over).jurisdiction).toBe('pasco');
+  });
+});
+
 describe('defaultSettingsFor', () => {
-  it('uses the full available range and the latest year as base', () => {
+  it("uses the jurisdiction's full available range and latest year as base", () => {
     const d = fixture();
-    expect(defaultSettingsFor(d)).toEqual({ ...DEFAULT_SETTINGS, range: [2019, 2022], baseYear: 2022 });
-    expect(defaultSettingsFor(d, 'expenditure')).toMatchObject({ flow: 'expenditure', range: [2018, 2019], baseYear: 2019 });
-    expect(defaultSettingsFor(d, 'revenue', 'pasco')).toMatchObject({ range: [2019, 2019], baseYear: 2019 });
+    expect(defaultSettingsFor(d, 'revenue', 'hillsborough')).toEqual({
+      ...DEFAULT_SETTINGS,
+      range: [2019, 2022],
+      baseYear: 2022,
+      jurisdiction: 'hillsborough',
+    });
+    expect(defaultSettingsFor(d, 'expenditure', 'hillsborough')).toMatchObject({
+      flow: 'expenditure',
+      range: [2018, 2019],
+      baseYear: 2019,
+    });
+    expect(defaultSettingsFor(d, 'revenue', 'pasco')).toMatchObject({ range: [2019, 2019], baseYear: 2019, jurisdiction: 'pasco' });
   });
 
   it('falls back to DEFAULT_SETTINGS when there is no data, with a mutable copy of the range', () => {
-    const s = defaultSettingsFor({ ...fixture(), observations: [] }, 'expenditure');
-    expect(s).toEqual({ ...DEFAULT_SETTINGS, flow: 'expenditure' });
+    const s = defaultSettingsFor({ ...fixture(), observations: [] }, 'expenditure', 'pasco');
+    expect(s).toEqual({ ...DEFAULT_SETTINGS, flow: 'expenditure', jurisdiction: 'pasco' });
     expect(Object.isFrozen(s.range)).toBe(false);
     expect(s.range).not.toBe(DEFAULT_SETTINGS.range);
   });
@@ -225,15 +254,15 @@ describe('defaultSettingsFor', () => {
 describe('availableYears', () => {
   it('returns sorted unique years per flow and jurisdiction', () => {
     const d = fixture();
-    expect(availableYears(d, 'revenue')).toEqual([2019, 2020, 2021, 2022]);
-    expect(availableYears(d, 'expenditure')).toEqual([2018, 2019]);
+    expect(availableYears(d, 'revenue', 'hillsborough')).toEqual([2019, 2020, 2021, 2022]);
+    expect(availableYears(d, 'expenditure', 'hillsborough')).toEqual([2018, 2019]);
     expect(availableYears(d, 'revenue', 'pasco')).toEqual([2019]);
     expect(availableYears(d, 'revenue', 'nowhere')).toEqual([]);
   });
 
   it('sorts numerically regardless of input order', () => {
     const d = { ...fixture(), observations: [obs(2010, 'general', 1), obs(2009, 'general', 1), obs(2100, 'general', 1)] };
-    expect(availableYears(d, 'revenue')).toEqual([2009, 2010, 2100]);
+    expect(availableYears(d, 'revenue', 'hillsborough')).toEqual([2009, 2010, 2100]);
   });
 });
 
@@ -362,7 +391,7 @@ describe('buildSeries: nominal', () => {
     }
   });
 
-  it('ignores other jurisdictions by default and selects one when asked', () => {
+  it('sums only the selected jurisdiction', () => {
     expect(values(buildSeries(fixture(), settings({ range: [2019, 2019] })))).toEqual([150]);
     expect(values(buildSeries(fixture(), settings({ range: [2019, 2019], jurisdiction: 'pasco' })))).toEqual([999]);
   });
@@ -754,8 +783,8 @@ describe('buildSeries: purity', () => {
     const s = deepFreeze(settings({ measure: 'real_per_capita', indexTo100: true, baseYear: 2021, includeCustodial: true }));
     expect(() => buildSeries(d, s)).not.toThrow();
     expect(() => annotationsInRange(d, s)).not.toThrow();
-    expect(() => availableYears(d, 'revenue')).not.toThrow();
-    expect(() => defaultSettingsFor(d)).not.toThrow();
+    expect(() => availableYears(d, 'revenue', 'hillsborough')).not.toThrow();
+    expect(() => defaultSettingsFor(d, 'revenue', 'hillsborough')).not.toThrow();
   });
 
   it('leaves inputs structurally unchanged', () => {
@@ -780,8 +809,8 @@ describe('buildSeries: purity', () => {
     expect(buildSeries(d, s)).toEqual(b);
   });
 
-  it('works with DEFAULT_SETTINGS directly (frozen)', () => {
-    expect(() => buildSeries(fixture(), DEFAULT_SETTINGS)).not.toThrow();
+  it('works with frozen DEFAULT_SETTINGS spread in', () => {
+    expect(() => buildSeries(fixture(), { ...DEFAULT_SETTINGS, jurisdiction: 'hillsborough' })).not.toThrow();
   });
 });
 
@@ -1125,6 +1154,11 @@ describe('golden: manifest', () => {
   it('lists at least one jurisdiction, each with observations', () => {
     expect(JURISDICTIONS.length).toBeGreaterThan(0);
     expect(availableJurisdictions(realData)).toEqual([...JURISDICTIONS].sort());
+  });
+
+  it('defaultJurisdiction is one of the listed jurisdictions', () => {
+    const { defaultJurisdiction } = readJson<{ defaultJurisdiction: string }>('manifest.json');
+    expect(JURISDICTIONS).toContain(defaultJurisdiction);
   });
 });
 

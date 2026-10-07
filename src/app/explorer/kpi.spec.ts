@@ -1,6 +1,9 @@
 import { AfrObservation, CpiFile, PopulationFile } from '../core/models';
-import { DEFAULT_SETTINGS, SeriesPoint, TransformData, TransformSettings, buildSeries } from '../core/transform';
+import { SeriesPoint, TransformData, TransformSettings, buildSeries, settingsWithDefaults } from '../core/transform';
 import { kpiCards, measureCaption } from './kpi';
+
+/** Full settings for the default county (county names are fine in fixtures). */
+const DEFAULT_SETTINGS = settingsWithDefaults('hillsborough');
 
 const pt = (fiscalYear: number, value: number | null, custodialNominal = 0): SeriesPoint => ({
   fiscalYear,
