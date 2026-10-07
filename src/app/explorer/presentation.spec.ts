@@ -1,3 +1,4 @@
+import { crossCheckNotice } from './methodology.component';
 import { cssLengthToPx } from '../core/chart-palette';
 import { formatAxisValue, formatValue } from '../core/format';
 import { DEFAULT_SETTINGS, SeriesPoint, isTransferImbalanceNote } from '../core/transform';
@@ -254,5 +255,20 @@ describe('labelBaseYearNotes (QA-19)', () => {
   it('leaves points unchanged without a base-year gap', () => {
     const pts = [point(2015, ['x'])];
     expect(labelBaseYearNotes(pts, null, 'FY 2009-10')).toEqual(pts);
+  });
+});
+
+describe('crossCheckNotice', () => {
+  const src = (extra: Partial<SourceRecord>): SourceRecord =>
+    ({ id: 's', publisher: 'EDR', title: 't', url: 'u', retrieved: 'r', sha256: 'x', caveats: [], ...extra }) as SourceRecord;
+
+  it('shows the summary for every cross-check status, including partial', () => {
+    for (const status of ['not-checked', 'spot-check', 'partial', 'full'] as const) {
+      expect(crossCheckNotice(src({ countyAfrCrossCheck: status, crossCheckSummary: `Summary ${status}` }))).toBe(`Summary ${status}`);
+    }
+  });
+
+  it('shows nothing for sources without a cross-check status', () => {
+    expect(crossCheckNotice(src({}))).toBeNull();
   });
 });
