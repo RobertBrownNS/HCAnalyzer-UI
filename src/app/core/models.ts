@@ -40,3 +40,90 @@ export interface CpiSeries {
   values: YearSeries;
   sourceId: string;
 }
+
+// ---------------------------------------------------------------------------
+// Shapes of the files in src/assets/data/ (see docs/data-layout.md).
+// The CLAUDE.md interfaces above are kept as the common core; these add the
+// fields the pipeline actually writes.
+// ---------------------------------------------------------------------------
+
+export type Flow = 'revenue' | 'expenditure';
+
+/** One non-zero fund cell of one account row. Zero cells are omitted (= $0). */
+export interface AfrObservation extends Observation {
+  flow: Flow;
+  /** Major UAS group, e.g. "taxes", "public_safety". */
+  section: string;
+  /** Workbook sheet and cell, e.g. "2025!D6". */
+  ref: string;
+}
+
+/** sources.json rows: CLAUDE.md Source plus the file actually downloaded. */
+export interface SourceRecord extends Source {
+  rawFile?: string;
+  accessUrl?: string;
+}
+
+export interface PopulationValue {
+  value: number;
+  /** e.g. "bebr_estimate", "bebr_revised_estimate", "census_count". */
+  basis: string;
+  /** FLcopops.xlsx sheet name, e.g. "2025 BEBR". */
+  sheet: string;
+}
+
+/** population.json[jurisdiction]. byYear is keyed by April 1 year = fiscalYear. */
+export interface PopulationEntry {
+  byYear: Record<string, PopulationValue>;
+  alternates?: Record<string, PopulationValue[]>;
+  fiscalYearAlignment?: string;
+  reference?: string;
+  sourceId: string;
+}
+
+/** population.json: keyed by jurisdiction ("hillsborough"). */
+export type PopulationFile = Record<string, PopulationEntry>;
+
+/** One BLS series in cpi.json. Year maps are keyed by year as a string. */
+export interface CpiSeriesFile {
+  area: string;
+  basePeriod: string;
+  seriesId: string;
+  sourceId: string;
+  title: string;
+  frequency: string;
+  /** Oct-Sep mean keyed by fiscalYear (computed by the pipeline). */
+  fiscalYear: Record<string, number>;
+  fiscalYearBasis: string;
+  fiscalYearUnavailable: Record<string, string>;
+  /** BLS-published annual average keyed by calendar year. */
+  calendarYear: Record<string, number>;
+  calendarYearBasis: string;
+  calendarYearUnavailable: Record<string, string>;
+  monthly: Record<string, number>;
+  semiannual: Record<string, number>;
+  missingMonths: Record<string, string>;
+}
+
+/**
+ * cpi.json. `tampa` is the bimonthly series (fiscal-year values FY 2017-18+);
+ * `tampa_semiannual` carries the Tampa calendar-year averages from 2000.
+ */
+export interface CpiFile {
+  national: CpiSeriesFile;
+  tampa: CpiSeriesFile;
+  tampa_semiannual: CpiSeriesFile;
+}
+
+/** One row of hillsborough.workbook-totals.json (reference values for QA). */
+export interface WorkbookTotal {
+  fiscalYear: number;
+  flow: Flow;
+  label: string;
+  sheet: string;
+  row: number;
+  byFund: Record<string, number>;
+  total: number;
+  perCapita: number;
+  population: number;
+}
