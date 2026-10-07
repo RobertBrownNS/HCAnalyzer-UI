@@ -1,5 +1,5 @@
 {
-  "dataVersion": "5bb7e2af98f7d30a",
+  "dataVersion": "df51b6697e5126bc",
   "generator": "scripts/pipeline (npm run build)",
   "inputs": [
     {
@@ -45,16 +45,25 @@
     {
       "path": "data/raw/edr/hillsboroughcountyrevenues.xlsx",
       "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0"
+    },
+    {
+      "path": "data/raw/edr/pinellascountyexpenditures.xlsx",
+      "sha256": "d148689269f529c232af68595e3b2221ab2175f73747805d96bf5b9fb18c0392"
+    },
+    {
+      "path": "data/raw/edr/pinellascountyrevenues.xlsx",
+      "sha256": "370f27c0e27099859a4572ae45ba14b5551bc78affbb8bbdc1700018ac733327"
     }
   ],
   "jurisdictions": [
-    "hillsborough"
+    "hillsborough",
+    "pinellas"
   ],
   "outputs": [
     {
-      "bytes": 12693,
+      "bytes": 23865,
       "path": "annotations.json",
-      "sha256": "910adb79547053e2d748e6568ffb63e0f7a2b1c87566b9d091b8a8e239ccca7d"
+      "sha256": "2332d518a489807d02046a75f276f7072efcb67a6abf0a358f5b9d1b840dc540"
     },
     {
       "bytes": 27527,
@@ -77,14 +86,29 @@
       "sha256": "dff7bc429d6bae21c3bc45ebdffbb15b38e64d1535b12b1c1fc0e6802ab6ea39"
     },
     {
-      "bytes": 6771,
-      "path": "population.json",
-      "sha256": "8905dc0045d98350202200f1d223f72e688b954c5275e6043436c6fcc4f52038"
+      "bytes": 94703,
+      "path": "pinellas.accounts.json",
+      "sha256": "a22ae2c61b29e34f90633ad7644032b1483b6e2c4f8fc2dc49244d3992d98efe"
     },
     {
-      "bytes": 21827,
+      "bytes": 1401694,
+      "path": "pinellas.observations.json",
+      "sha256": "05b441c10f7af41cc2772dd2bb1f7c6f62263af70bd83bdd2f8c7846ebb577cc"
+    },
+    {
+      "bytes": 16041,
+      "path": "pinellas.workbook-totals.json",
+      "sha256": "9ad1eec8f8a1538c432a3a85cb664282ab6afda83f5824ac603d79ecea10afc3"
+    },
+    {
+      "bytes": 13509,
+      "path": "population.json",
+      "sha256": "829bac983772d9fbf454f0a8b2afaeb6914e9011e3f773d25d413f2526077574"
+    },
+    {
+      "bytes": 32220,
       "path": "sources.json",
-      "sha256": "6e96165680dc6696fee2652e287c9a99463458a0ced78bf03ab100f8716fffc6"
+      "sha256": "867c182106061cdcecd8d549e14f2479a36221856b50327924a4d1dac5bff14b"
     }
   ],
   "schemaVersion": 1

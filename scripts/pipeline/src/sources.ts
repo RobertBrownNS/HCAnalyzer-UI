@@ -75,6 +75,7 @@ export function afrSource(county: CountyConfig, flow: 'revenue' | 'expenditure',
       `Amounts are as reported by the county in its Annual Financial Report; ${years} include inter-fund transfers (${flow === 'revenue' ? 'account 381' : 'account 581'}), so summing across funds counts money moved between county funds in both the sending and receiving fund.`,
       'Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).',
       'Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.',
+      ...(county.afrCaveats ?? []),
     ],
   };
 }

@@ -14,6 +14,8 @@ export interface CountyConfig {
    * Optional: the county's own Annual Financial Report (the DFS form it filed with the Florida CFO),
    * as published by the county. Used only to cross-check EDR's transcription; never as a data source.
    */
+  /** Extra caveats copied into this county's two EDR AFR Source records. */
+  afrCaveats?: string[];
   countyAfr?: {
     publisher: string;
     /** Page that lists the files. */
@@ -45,5 +47,14 @@ export const COUNTIES: CountyConfig[] = [
         },
       ],
     },
+  },
+  {
+    slug: 'pinellas',
+    name: 'Pinellas County',
+    edrFileStem: 'pinellascounty',
+    populationName: 'Pinellas',
+    afrCaveats: [
+      "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals.",
+    ],
   },
 ];

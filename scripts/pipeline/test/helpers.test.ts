@@ -54,7 +54,9 @@ describe('account codes', () => {
     expect(classifyAccount('revenue', '331.51').section).toBe('intergovernmental');
     expect(classifyAccount('revenue', '367').section).toBe('miscellaneous');
     expect(classifyAccount('revenue', '381').section).toBe('other_sources');
-    expect(() => classifyAccount('revenue', '391')).toThrow();
+    expect(classifyAccount('revenue', '392').section).toBe('other_sources'); // Extraordinary Items (Pinellas FY 2007-08)
+    expect(classifyAccount('revenue', '393').section).toBe('other_sources'); // Special Items (Pinellas FY 2016-17)
+    expect(() => classifyAccount('revenue', '401')).toThrow();
   });
 
   it('classifies expenditures by function, court-related 600-799', () => {

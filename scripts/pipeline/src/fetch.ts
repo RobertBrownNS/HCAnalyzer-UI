@@ -3,7 +3,8 @@
  * data/raw/manifest.json. This is the only non-deterministic step; `npm run build` works
  * offline from the committed raw files.
  *
- *   npm run fetch
+ *   npm run fetch                      every raw file
+ *   npm run fetch -- --county pinellas  only that county's files (shared files untouched)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -92,15 +93,25 @@ async function main() {
   }
 }
 
-async function downloadAll(log: RetrievalLog, attempt: (what: string, fn: () => Promise<void>) => Promise<void>) {
+/** `--county <slug>` restricts the run to one county's own files. */
+function countyFilter(): string | null {
+  const i = process.argv.indexOf('--county');
+  if (i < 0) return null;
+  const slug = process.argv[i + 1];
+  if (!COUNTIES.some((c) => c.slug === slug)) throw new Error(`--county ${slug}: not in config/counties.ts`);
+  return slug;
+}
 
-  for (const county of COUNTIES) {
+async function downloadAll(log: RetrievalLog, attempt: (what: string, fn: () => Promise<void>) => Promise<void>) {
+  const only = countyFilter();
+  const counties = COUNTIES.filter((c) => !only || c.slug === only);
+  for (const county of counties) {
     for (const flow of ['revenues', 'expenditures'] as const) {
       const url = `${EDR_AFR_BASE}${county.edrFileStem}${flow}.xlsx`;
       await attempt(url, async () => record(log, edrAfrPath(county.edrFileStem, flow), await download(url), { url, publisher: EDR, method: 'HTTP GET' }));
     }
   }
-  for (const county of COUNTIES) {
+  for (const county of counties) {
     for (const f of county.countyAfr?.files ?? []) {
       await attempt(f.url, async () =>
         record(log, countyAfrPath(county.slug, f.fiscalYear), await download(f.url), {
@@ -111,6 +122,7 @@ async function downloadAll(log: RetrievalLog, attempt: (what: string, fn: () => 
       );
     }
   }
+  if (only) return;
   await attempt(EDR_POPULATION_URL, async () =>
     record(log, POPULATION_FILE, await download(EDR_POPULATION_URL), { url: EDR_POPULATION_URL, publisher: EDR, method: 'HTTP GET' }),
   );

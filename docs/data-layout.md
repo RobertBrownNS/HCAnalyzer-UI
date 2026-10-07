@@ -1,6 +1,6 @@
 # Data layout
 
-What the raw files look like, how the pipeline reads them, and what it writes. Every statement about the raw files comes from inspecting the files in `data/raw/` (retrieved 2026-10-06). `data/validation.md` has the numbers that back the checks.
+What the raw files look like, how the pipeline reads them, and what it writes. Every statement about the raw files comes from inspecting the files in `data/raw/` (Hillsborough retrieved 2026-10-06, Pinellas 2026-10-07). Counties are a switch: the site shows one county at a time, and each county gets its own output files. `data/validation.md` has the numbers that back the checks.
 
 ## Running the pipeline
 
@@ -14,7 +14,9 @@ npm run pipeline:refresh  # fetch + pipeline
 
 - `build` works offline and is deterministic: the same raw bytes give the same output bytes. It refuses to run if a raw file's sha256 differs from `data/raw/manifest.json`.
 - `validate` rebuilds in memory, requires the files on disk to match byte for byte, re-checks every total against the workbooks, writes `data/validation.md`, and exits 1 on any failure.
-- Counties are configured in `scripts/pipeline/config/counties.ts`. Only Hillsborough is listed.
+- Counties are configured in `scripts/pipeline/config/counties.ts`: Hillsborough and Pinellas.
+- `npm run fetch -- --county <slug>` downloads only that county's own files and leaves the shared files (population, CPI, EDR index page) alone.
+- `build` deletes `<slug>.observations|accounts|workbook-totals.json` files for counties that are no longer configured, and validation fails if any remain.
 
 ## Raw files (`data/raw/`)
 
@@ -22,6 +24,8 @@ npm run pipeline:refresh  # fetch + pipeline
 |---|---|---|---|
 | `edr/hillsboroughcountyrevenues.xlsx` | EDR | `.../cntyfiscal/hillsboroughcountyrevenues.xlsx` | Revenues by account and fund, FY 2005-06 to FY 2024-25 (20 sheets) |
 | `edr/hillsboroughcountyexpenditures.xlsx` | EDR | `.../cntyfiscal/hillsboroughcountyexpenditures.xlsx` | Expenditures by account and fund, FY 2004-05 to FY 2024-25 (21 sheets) |
+| `edr/pinellascountyrevenues.xlsx` | EDR | `.../cntyfiscal/pinellascountyrevenues.xlsx` | Pinellas revenues, FY 2005-06 to FY 2024-25 (20 sheets) |
+| `edr/pinellascountyexpenditures.xlsx` | EDR | `.../cntyfiscal/pinellascountyexpenditures.xlsx` | Pinellas expenditures, FY 2004-05 to FY 2024-25 (21 sheets) |
 | `edr/cntyfiscal.html` | EDR | `.../revenues-expenditures/cntyfiscal.cfm` | Index page, saved for its GASB 84 data-use notice. The page changes on every download, so its hash changes too |
 | `edr-population/FLcopops.xlsx` | EDR (BEBR estimates) | `.../population-demographics/data/FLcopops.xlsx` | April 1 county population, 1972-2025 |
 | `bls/CUUR0000SA0.json` | BLS | API v2 | CPI-U, U.S. city average, monthly, 2000-01 to 2026-08, plus annual averages |
@@ -235,6 +239,31 @@ The county's own Annual Financial Reports, as filed with the Florida CFO and pub
 | 2021-22 / 2024-25 | 581 General; 521 General (2024-25) | $121,329,000 (p. 18); $341,118,887 and $680,677,907 (pp. 14, 11) | `2022!D54`, `2025!D56`, `2025!D16` |
 
 So EDR transcribed the county filings faithfully, and the change in classification is in the county's filings. The audited ACFRs for FY 2023 and FY 2024 are on the same Clerk page and were not examined. DFS LOGERX was not needed. Published values are not corrected.
+
+## Pinellas County
+
+The workbooks have the same structure as Hillsborough's: the same sheets and years, header row 4, the same two column layouts (Custodial and Private Purpose added from FY 2020-21), the same section headings (all already mapped), and the same total, population and footnote rows. All checks in `data/validation.md` pass for Pinellas.
+
+Differences from Hillsborough:
+
+| Topic | Pinellas | Handling |
+|---|---|---|
+| Revenue accounts 39x | 392 Extraordinary Items (Gain), FY 2007-08, Enterprise $9,618,265 (`revenues:2008!I131`); 393 Non-Operating - Special Items (Gain), FY 2016-17, Enterprise $12,521,614 (`revenues:2017!I126`). Both printed under "Other Sources" | 39x classified as `other_sources` |
+| Section placement | 367 Licenses printed under "Permits, Fees, and Special Assessments" in FY 2009-10, FY 2010-11 and FY 2012-13 to FY 2018-19; 313.5 printed under "Franchise Fees, Licenses, and Permits" in FY 2006-07 | Classified by code; documented per county in validation |
+| Custodial timing | Column present from FY 2020-21, $0 in FY 2020-21 and FY 2021-22, first amounts in FY 2022-23 (revenue $6,221,197,931, expenditure $6,219,926,164) | `custodial-zero` rows for FY 2020-21 and FY 2021-22 plus a `custodial-start` research note at FY 2022-23 (both flows) |
+| Custodial accounts | Revenue: 311, 341.9, 367, 348.42, 369.9, 342.1 (311 drops out in FY 2024-25 and 369.9 carries $3.48B). Expenditure: 513, 604, 521 | `custodial-accounts` rows |
+| Transfers 381/581 | Equal to the dollar in 17 of 20 years. FY 2005-06: 581 exceeds 381 by $283,213,259; FY 2021-22: by $13,778,002; FY 2022-23: by $369,300 (below the $1,000,000 threshold, no note) | Approved `transfer-imbalance` annotations for FY 2005-06 and FY 2021-22 |
+| Rounding | No years reported rounded to $1,000 | none |
+| Population | 2009 estimate 931,113, 2010 census 916,542 (−1.6%); revised 2020 estimate 984,054, 2021 estimate 964,490 (−2.0%; 2020 census 959,107) | `population-source` rows (per-resident measures) |
+| Drop-and-recover gaps | 3: revenue Special Revenue funds FY 2009-10 to FY 2010-11; revenue Component Units FY 2016-17; expenditure Capital funds FY 2010-11 to FY 2011-12 | Listed in validation for reference; not annotated |
+| County-filed AFR cross-check | None. The Pinellas Clerk's "Annual Financial Report" is the audited ACFR (GAAP functions, not UAS accounts); the DFS-form AFR is only in DFS LOGERX | Source caveat: "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals." |
+
+## Annotation approvals
+
+- Transfer-imbalance years are annotated only when listed in `scripts/pipeline/config/approved-annotations.ts`. Rule: \|581 − 381\| over all funds except custodial > $1,000,000. The build fails if a flagged year is not listed, or a listed year is no longer flagged. Approved: Hillsborough FY 2022-23 and FY 2023-24; Pinellas FY 2005-06 and FY 2021-22.
+- Research notes for a single county (where no other county has a comparable issue) are listed in the same file. Today there is one: Pinellas `custodial-start`.
+- Drop-and-recover gaps: `config/approved-gaps.ts` (unchanged).
+- The population source is shared by every county, so its generated caveats start with the county name.
 
 ## Quirks the transform engineer and QA need to know
 

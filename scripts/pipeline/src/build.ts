@@ -5,13 +5,14 @@
  *
  *   npm run build
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig, type ParsedCpi } from './bls/cpi.js';
 import type { AfrSheet } from './edr/afr.js';
 import { generateAnomalies, type Annotation } from './edr/anomalies.js';
 import { countyAfrNote } from './edr/county-afr-checks.js';
+import { APPROVED_TRANSFER_IMBALANCES, RESEARCH_NOTES } from '../config/approved-annotations.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import { toAccounts, toObservations } from './edr/observations.js';
 import { selectPopulation } from './edr/population.js';
@@ -22,6 +23,9 @@ import { loadInputs, retrievalFor, type Inputs } from './inputs.js';
 import { afrSource, countyAfrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
 
 export const SCHEMA_VERSION = 1;
+
+/** Output files written once per county: <slug>.observations.json etc. */
+export const PER_COUNTY_FILE = /^[a-z0-9-]+\.(observations|accounts|workbook-totals)\.json$/;
 
 
 /** Arrays of flat records: one JSON object per line, so git diffs stay readable. */
@@ -185,6 +189,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     }
     const generated = generateAnomalies({
       jurisdiction: county.slug,
+      jurisdictionName: county.name,
       revenues: revenues.sheets,
       expenditures: expenditures.sheets,
       revenueSourceId: revId,
@@ -194,6 +199,8 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       countyAfrNote: (fy, topic) =>
         countyAfrFiles.some((x) => x.fiscalYear === fy) ? countyAfrNote(county.slug, fy, topic, `${county.name} Annual Financial Report for ${fiscalYearLabel(fy)}`) : undefined,
       approvedGaps: APPROVED_GAPS,
+      approvedTransferImbalances: APPROVED_TRANSFER_IMBALANCES,
+      researchNotes: RESEARCH_NOTES,
     });
     generatedAnnotations.push(...generated.annotations);
     for (const [id, list] of generated.caveats) extraCaveats.set(id, [...(extraCaveats.get(id) ?? []), ...list]);
@@ -282,6 +289,13 @@ async function main() {
   const inputs = await loadInputs();
   const files = buildOutputs(inputs);
   mkdirSync(OUT_DIR, { recursive: true });
+  // Per-county files for counties no longer configured would otherwise linger outside the manifest.
+  for (const name of readdirSync(OUT_DIR)) {
+    if (PER_COUNTY_FILE.test(name) && !files.has(name)) {
+      rmSync(path.join(OUT_DIR, name));
+      console.log(`removed stale ${rel(path.join(OUT_DIR, name))}`);
+    }
+  }
   for (const [name, content] of files) {
     writeFileSync(path.join(OUT_DIR, name), content);
     console.log(`wrote ${rel(path.join(OUT_DIR, name))} (${Buffer.byteLength(content).toLocaleString('en-US')} bytes)`);

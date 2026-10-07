@@ -4,13 +4,13 @@
  *
  *   npm run validate
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { averageOf, calendarYearMonths, round3 } from './bls/cpi.js';
 import { classifyAccount, normalizeHeading, SECTION_HEADINGS } from './edr/accounts.js';
 import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
-import { buildOutputs } from './build.js';
+import { buildOutputs, PER_COUNTY_FILE } from './build.js';
 import { indexComparisonSection } from './index-comparison.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import {
@@ -46,12 +46,37 @@ interface Check {
  * Differences that are understood and documented. Anything not listed here fails validation.
  * Key format is check-specific; see where each list is consulted.
  */
-const KNOWN_SECTION_PLACEMENTS: Record<string, string> = {
-  // EDR printed account 367 (Licenses) under "Permits, Fees, and Special Assessments" in these
-  // years; by its Uniform Accounting System code it belongs to Miscellaneous Revenues (36x),
-  // where EDR prints it from FY 2019-20 on. The pipeline classifies by code.
-  'revenue|367|2010-2019': 'Account 367 (Licenses) printed under "Permits, Fees, and Special Assessments" in FY 2009-10 to FY 2018-19; classified by code as miscellaneous.',
-};
+interface KnownPlacement {
+  jurisdiction: string;
+  flow: 'revenue' | 'expenditure';
+  account: string;
+  /** Section heading as printed. */
+  heading: string;
+  /** Exactly the fiscal years in which the account is printed under that heading. */
+  fiscalYears: number[];
+  note: string;
+}
+
+const KNOWN_SECTION_PLACEMENTS: KnownPlacement[] = [
+  // EDR printed account 367 (Licenses) under the permits heading in these years; by its Uniform
+  // Accounting System code it belongs to Miscellaneous Revenues (36x). The pipeline classifies by code.
+  {
+    jurisdiction: 'hillsborough', flow: 'revenue', account: '367', heading: 'Permits, Fees, and Special Assessments',
+    fiscalYears: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019],
+    note: 'Account 367 (Licenses) printed under "Permits, Fees, and Special Assessments" in FY 2009-10 to FY 2018-19; classified by code as miscellaneous.',
+  },
+  {
+    jurisdiction: 'pinellas', flow: 'revenue', account: '367', heading: 'Permits, Fees, and Special Assessments',
+    fiscalYears: [2010, 2011, 2013, 2014, 2015, 2016, 2017, 2018, 2019],
+    note: 'Account 367 (Licenses) printed under "Permits, Fees, and Special Assessments" in FY 2009-10, FY 2010-11 and FY 2012-13 to FY 2018-19; classified by code as miscellaneous.',
+  },
+  // Account 313.5 (a franchise fee code in the 31x taxes group) printed under a 32x heading.
+  {
+    jurisdiction: 'pinellas', flow: 'revenue', account: '313.5', heading: 'Franchise Fees, Licenses, and Permits',
+    fiscalYears: [2007],
+    note: 'Account 313.5 printed under "Franchise Fees, Licenses, and Permits" in FY 2006-07; classified by code as taxes.',
+  },
+];
 
 const KNOWN_CPI_DIFFERENCES: Record<string, string> = {
   'CUUSS35DSA0|2025': 'BLS published no October 2025 index values (footnote: data unavailable due to the 2025 lapse in appropriations). For 2025 the published S01 and S02 averages do not average to the published S03 annual value; S03 is used as published.',
@@ -159,6 +184,9 @@ async function main() {
     const file = path.join(OUT_DIR, o.path);
     return !existsSync(file) || sha256(readFileSync(file)) !== o.sha256;
   });
+  const strayFiles = readdirSync(OUT_DIR).filter((n) => PER_COUNTY_FILE.test(n) && !expected.has(n));
+  add('No per-county output files for counties that are not configured', !strayFiles.length, strayFiles.length ? strayFiles.join(', ') : 'none');
+
   add('manifest.json checksums', !badHash.length,
     badHash.length ? `mismatch: ${badHash.map((o) => o.path).join(', ')}` : `${manifest.outputs.length} output checksums verified`);
 
@@ -264,12 +292,19 @@ async function main() {
 
       const unexplained: string[] = [];
       for (const [k, fys] of placement) {
-        const [flow, account] = k.split('|');
-        const range = `${Math.min(...fys)}-${Math.max(...fys)}`;
-        const known = KNOWN_SECTION_PLACEMENTS[`${flow}|${account}|${range}`];
-        if (known && fys.length === Math.max(...fys) - Math.min(...fys) + 1) add(flowTag('Account placed outside its code\'s section (documented)'), true, known, true);
-        else unexplained.push(`${k} in FY ${fys.join(',')}`);
+        const [flow, account, heading] = k.split('|');
+        const years = [...fys].sort((a, b) => a - b);
+        const known = KNOWN_SECTION_PLACEMENTS.find(
+          (p) => p.jurisdiction === county.slug && p.flow === flow && p.account === account && p.heading === heading &&
+            p.fiscalYears.length === years.length && p.fiscalYears.every((y, i) => y === years[i]),
+        );
+        if (known) add(flowTag('Account placed outside its code\'s section (documented)'), true, known.note, true);
+        else unexplained.push(`${k} in FY ${years.join(',')}`);
       }
+      const unused = KNOWN_SECTION_PLACEMENTS.filter(
+        (p) => p.jurisdiction === county.slug && p.flow === label && !placement.has(`${p.flow}|${p.account}|${p.heading}`),
+      );
+      for (const p of unused) unexplained.push(`documented exception no longer present: ${p.account} under "${p.heading}"`);
       add(flowTag('Code-based category agrees with the workbook section heading'), !unexplained.length,
         unexplained.length ? unexplained.join('; ') : 'all rows agree (documented exceptions noted separately)');
 
@@ -539,6 +574,29 @@ async function main() {
   const gasb = annotationsJson.find((a) => a.fiscalYear === 2021 && a.label === 'Custodial fund reporting begins (GASB 84).' && a.kind === 'methodology');
   add('GASB 84 annotation present at FY 2020-21', !!gasb, gasb ? `sourceId ${gasb.sourceId}` : 'missing');
 
+  // --- Cross-county summary ---------------------------------------------------------------
+  const crossRows: string[] = [];
+  for (const { county, revenues, expenditures, countyAfrFiles } of inputs.counties) {
+    const firstCustodial = (sheets: AfrSheet[]) => {
+      const withCol = [...sheets].filter((s) => s.fundColumns.some((f) => f.fundType === 'custodial')).sort((a, b) => a.fiscalYear - b.fiscalYear);
+      const nonZero = withCol.find((s) => (s.grandTotal.cached['custodial'] ?? 0) !== 0);
+      return { column: withCol[0]?.fiscalYear, amounts: nonZero?.fiscalYear };
+    };
+    const rc = firstCustodial(revenues.sheets);
+    const ec = firstCustodial(expenditures.sheets);
+    const flagged = transferBalances(revenues.sheets, expenditures.sheets).filter((b) => b.flagged);
+    const gaps = [...findGaps(revenues.sheets), ...findGaps(expenditures.sheets)];
+    const afrChecks = COUNTY_AFR_CHECKS.filter((c) => c.jurisdiction === county.slug).length;
+    const yearsOf = (sheets: AfrSheet[]) => `${fiscalYearLabel(Math.min(...sheets.map((s) => s.fiscalYear)))} to ${fiscalYearLabel(Math.max(...sheets.map((s) => s.fiscalYear)))}`;
+    crossRows.push(
+      `| ${county.name} | ${yearsOf(revenues.sheets)} | ${yearsOf(expenditures.sheets)} | ${rc.column ? fiscalYearLabel(rc.column) : 'n/a'} | ` +
+        `${rc.amounts ? fiscalYearLabel(rc.amounts) : 'none'} / ${ec.amounts ? fiscalYearLabel(ec.amounts) : 'none'} | ` +
+        `${flagged.length ? flagged.map((b) => `${fiscalYearLabel(b.fiscalYear)} ${usd(b.difference)}`).join('<br>') : 'none'} | ${gaps.length} | ` +
+        `${afrChecks ? `${afrChecks} values in ${countyAfrFiles.length} county-filed AFRs` : 'not cross-checked (EDR totals only)'} | ` +
+        `${KNOWN_SECTION_PLACEMENTS.filter((p) => p.jurisdiction === county.slug).length} |`,
+    );
+  }
+
   // --- Index comparison (informational) ---------------------------------------------------
   const firstCounty = inputs.counties[0];
   const indexSection = indexComparisonSection({
@@ -664,6 +722,14 @@ async function main() {
     '| Series | Year | Months | Mean of months | BLS annual average | Result |',
     '|---|---:|---:|---:|---:|---|',
     ...cpiRows,
+    '',
+    '## Cross-county notes',
+    '',
+    'One row per configured county. All values come from the same checks reported above for each county.',
+    '',
+    '| County | Revenue years | Expenditure years | Custodial column from | First non-zero custodial (revenue / expenditure) | Transfer-imbalance years (annotated) | Drop-and-recover gaps found | County-filed AFR cross-check | Documented section-placement exceptions |',
+    '|---|---|---|---|---|---|---:|---|---:|',
+    ...crossRows,
     '',
     ...indexSection,
     '## County-filed AFR cross-check',

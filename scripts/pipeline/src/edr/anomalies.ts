@@ -18,6 +18,7 @@ export const ANNOTATION_TOPICS = [
   'source-anomaly',
   'custodial-accounts',
   'custodial-zero',
+  'custodial-start',
   'population-source',
 ] as const;
 export type AnnotationTopic = (typeof ANNOTATION_TOPICS)[number];
@@ -138,6 +139,8 @@ function pushCaveat(caveats: Map<string, string[]>, id: string, text: string) {
 
 export interface AnomalyInput {
   jurisdiction: string;
+  /** Display name, e.g. "Hillsborough County". */
+  jurisdictionName: string;
   revenues: AfrSheet[];
   expenditures: AfrSheet[];
   revenueSourceId: string;
@@ -148,6 +151,10 @@ export interface AnomalyInput {
   countyAfrNote?: (fiscalYear: number, topic: 'transfers' | 'proprietary') => string | undefined;
   /** Gaps (see findGaps) that have been approved for annotation. */
   approvedGaps?: ApprovedGap[];
+  /** Transfer-imbalance years approved for annotation. Every flagged year must be listed, and every listed year flagged. */
+  approvedTransferImbalances: ApprovedTransferImbalance[];
+  /** Research notes requested for specific jurisdictions. */
+  researchNotes?: ResearchNote[];
 }
 
 export function generateAnomalies(input: AnomalyInput): Generated {
@@ -165,6 +172,17 @@ export function generateAnomalies(input: AnomalyInput): Generated {
   // --- 1. Transfer imbalance and the expenditure classification break (QA-01) -------------------
   const balances = transferBalances(input.revenues, input.expenditures);
   const flaggedYears = new Set(balances.filter((b) => b.flagged).map((b) => b.fiscalYear));
+  const approvedYears = new Set(input.approvedTransferImbalances.filter((a) => a.jurisdiction === jurisdiction).map((a) => a.fiscalYear));
+  const unapproved = [...flaggedYears].filter((y) => !approvedYears.has(y));
+  const stale = [...approvedYears].filter((y) => !flaggedYears.has(y));
+  if (unapproved.length || stale.length) {
+    throw new Error(
+      `${jurisdiction}: transfer-imbalance approvals out of date.` +
+        (unapproved.length ? ` Flagged but not approved: FY ${unapproved.join(', ')}.` : '') +
+        (stale.length ? ` Approved but no longer flagged: FY ${stale.join(', ')}.` : '') +
+        ' Review config/approved-annotations.ts.',
+    );
+  }
   const nearestUnflagged = (fy: number, step: -1 | 1) => {
     for (let y = fy + step; exp.has(y); y += step) if (!flaggedYears.has(y)) return y;
     return null;
@@ -281,6 +299,40 @@ export function generateAnomalies(input: AnomalyInput): Generated {
     }
   }
 
+  // --- 3b. Research note: custodial amounts begin later than the column ----------------------
+  if ((input.researchNotes ?? []).some((n) => n.jurisdiction === jurisdiction && n.topic === 'custodial-start')) {
+    for (const [flow, sheets, sourceId] of flows) {
+      const withCol = [...sheets]
+        .filter((s) => s.fundColumns.some((f) => f.fundType === 'custodial'))
+        .sort((a, b) => a.fiscalYear - b.fiscalYear);
+      const custodialRef = (s: AfrSheet) => qref(s, `${colLetter(s.fundColumns.find((f) => f.fundType === 'custodial')!.col)}${s.grandTotal.row}`);
+      const firstNonZero = withCol.find((s) => (s.grandTotal.cached['custodial'] ?? 0) !== 0);
+      const zeros = withCol.filter((s) => !firstNonZero || s.fiscalYear < firstNonZero.fiscalYear);
+      if (!firstNonZero || !zeros.length) {
+        throw new Error(`${jurisdiction} ${flow}: custodial-start research note requested, but custodial amounts do not start after the column appears. Review config/approved-annotations.ts.`);
+      }
+      const total = firstNonZero.grandTotal.cached['custodial'] ?? 0;
+      const refs = [...zeros.map(custodialRef), custodialRef(firstNonZero)];
+      const detail =
+        `The Custodial column is present from ${fiscalYearLabel(withCol[0].fiscalYear)}. Custodial ${flow}s are $0 in ` +
+        zeros.map((s) => `${fiscalYearLabel(s.fiscalYear)} (${custodialRef(s)})`).join(' and ') +
+        `, and first reported in ${fiscalYearLabel(firstNonZero.fiscalYear)}: ${exact(total)} (${custodialRef(firstNonZero)}).`;
+      annotations.push({
+        fiscalYear: firstNonZero.fiscalYear,
+        label: `Custodial ${flow}s first reported this year (column present since ${fiscalYearLabel(withCol[0].fiscalYear)})`,
+        kind: 'methodology',
+        topic: 'custodial-start',
+        sourceId,
+        jurisdiction,
+        flow,
+        custodial: 'included',
+        detail,
+        refs,
+      });
+      pushCaveat(caveats, sourceId, detail);
+    }
+  }
+
   // --- 4. Approved drop-and-recover gaps (QA-09) ----------------------------------------------
   const gapsByFlow = new Map<Flow, Gap[]>([
     ['revenue', findGaps(input.revenues)],
@@ -363,7 +415,8 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       detail,
       refs: [populationRef(cur), populationRef(prev)],
     });
-    pushCaveat(caveats, input.populationSourceId, detail);
+    // The population source is shared by every county, so its caveats name the county.
+    pushCaveat(caveats, input.populationSourceId, `${input.jurisdictionName}: ${detail}`);
   }
 
   return { annotations, caveats };
@@ -423,6 +476,16 @@ export interface Gap {
   years: number[];
   values: Array<{ fiscalYear: number; value: number }>;
   after: { fiscalYear: number; value: number };
+}
+
+export interface ApprovedTransferImbalance {
+  jurisdiction: string;
+  fiscalYear: number;
+}
+
+export interface ResearchNote {
+  jurisdiction: string;
+  topic: 'custodial-start';
 }
 
 export interface ApprovedGap {

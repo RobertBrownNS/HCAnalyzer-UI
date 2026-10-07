@@ -138,6 +138,32 @@
       "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
       "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
       "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
+      "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
+      "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
+      "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
+      "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals.",
+      "FY 2005-06, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $410,049,573) exceeds revenue account 381 (transfers in, $126,836,314) by $283,213,259. Non-custodial figures, FY 2005-06: account 521 $165.0M, public safety section $410.3M, court-related section $68.7M, General Fund 581 $301.6M; compared with FY 2004-05: account 521 $120.4M, public safety section $329.8M, court-related section $64.6M, General Fund 581 $271.2M; FY 2006-07: account 521 $180.0M, public safety section $423.6M, court-related section $74.2M, General Fund 581 $6.5M. Cells: revenues:2006!N118, expenditures:2006!N50, expenditures:2006!N14, expenditures:2006!D14, expenditures:2006!D50.",
+      "FY 2021-22, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $108,050,158) exceeds revenue account 381 (transfers in, $94,272,156) by $13,778,002. Non-custodial figures, FY 2021-22: account 521 $426.2M, public safety section $696.2M, court-related section $75.4M, General Fund 581 $83.5M; compared with FY 2020-21: account 521 $392.8M, public safety section $738.8M, court-related section $65.5M, General Fund 581 $4.9M; FY 2022-23: account 521 $463.3M, public safety section $729.3M, court-related section $52.0M, General Fund 581 $41.2M. Cells: revenues:2022!P119, expenditures:2022!P50, expenditures:2022!P15, expenditures:2022!D15, expenditures:2022!D50.",
+      "FY 2020-21: the Custodial column is present and every custodial expenditure amount is $0 (expenditures:2021!K74).",
+      "FY 2021-22: the Custodial column is present and every custodial expenditure amount is $0 (expenditures:2022!K75).",
+      "FY 2022-23: custodial expenditures total $6,219,926,164 (expenditures:2023!K75), reported under account 513 Financial and Administrative $5,740,572,206 (expenditures:2023!K8); account 604 General Administration - Clerk of Court Administration $471,006,288 (expenditures:2023!K54); account 521 Law Enforcement $8,347,670 (expenditures:2023!K15).",
+      "FY 2023-24: custodial expenditures total $5,377,140,224 (expenditures:2024!K74), reported under account 513 Financial and Administrative $4,951,474,569 (expenditures:2024!K8); account 604 General Administration - Clerk of Court Administration $416,160,029 (expenditures:2024!K53); account 521 Law Enforcement $9,505,626 (expenditures:2024!K15).",
+      "FY 2024-25: custodial expenditures total $4,047,074,986 (expenditures:2025!K73), reported under account 513 Financial and Administrative $3,632,767,486 (expenditures:2025!K8); account 604 General Administration - Clerk of Court Administration $404,576,249 (expenditures:2025!K53); account 521 Law Enforcement $9,731,251 (expenditures:2025!K15).",
+      "The Custodial column is present from FY 2020-21. Custodial expenditures are $0 in FY 2020-21 (expenditures:2021!K74) and FY 2021-22 (expenditures:2022!K75), and first reported in FY 2022-23: $6,219,926,164 (expenditures:2023!K75)."
+    ],
+    "id": "edr-afr-expenditures-pinellas",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/pinellascountyexpenditures.xlsx",
+    "retrieved": "2026-10-07",
+    "sha256": "d148689269f529c232af68595e3b2221ab2175f73747805d96bf5b9fb18c0392",
+    "title": "Pinellas County Government Expenditures Reported by Account (from county Annual Financial Reports)",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/pinellascountyexpenditures.xlsx"
+  },
+  {
+    "caveats": [
+      "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
       "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
       "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
       "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
@@ -159,6 +185,30 @@
   },
   {
     "caveats": [
+      "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
+      "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
+      "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
+      "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
+      "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals.",
+      "FY 2020-21: the Custodial column is present and every custodial revenue amount is $0 (revenues:2021!K122).",
+      "FY 2021-22: the Custodial column is present and every custodial revenue amount is $0 (revenues:2022!K125).",
+      "FY 2022-23: custodial revenues total $6,221,197,931 (revenues:2023!K127), reported under account 311 Ad Valorem Taxes $5,519,216,114 (revenues:2023!K6); account 341.9 General Government - Other General Government Charges and Fees $428,589,770 (revenues:2023!K60); account 367 Licenses $179,532,504 (revenues:2023!K116); account 348.42 Court-Related Revenues - Circuit Court Civil - Service Charges $43,657,423 (revenues:2023!K84); account 369.9 Other Miscellaneous Revenues - Other $41,823,588 (revenues:2023!K118); account 342.1 Public Safety - Law Enforcement Services $8,378,532 (revenues:2023!K61).",
+      "FY 2023-24: custodial revenues total $5,371,345,658 (revenues:2024!K125), reported under account 311 Ad Valorem Taxes $4,744,487,762 (revenues:2024!K6); account 341.9 General Government - Other General Government Charges and Fees $379,707,181 (revenues:2024!K58); account 367 Licenses $157,242,880 (revenues:2024!K114); account 369.9 Other Miscellaneous Revenues - Other $49,743,927 (revenues:2024!K116); account 348.42 Court-Related Revenues - Circuit Court Civil - Service Charges $30,648,967 (revenues:2024!K82); account 342.1 Public Safety - Law Enforcement Services $9,514,941 (revenues:2024!K59).",
+      "FY 2024-25: custodial revenues total $4,045,549,500 (revenues:2025!K128), reported under account 369.9 Other Miscellaneous Revenues - Other $3,482,372,402 (revenues:2025!K117); account 341.9 General Government - Other General Government Charges and Fees $376,295,306 (revenues:2025!K59); account 367 Licenses $150,395,084 (revenues:2025!K115); account 348.42 Court-Related Revenues - Circuit Court Civil - Service Charges $26,790,855 (revenues:2025!K83); account 342.1 Public Safety - Law Enforcement Services $9,695,853 (revenues:2025!K60).",
+      "The Custodial column is present from FY 2020-21. Custodial revenues are $0 in FY 2020-21 (revenues:2021!K122) and FY 2021-22 (revenues:2022!K125), and first reported in FY 2022-23: $6,221,197,931 (revenues:2023!K127)."
+    ],
+    "id": "edr-afr-revenues-pinellas",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/pinellascountyrevenues.xlsx",
+    "retrieved": "2026-10-07",
+    "sha256": "370f27c0e27099859a4572ae45ba14b5551bc78affbb8bbdc1700018ac733327",
+    "title": "Pinellas County Government Revenues Reported by Account (from county Annual Financial Reports)",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/pinellascountyrevenues.xlsx"
+  },
+  {
+    "caveats": [
       "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
       "Persons interested in reviewing 2021-2025 revenues or expenditures for an individual county government, minus the impact of any Custodial Fund reporting, can simply open the relevant Excel file and delete the Custodial column. Since the figures in the Total Account and Per Capita Accounts columns are formula-driven, these amounts will automatically recalculate when the Custodial column is deleted."
     ],
@@ -176,8 +226,10 @@
       "Values are April 1 figures. Most years are BEBR estimates published that year; 2000, 2010 and 2020 also have census counts. These are not intercensal-revised series, so a census year can step up or down relative to the estimates around it.",
       "For 2020 the pipeline uses the revised BEBR estimate (the value EDR used for FY 2019-20 per-capita figures); the 2020 census count is listed as an alternate.",
       "EDR notes that countywide figures do not reflect the population estimates ultimately used for revenue-sharing purposes.",
-      "Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (1,229,226); FY 2008-09 used the April 1, 2009 BEBR estimate (1,196,892), a change of 2.7%. These are point-in-time figures from different sources, not a revised continuous series.",
-      "Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (1,490,374); FY 2019-20 used the revised April 1, 2020 BEBR estimate (1,478,759), a change of 0.8%. The April 1, 2020 census count was 1,459,762. These are point-in-time figures from different sources, not a revised continuous series."
+      "Hillsborough County: Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (1,229,226); FY 2008-09 used the April 1, 2009 BEBR estimate (1,196,892), a change of 2.7%. These are point-in-time figures from different sources, not a revised continuous series.",
+      "Hillsborough County: Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (1,490,374); FY 2019-20 used the revised April 1, 2020 BEBR estimate (1,478,759), a change of 0.8%. The April 1, 2020 census count was 1,459,762. These are point-in-time figures from different sources, not a revised continuous series.",
+      "Pinellas County: Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (916,542); FY 2008-09 used the April 1, 2009 BEBR estimate (931,113), a change of -1.6%. These are point-in-time figures from different sources, not a revised continuous series.",
+      "Pinellas County: Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (964,490); FY 2019-20 used the revised April 1, 2020 BEBR estimate (984,054), a change of -2.0%. The April 1, 2020 census count was 959,107. These are point-in-time figures from different sources, not a revised continuous series."
     ],
     "id": "edr-population-flcopops",
     "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR); estimates by the Bureau of Economic and Business Research (BEBR), University of Florida",

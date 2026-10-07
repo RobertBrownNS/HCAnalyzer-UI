@@ -25,6 +25,8 @@ const REVENUE_GROUPS: Record<number, string> = {
   35: 'judgments_fines_forfeits',
   36: 'miscellaneous',
   38: 'other_sources',
+  // 392 Extraordinary Items and 393 Special Items; EDR prints them under "Other Sources".
+  39: 'other_sources',
 };
 
 const EXPENDITURE_GROUPS: Record<number, string> = {

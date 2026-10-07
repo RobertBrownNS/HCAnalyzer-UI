@@ -38,9 +38,11 @@ function sheet(flow: Flow, fiscalYear: number, accounts: Record<string, [number,
 
 const pop = (year: number, value: number, basis: PopulationValue['basis']): PopulationValue => ({ year, value, basis, sheet: `${year} x`, row: 31 });
 
-function input(revenues: AfrSheet[], expenditures: AfrSheet[], population: PopulationValue[] = []) {
+function input(revenues: AfrSheet[], expenditures: AfrSheet[], population: PopulationValue[] = [], approvedTransferYears: number[] = []) {
   return {
+    approvedTransferImbalances: approvedTransferYears.map((fiscalYear) => ({ jurisdiction: 'test', fiscalYear })),
     jurisdiction: 'test',
+    jurisdictionName: 'Test County',
     revenues,
     expenditures,
     revenueSourceId: 'rev',
@@ -59,7 +61,7 @@ describe('transfer balance', () => {
       [2023, 500, false],
       [2024, 600_000_000, true],
     ]);
-    const { annotations, caveats } = generateAnomalies(input(rev, exp));
+    const { annotations, caveats } = generateAnomalies(input(rev, exp, [], [2024]));
     const a = annotations.find((x) => x.fiscalYear === 2024 && x.flow === 'expenditure' && x.label.startsWith('Transfers'));
     expect(a?.label).toContain('$600.0M');
     expect(a?.topic).toBe('transfer-imbalance');
@@ -170,5 +172,53 @@ describe('drop-and-recover gaps', () => {
     expect(() =>
       generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2023, scopes: ['fund:general'], coveredBy: 'transfer-imbalance' }] }),
     ).toThrow(/not found/);
+  });
+});
+
+describe('transfer-imbalance approvals', () => {
+  const rev = [sheet('revenue', 2023, { '381': [100_000_000, 0] }), sheet('revenue', 2024, { '381': [100_000_000, 0] })];
+  const exp = [sheet('expenditure', 2023, { '581': [100_369_300, 0] }), sheet('expenditure', 2024, { '581': [700_000_000, 0] })];
+
+  it('fails when a flagged year is not approved', () => {
+    expect(() => generateAnomalies(input(rev, exp))).toThrow(/Flagged but not approved: FY 2024/);
+  });
+
+  it('fails when an approved year is no longer flagged', () => {
+    expect(() => generateAnomalies(input(rev, exp, [], [2023, 2024]))).toThrow(/Approved but no longer flagged: FY 2023/);
+  });
+
+  it('annotates only approved, flagged years; a $369,300 gap gets nothing', () => {
+    const { annotations } = generateAnomalies(input(rev, exp, [], [2024]));
+    expect(annotations.filter((a) => a.topic === 'transfer-imbalance').map((a) => a.fiscalYear)).toEqual([2024]);
+  });
+});
+
+describe('custodial-start research note', () => {
+  const years = (flow: 'revenue' | 'expenditure', custodial: number[]) =>
+    [2020, 2021, 2022, 2023].map((fy, i) => sheet(flow, fy, { [flow === 'revenue' ? '311' : '513']: [1_234_567, i === 0 ? 0 : custodial[i - 1]] }, fy >= 2021));
+
+  it('states the zero years and the first year with amounts, with cell refs', () => {
+    const { annotations } = generateAnomalies({
+      ...input(years('revenue', [0, 0, 5_000_000_000]), years('expenditure', [0, 0, 4_000_000_000])),
+      researchNotes: [{ jurisdiction: 'test', topic: 'custodial-start' }],
+    });
+    const notes = annotations.filter((a) => a.topic === 'custodial-start');
+    expect(notes.map((a) => [a.fiscalYear, a.flow, a.custodial])).toEqual([
+      [2023, 'revenue', 'included'],
+      [2023, 'expenditure', 'included'],
+    ]);
+    expect(notes[0].detail).toBe(
+      'The Custodial column is present from FY 2020-21. Custodial revenues are $0 in FY 2020-21 (revenues:2021!K7) and FY 2021-22 (revenues:2022!K7), and first reported in FY 2022-23: $5,000,000,000 (revenues:2023!K7).',
+    );
+    expect(notes[0].refs).toEqual(['revenues:2021!K7', 'revenues:2022!K7', 'revenues:2023!K7']);
+  });
+
+  it('fails when requested but the data shows no delay', () => {
+    expect(() =>
+      generateAnomalies({
+        ...input(years('revenue', [1, 1, 1]), []),
+        researchNotes: [{ jurisdiction: 'test', topic: 'custodial-start' }],
+      }),
+    ).toThrow(/custodial-start/);
   });
 });

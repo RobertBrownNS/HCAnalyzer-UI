@@ -98,6 +98,24 @@
       "retrieved": "2026-10-06",
       "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0",
       "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyrevenues.xlsx"
+    },
+    "data/raw/edr/pinellascountyexpenditures.xlsx": {
+      "bytes": 285737,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET",
+      "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+      "retrieved": "2026-10-07",
+      "sha256": "d148689269f529c232af68595e3b2221ab2175f73747805d96bf5b9fb18c0392",
+      "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/pinellascountyexpenditures.xlsx"
+    },
+    "data/raw/edr/pinellascountyrevenues.xlsx": {
+      "bytes": 364590,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET",
+      "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+      "retrieved": "2026-10-07",
+      "sha256": "370f27c0e27099859a4572ae45ba14b5551bc78affbb8bbdc1700018ac733327",
+      "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/pinellascountyrevenues.xlsx"
     }
   }
 }
