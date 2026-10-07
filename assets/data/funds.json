@@ -1,0 +1,134 @@
+{
+  "funds": [
+    {
+      "description": "All financial resources not accounted for and reported in another fund.",
+      "group": "governmental",
+      "id": "general",
+      "label": "General"
+    },
+    {
+      "description": "Proceeds of specific revenue sources restricted or committed to specified purposes other than debt service or capital projects.",
+      "group": "governmental",
+      "id": "special_revenue",
+      "label": "Special Revenue"
+    },
+    {
+      "description": "Resources restricted, committed or assigned to principal and interest.",
+      "group": "governmental",
+      "id": "debt_service",
+      "label": "Debt Service"
+    },
+    {
+      "description": "Resources restricted, committed or assigned to capital outlays.",
+      "group": "governmental",
+      "id": "capital",
+      "label": "Capital Projects"
+    },
+    {
+      "description": "Resources of which only earnings, not principal, may be used to support the government's programs.",
+      "group": "governmental",
+      "id": "permanent",
+      "label": "Permanent"
+    },
+    {
+      "description": "Operations financed and run like private businesses, with costs recovered mainly through user charges.",
+      "group": "proprietary",
+      "id": "enterprise",
+      "label": "Enterprise"
+    },
+    {
+      "description": "Goods or services provided by one department to other departments or governments on a cost-reimbursement basis.",
+      "group": "proprietary",
+      "id": "internal_service",
+      "label": "Internal Service"
+    },
+    {
+      "description": "Assets held in a purely custodial capacity, such as taxes collected for other governments. Reported from FY 2020-21 (GASB 84).",
+      "group": "fiduciary",
+      "handledByToggle": "custodial",
+      "id": "custodial",
+      "label": "Custodial"
+    },
+    {
+      "description": "Assets of pension and other employee benefit plans held in a trustee capacity.",
+      "group": "fiduciary",
+      "id": "pension",
+      "label": "Pension"
+    },
+    {
+      "description": "Trust funds reported in EDR's Trust column (the UAS lists investment trust funds among the fiduciary funds).",
+      "group": "fiduciary",
+      "id": "trust",
+      "label": "Trust"
+    },
+    {
+      "description": "Trust arrangements whose principal and income benefit individuals, private organizations or other governments.",
+      "group": "fiduciary",
+      "id": "private_purpose",
+      "label": "Private Purpose"
+    },
+    {
+      "description": "Legally separate organizations reported alongside the county in their own column.",
+      "group": "component_unit",
+      "id": "component_unit",
+      "label": "Component Units"
+    }
+  ],
+  "groups": [
+    {
+      "id": "governmental",
+      "label": "Governmental funds"
+    },
+    {
+      "id": "proprietary",
+      "label": "Proprietary funds"
+    },
+    {
+      "id": "fiduciary",
+      "label": "Fiduciary funds"
+    },
+    {
+      "id": "component_unit",
+      "label": "Component units"
+    }
+  ],
+  "note": "Custodial amounts are controlled by the custodial toggle, so no preset lists the custodial fund.",
+  "presets": [
+    {
+      "funds": [
+        "general"
+      ],
+      "id": "general",
+      "label": "General Fund"
+    },
+    {
+      "funds": [
+        "general",
+        "special_revenue",
+        "debt_service",
+        "capital",
+        "permanent"
+      ],
+      "id": "governmental",
+      "label": "Governmental funds"
+    },
+    {
+      "funds": [
+        "general",
+        "special_revenue",
+        "debt_service",
+        "capital",
+        "permanent",
+        "enterprise",
+        "internal_service",
+        "pension",
+        "trust",
+        "private_purpose",
+        "component_unit"
+      ],
+      "id": "all",
+      "label": "All funds"
+    }
+  ],
+  "sourceId": "dfs-uas-manual-2025"
+}
