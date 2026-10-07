@@ -298,7 +298,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 **P4a-02 Transfer-imbalance approval list (DE)**
 - [ ] Transfer-imbalance annotations are emitted only for the (county, FY, flow) entries in a reviewed config list, like `approved-gaps.ts`. Each entry records the reason, the reviewer and the date.
 - [ ] The build fails if an approved entry is no longer found by the scan.
-- [ ] The threshold is |581 − 381| ≥ $1,000,000 (DR-19; DR-40 makes `transform.ts` use the same rule). Any over-threshold year that is **not** approved fails the build (DR-41), and validation.md names it. Nothing over the threshold ships unreviewed.
+- [ ] The threshold is |581 − 381| > $1,000,000, strictly greater (DR-19; DR-40 makes `transform.ts` use the same rule; exactly $1,000,000 gets no note). Any over-threshold year that is **not** approved fails the build (DR-41), and validation.md names it. Nothing over the threshold ships unreviewed.
 - [ ] The approved entries are:
   - Hillsborough FY 2022-23 and FY 2023-24 (existing);
   - Pinellas FY 2005-06 and FY 2021-22 (D-14).
