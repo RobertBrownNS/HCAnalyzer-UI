@@ -195,8 +195,8 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - [ ] A shared URL with query params opened on each host reproduces the same view (same check as P2-06).
 
 **P2-15 Skeleton loaders**
-- [ ] Load waits are measured on a throttled mobile profile (for example DevTools "Slow 4G" + 4× CPU slowdown), before and after. The results (time to first data, ECharts chunk ready) are recorded in the task notes or `docs/`.
-- [ ] Skeletons replace the progress bar for: KPI cards, the chart tile, the Notes and Sources tiles, and the phone chip row.
+- [ ] Load waits are measured on a throttled mobile profile (for example DevTools "Slow 4G" + 4× CPU slowdown), before and after. The results (time to first data, ECharts chunk ready) are recorded in `docs/performance.md`.
+- [ ] Skeletons replace the progress bar for: KPI cards, the chart tile, and the Notes and Sources tiles. The phone chip row shows **real chips** while loading, with labels from the URL state. The range chip reads "Fiscal years" until the years are known (DR-34).
 - [ ] No layout shift on load. Skeletons match final dimensions. CLS ≈ 0, measured with a Lighthouse/Performance trace on the throttled profile.
 - [ ] Skeletons appear only after a ~150–200 ms delay, so fast loads show no flash.
 - [ ] The chart skeleton stays until the lazy ECharts chunk is loaded and the first render is done. It is never replaced by an empty chart.
@@ -205,7 +205,7 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
   - exactly one polite live-region message is announced per load;
   - skeleton shapes are `aria-hidden`.
 - [ ] Under `prefers-reduced-motion: reduce`, skeletons are static, with no shimmer or pulse.
-- [ ] Skeleton colors come from the design tokens only and work in light and dark (meeting the contrast rules for non-text UI where they apply).
+- [ ] Skeleton colors come from the design tokens only and work in light and dark. Skeleton shapes are decorative and `aria-hidden`, so WCAG 1.4.11 does not apply (DR-35).
 - [ ] Error, Retry and schema/version-error states take precedence over skeletons. A failed load never leaves a skeleton showing.
 - [ ] QA verifies all of the above under P2-12.
 
