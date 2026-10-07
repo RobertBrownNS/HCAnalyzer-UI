@@ -7,6 +7,44 @@ Status values: `todo` · `in-progress` · `review` (waiting on QA) · `done` · 
 
 Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform engineer · **QA** QA/skeptic · **PM** project manager
 
+## End-of-round summary (2026-10-06)
+
+**Status: Phases 1 and 2 are both approved by QA** (tags `phase-1-approved`, `phase-2-approved`). Nothing was pushed.
+
+**What shipped**
+- **Data pipeline (Phase 1):**
+  - Hillsborough revenues FY 2005-06 to 2024-25 and expenditures FY 2004-05 to 2024-25, from the EDR workbooks; EDR population; BLS CPI-U and Tampa CPI.
+  - Raw files have sha256 checksums. The build is deterministic and refuses to run on changed raw files.
+  - All 41 sheets reconcile to EDR totals and to EDR's Total − Custodial.
+  - QA independently re-derived every observation.
+- **Annotations:** source anomalies and filing breaks are annotated with workbook cell refs and left as published (QA-01, QA-03, QA-09). Examples: the FY 2022-23 / FY 2023-24 transfer imbalance, custodial account moves, population rebasing.
+- **`transform.ts`** is pure and fully covered: custodial filter, gross/net transfers, per resident, CPI deflation (every index × period), index-to-100, FY labels. Gaps are null with reasons, never estimated.
+- **MVP explorer (Phase 2):**
+  - Theme D "BI dashboard", with light/dark/auto.
+  - Line chart with the GASB 84 marker and annotations. Pinch/zoom is tied to URL state.
+  - View-as-table; neutral KPI cards; settings and sources panel.
+  - Full-param shareable URLs with Back/forward.
+  - Phone chips with bottom sheets; 44 px targets; skeleton loaders (CLS 0).
+- **Deployable static build** for GitHub Pages (sub-path) and IIS. See `docs/deploy.md` and `docs/performance.md`.
+
+**Deferred**
+- QA-07: what "all funds" includes (pension, trust, component units). Goes to Phase 3 with O-07.
+- QA-15: tablet collapsible side panel. Phase 6 (DR-33).
+- QA-21: chart self-description when cropped. Phase 5; the PNG export must print the settings (DR-33).
+- Phase 3 categories and fund scope, Phase 4 comparisons (on hold, D-11), Phase 5 presets and export. The methodology and "how to reproduce" pages come first in Phase 5 (D-12).
+- Not verified this round: real devices, screen-reader output, live IIS/GitHub Pages deploys.
+
+**Open decisions for the user** (details in [decisions.md](decisions.md))
+
+| ID | Question | Current interim default |
+|---|---|---|
+| O-05 | Population year alignment | EDR's own per-capita denominator: April 1 of the year the FY ends (DR-08) |
+| O-06 | How account codes map to categories | UAS account-code prefixes (DR-04); needed for Phase 3 |
+| O-07 | What "all funds" includes (enterprise, internal service, component units, pension/trust) | Everything EDR reports, minus custodial (DR-14) |
+| O-08 | GASB 84 label trailing period | Keep as in CLAUDE.md |
+| O-10 | FY 2022-23 / FY 2023-24 expenditure classification break | Shown as published, with annotations and cell refs |
+| O-11 | Net transfers with a narrower fund scope | Disable "net" outside all-funds scope (risks R-19) |
+
 ---
 
 ## Phase 1: Data pipeline
@@ -97,24 +135,19 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | P2-02 | Add `ngx-echarts` + Angular Material; theme tokens, light/dark | FE | P2-01 | done |
 | P2-03 | `src/app/core/models.ts` (Observation, Source, Annotation) | TE | P1-01 | done |
 | P2-04 | Pure `transform.ts` + exhaustive tests | TE | P2-03, P1-05 | done |
-| P2-05 | Data loading service (static JSON, checksum check) | FE | P1-06, P2-01 | in-progress |
-| P2-06 | URL-state service (query params ↔ signals) | FE | P2-01 | in-progress |
+| P2-05 | Data loading service (static JSON, checksum check) | FE | P1-06, P2-01 | done |
+| P2-06 | URL-state service (query params ↔ signals) | FE | P2-01 | done |
 | P2-07 | Controls: measure, base year, range, custodial, inflation index | FE | P2-06 | done |
-| P2-08 | Line chart with GASB 84 annotation, range slider, pinch-zoom | FE | P2-02, P2-04, P2-05 | in-progress |
+| P2-08 | Line chart with GASB 84 annotation, range slider, pinch-zoom | FE | P2-02, P2-04, P2-05 | done |
 | P2-09 | View-as-table toggle | FE | P2-08 | done |
 | P2-10 | Mobile-first layout, chip row, bottom sheet | FE | P2-07 | done |
 | P2-11 | Minimal source/provenance display | FE | P2-05 | done |
-| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13, P2-14, P2-15 | in-progress |
+| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13, P2-14, P2-15 | done |
 | P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | done |
-| P2-14 | Deployable static build: GitHub Pages sub-path and IIS (decisions D-12) | FE | P2-05 | todo |
-| P2-15 | Skeleton loaders (user request) | FE | P2-14 | todo |
+| P2-14 | Deployable static build: GitHub Pages sub-path and IIS (decisions D-12) | FE | P2-05 | done |
+| P2-15 | Skeleton loaders (user request) | FE | P2-14 | done |
 
-Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
-- **Conditions to close Phase 2:** QA-11 (chart zoom not in view state, P2-08) and QA-12 (Back/forward, P2-06).
-- **Re-verified by QA (`23ed862`):** QA-13 (axis label contrast), QA-16 (manual theme toggle) and QA-18 (KPI test) are resolved. P2-02 and P2-13 are done.
-- **Open minors:** QA-14 (no data-version/checksum check, P2-05), QA-19 (user-facing notes expose internal paths), QA-20 (Export/Share messages on touch). QA-22 is a note.
-- **Resolved by decision:** QA-17, by DR-32 (URL writes every setting).
-- **Deferred:** QA-15 (tablet side panel) to Phase 6 polish. QA-21 (chart self-description when cropped) to Phase 5, where the PNG export must print the settings. See DR-33.
+Phase 2 status notes: QA's conditional approval (`5a4afb2`) became final approval (`b6a46c7`, tag `phase-2-approved`). QA-11 to QA-14, QA-16, QA-18 to QA-20 and QA-22 to QA-28 are resolved. QA-17 is resolved by DR-32. QA-15 and QA-21 are deferred by DR-33.
 
 ### Acceptance criteria
 
@@ -217,13 +250,15 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - [ ] Findings are logged below. Phase 2 is not done while there are open blocker findings.
 
 ### Phase 2 Definition of Done
-- [ ] All P2 tasks `done`. P2-12 has no open blocker findings.
-- [ ] `ng build` and `ng test` are green. `transform.ts` coverage is ~100%.
-- [ ] `ng serve` at phone width: toggles change the chart, the URL reproduces the view, the GASB 84 marker is visible, and the table matches the chart.
-- [ ] Custodial is excluded by default. Methodology settings are always visible.
-- [ ] No editorial copy. Every displayed number traces to a Source.
-- [ ] A production build works under a sub-path base href and on IIS, per `docs/deploy.md` (P2-14).
-- [ ] The PM end-of-round summary is written, with open decisions re-raised to the user.
+- [x] All P2 tasks `done`. P2-12 has no open blocker findings.
+- [x] `ng build` and `ng test` are green. `transform.ts` coverage is ~100%.
+- [x] `ng serve` at phone width: toggles change the chart, the URL reproduces the view, the GASB 84 marker is visible, and the table matches the chart.
+- [x] Custodial is excluded by default. Methodology settings are always visible.
+- [x] No editorial copy. Every displayed number traces to a Source.
+- [x] A production build works under a sub-path base href and on IIS, per `docs/deploy.md` (P2-14). Verified on a local GitHub Pages mimic and with the IIS rewrite rules exercised. A live IIS / GitHub Pages deploy is still unverified (QA-24).
+- [x] The PM end-of-round summary is written, with open decisions re-raised to the user.
+
+**Phase 2 approved by QA** (2026-10-06, final sign-off at `b6a46c7`, tag `phase-2-approved`). 250 tests pass, and there are no open blocker, major or minor Phase 2 findings. Deferred: QA-07 to Phase 3 (O-07). QA-15 to Phase 6 and QA-21 to Phase 5 (DR-33). Not verifiable in this round: real devices, screen-reader output, live IIS/GitHub Pages deploys.
 
 ---
 
