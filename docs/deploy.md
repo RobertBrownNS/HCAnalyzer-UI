@@ -14,6 +14,8 @@ The site is fully static: HTML, JS, CSS, fonts and the versioned JSON in `assets
 | `web.config` | IIS settings (below). Ignored by other hosts. |
 | `404.html` | Copy of `index.html`, written by `tools/postbuild.mjs`. GitHub Pages serves it for unknown paths. |
 | `.nojekyll` | Stops GitHub Pages from running Jekyll. Written by `tools/postbuild.mjs`. |
+| `.gitattributes` | `* -text`: keeps published files byte-exact when committed to the `gh-pages` branch. Written by `tools/postbuild.mjs`. |
+| `CNAME` | Only if `src/CNAME` exists: the GitHub Pages custom domain. |
 
 `postbuild` runs automatically after `npm run build`. If you run `ng build` directly, run `node tools/postbuild.mjs` afterwards.
 
@@ -44,12 +46,12 @@ Requirements: IIS 10 with the Static Content feature, and the **URL Rewrite** mo
    - **Own site:** in IIS Manager, Sites → Add Website. Physical path: an empty folder, e.g. `C:\inetpub\county-finance`. Bind the host name and HTTPS certificate.
    - **Sub-path of an existing site:** right-click the site → Add Application. Alias = the sub-path (e.g. `county-finance`), physical path = an empty folder. Build with `--base-href /county-finance/`.
 3. Copy the **contents** of `dist/hcanalyzer-ui/browser/` (not the folder itself) into the physical path, including `web.config`. Replace all old files; deleting the old ones first is safest, since bundle names change each build.
-4. Browse to the site. Check: the chart loads; `…/anything` loads the app; the browser dev tools Network tab shows `assets/data/*.json` with `Cache-Control: no-cache` and `main-*.js` with `Cache-Control: public, immutable, max-age=31536000`. Then do the release checks below.
+4. Browse to the site. Check: the chart loads; `…/anything` loads the app; `…/assets/data/missing.json` and `…/missing.js` return 404 (not the app); the browser dev tools Network tab shows `assets/data/*.json` with `Cache-Control: no-cache` and `main-*.js` with `Cache-Control: public, immutable, max-age=31536000`. Then do the release checks below.
 
 What `web.config` sets:
 
 - MIME types for `.json`, `.woff`, `.woff2`, `.webmanifest` (older IIS versions don't serve unknown types).
-- Unknown paths that aren't real files or folders are rewritten to `index.html`.
+- Unknown app paths are rewritten to `index.html`: only paths that aren't real files or folders, have no file extension, and are outside `assets/`. A missing `chunk-*.js`, font or `assets/data/*.json` returns a real 404, which makes an incomplete deploy easy to spot.
 - Caching: one year (`public, immutable`) by default, since bundles and fonts are content-hashed; `no-cache` (revalidate every time) for `index.html`, `404.html`, `assets/data/` and any HTML response; one day for `favicon.ico`.
 - Default document `index.html`.
 
@@ -59,21 +61,36 @@ Compression: enable Static Content Compression in IIS (Server → Compression) f
 
 ## GitHub Pages
 
-1. In the repository on GitHub: Settings → Pages → Build and deployment → Source: **Deploy from a branch**. Choose a branch (e.g. `gh-pages`) and folder `/ (root)`.
+The site is published from a separate **orphan** branch, `gh-pages`, that contains only the build output: no source history, no source dotfiles. It is checked out as a git worktree next to the repository (`../gh-pages`), so publishing never touches your working tree.
+
+1. In the repository on GitHub: Settings → Pages → Build and deployment → Source: **Deploy from a branch**. Branch `gh-pages`, folder `/ (root)`. (The branch must exist first; it is created and pushed in step 3 on the first deploy.)
 2. Build: `npm run build:pages` (or `npm run build -- --base-href /<repo-name>/`).
-3. Publish the **contents** of `dist/hcanalyzer-ui/browser/` to the root of that branch. One way, from the repository root:
+3. Publish the **contents** of `dist/hcanalyzer-ui/browser/` to the root of `gh-pages`. From the repository root (Git 2.42 or later; Git Bash on Windows):
 
    ```sh
-   git worktree add ../gh-pages gh-pages        # first time: git worktree add -b gh-pages ../gh-pages
-   rm -rf ../gh-pages/*                         # keeps ../gh-pages/.git
-   cp -r dist/hcanalyzer-ui/browser/. ../gh-pages/
-   cd ../gh-pages && git add -A && git commit -m "Deploy <commit or date>" && git push origin gh-pages
+   # First deploy only: create an empty orphan branch in a worktree.
+   git worktree add --orphan -b gh-pages ../gh-pages
+   # Later deploys, if the worktree was removed: git worktree add ../gh-pages gh-pages
+
+   # Every deploy:
+   git -C ../gh-pages rm -rfq --ignore-unmatch .      # remove all tracked files, dotfiles included
+   git -C ../gh-pages clean -fdxq                     # and any untracked leftovers
+   cp -r dist/hcanalyzer-ui/browser/. ../gh-pages/    # "/." copies dotfiles too
+   git -C ../gh-pages add -A
+   git -C ../gh-pages commit -qm "Deploy $(git rev-parse --short HEAD)"
+   git -C ../gh-pages push origin gh-pages
    ```
 
-   Make sure `.nojekyll` and `404.html` are included (`cp -r …/browser/.` copies dotfiles).
+   The build output carries the files Pages needs, written by `tools/postbuild.mjs`:
+   - `404.html` (deep links) and `.nojekyll` (no Jekyll processing);
+   - `.gitattributes` with `* -text`, so git stores every published file byte for byte. The data JSON on the branch then keeps the sha256 values in `manifest.json`, whatever line-ending settings the machine has.
 4. Wait for the Pages deployment to finish (Actions tab, "pages build and deployment"), then open `https://<user>.github.io/<repo-name>/`.
 
-For a custom domain, set it under Settings → Pages; the site is then at the domain root, so build with `npm run build` (base href `/`) and add a `CNAME` file containing the domain to the published files.
+### Custom domain
+
+1. Put the domain, alone on one line, in `src/CNAME` (for example `finance.example.org`) and commit it. `angular.json` copies `src/CNAME` into every build, so the deploy steps above never drop it. Without `src/CNAME` no `CNAME` file is published.
+2. On a custom domain the site is at the domain root: build with `npm run build` (base href `/`), not `build:pages`.
+3. Set the same domain under Settings → Pages → Custom domain, and configure DNS as GitHub's Pages documentation describes.
 
 Notes:
 

@@ -3,7 +3,11 @@
 //   404.html  - GitHub Pages serves it for unknown paths; a copy of index.html so the app
 //               boots (and redirects to its route) instead of showing a 404 page.
 //   .nojekyll - tells GitHub Pages not to run Jekyll, which would drop files starting with "_".
-// web.config (IIS) is copied by angular.json "assets". Usage: node tools/postbuild.mjs [outDir]
+//   .gitattributes - "* -text": when the output is committed to a gh-pages branch, git stores
+//               every file byte for byte (no line-ending conversion), so the published data JSON
+//               keeps the checksums in manifest.json.
+// web.config (IIS) and an optional CNAME (GitHub Pages custom domain, src/CNAME) are copied by
+// angular.json "assets". Usage: node tools/postbuild.mjs [outDir]
 import { copyFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -17,4 +21,5 @@ if (!existsSync(index)) {
 
 copyFileSync(index, join(outDir, '404.html'));
 writeFileSync(join(outDir, '.nojekyll'), '');
-console.log(`postbuild: wrote 404.html and .nojekyll in ${outDir}`);
+writeFileSync(join(outDir, '.gitattributes'), '* -text\n');
+console.log(`postbuild: wrote 404.html, .nojekyll and .gitattributes in ${outDir}`);
