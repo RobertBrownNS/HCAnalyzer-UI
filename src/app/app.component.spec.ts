@@ -60,6 +60,17 @@ describe('AppComponent header actions', () => {
     expect(field?.readOnly).toBe(true);
   });
 
+  it('keeps full accessible names when the phone header shortens labels', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.brand')?.getAttribute('aria-label')).toBe('Florida County Finance Explorer');
+    expect(el.querySelector('.title-short')?.textContent).toBe('County Finance Explorer');
+    expect(el.querySelector('.theme')?.getAttribute('aria-label')).toBe('Color theme: Auto. Change');
+    expect(el.querySelector('.share .label-full')?.textContent).toBe('Share view');
+    expect(el.querySelector('.share .label-short')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
   it('Export is present but disabled', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();

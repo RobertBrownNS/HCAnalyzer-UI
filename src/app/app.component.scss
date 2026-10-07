@@ -84,6 +84,71 @@
   }
 }
 
+// Phones: short title and button labels so the bar fits at 360px.
+.title-full,
+.label-full {
+  display: none;
+}
+
+.share .label-full {
+  // Keeps the accessible name ("Share view") while hidden on phones.
+  display: inline-block;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (min-width: map.get(tokens.$breakpoints, tablet)) {
+  .title-full,
+  .share .label-full {
+    display: inline;
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .title-short,
+  .label-short {
+    display: none;
+  }
+}
+
+// Theme button: icon + text; icon only on phones so the title fits.
+.theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fx-space-1);
+  min-width: var(--fx-touch-target);
+}
+
+.theme-icon {
+  flex: none;
+  width: var(--fx-logo-size);
+  height: var(--fx-logo-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2; // SVG user units (icon geometry)
+
+  path {
+    fill: currentColor;
+  }
+}
+
+.theme-text {
+  display: none;
+}
+
+@media (min-width: map.get(tokens.$breakpoints, tablet)) {
+  .theme-text {
+    display: inline;
+  }
+}
+
 // Export is disabled until Phase 5 (a visible hint says so); keep the phone bar uncluttered.
 .export {
   display: none;
