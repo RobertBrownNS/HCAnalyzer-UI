@@ -70,8 +70,10 @@ export interface SeriesPoint {
    */
   transfersNominal: number;
   /**
-   * Transfers out (581) minus transfers in (381) for this year, in the
-   * included funds. Absent when the year has no data for one of the flows.
+   * Transfers out (581) minus transfers in (381) for this year, in all funds
+   * except custodial (the pipeline's rule: custodial money is not moved between
+   * the county's own funds), whatever the custodial toggle. Absent when the
+   * year has no data for one of the flows.
    */
   transferImbalance?: number;
   population?: number;
@@ -92,13 +94,14 @@ export interface TransformData {
   sources: readonly SourceRecord[];
 }
 
+/** The jurisdiction used when settings don't name one. */
 export const DEFAULT_JURISDICTION = 'hillsborough';
 
 /**
- * Defaults for Hillsborough as of the 2026-10-06 data build. The range covers
- * both flows (expenditures start FY 2004-05, revenues FY 2005-06); buildSeries
- * clips to the years that exist. Use defaultSettingsFor() to derive the range
- * from the loaded data instead. Frozen: copy before changing.
+ * Static fallback defaults. The years are placeholders that cover the EDR
+ * county files as of the 2026-10-06 build; buildSeries clips to the years that
+ * exist. Prefer defaultSettingsFor(), which derives range and base year from
+ * the loaded data for the chosen jurisdiction. Frozen: copy before changing.
  */
 export const DEFAULT_SETTINGS: TransformSettings = Object.freeze({
   flow: 'revenue',
@@ -110,9 +113,13 @@ export const DEFAULT_SETTINGS: TransformSettings = Object.freeze({
   cpiIndex: 'cpi-u-us',
   cpiPeriod: 'fiscal',
   transfers: 'gross',
+  jurisdiction: DEFAULT_JURISDICTION,
 }) as TransformSettings;
 
-/** DEFAULT_SETTINGS with range = full available years and baseYear = latest. */
+/**
+ * DEFAULT_SETTINGS for one jurisdiction and flow, with range = that
+ * jurisdiction's available years and baseYear = its latest year.
+ */
 export function defaultSettingsFor(
   data: TransformData,
   flow: Flow = DEFAULT_SETTINGS.flow,
@@ -120,11 +127,16 @@ export function defaultSettingsFor(
 ): TransformSettings {
   const years = availableYears(data, flow, jurisdiction);
   if (years.length === 0) {
-    return { ...DEFAULT_SETTINGS, flow, range: [...DEFAULT_SETTINGS.range] };
+    return { ...DEFAULT_SETTINGS, flow, jurisdiction, range: [...DEFAULT_SETTINGS.range] };
   }
   const first = years[0];
   const last = years[years.length - 1];
-  return { ...DEFAULT_SETTINGS, flow, baseYear: last, range: [first, last] };
+  return { ...DEFAULT_SETTINGS, flow, jurisdiction, baseYear: last, range: [first, last] };
+}
+
+/** Sorted jurisdictions that have at least one observation. */
+export function availableJurisdictions(data: TransformData): string[] {
+  return [...new Set(data.observations.map((o) => o.jurisdiction))].sort();
 }
 
 /** Sorted fiscal years that have at least one observation for the flow. */
@@ -237,12 +249,13 @@ export function selectCpi(cpi: CpiFile, index: CpiIndex, period: CpiPeriod): Cpi
 export const TRANSFER_ACCOUNTS: Readonly<Record<Flow, number>> = Object.freeze({ revenue: 381, expenditure: 581 });
 
 /**
- * A transfer imbalance is noted when |581 - 381| exceeds this share of the
- * larger side. Hillsborough's 381 and 581 agree within $601 (< 0.0001%) in
- * 19 of 21 years; FY 2022-23 and FY 2023-24 differ by more than 40%
- * (docs/plan.md QA-01). The exact amount is always in transferImbalance.
+ * A transfer imbalance is noted when |581 - 381|, in all funds except
+ * custodial, is greater than this. Same rule and value as the pipeline's
+ * transfer-imbalance annotations (scripts/pipeline/src/edr/anomalies.ts
+ * TRANSFER_IMBALANCE_THRESHOLD), so notes and annotations flag the same years.
+ * The exact amount is always in transferImbalance.
  */
-export const TRANSFER_IMBALANCE_NOTE_SHARE = 0.001;
+export const TRANSFER_IMBALANCE_THRESHOLD = 1_000_000;
 
 /** Every transfer-imbalance note starts with this text. Use isTransferImbalanceNote to match. */
 export const TRANSFER_IMBALANCE_NOTE_PREFIX =
@@ -264,6 +277,8 @@ interface YearSum {
   custodial: number;
   /** Transfers in the included funds. */
   transfers: number;
+  /** Transfers in all funds except custodial (for the imbalance rule). */
+  ownTransfers: number;
   sourceIds: Set<string>;
 }
 
@@ -317,11 +332,13 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
 
     const tIn = allSums.revenue.get(fy);
     const tOut = allSums.expenditure.get(fy);
-    const imbalance = tIn && tOut ? tOut.transfers - tIn.transfers : undefined;
-    if (imbalance !== undefined && Math.abs(imbalance) > TRANSFER_IMBALANCE_NOTE_SHARE * Math.max(tIn!.transfers, tOut!.transfers)) {
+    const imbalance = tIn && tOut ? tOut.ownTransfers - tIn.ownTransfers : undefined;
+    if (imbalance !== undefined && Math.abs(imbalance) > TRANSFER_IMBALANCE_THRESHOLD) {
       notes.push(
         `${TRANSFER_IMBALANCE_NOTE_PREFIX}${fiscalYearLabel(fy)}: ` +
-          `${formatUsd(tOut!.transfers)} out, ${formatUsd(tIn!.transfers)} in (difference ${formatUsd(imbalance)}).` +
+          `${formatUsd(tOut!.ownTransfers)} out, ${formatUsd(tIn!.ownTransfers)} in (difference ${formatUsd(imbalance)}` +
+          (s.includeCustodial ? ', custodial funds excluded' : '') +
+          ').' +
           (net ? ' Removing transfers reduces revenue and expenditure by different amounts.' : ''),
       );
       const other = s.flow === 'revenue' ? tOut! : tIn!;
@@ -375,16 +392,19 @@ function sumByYear(
     if (!sums) continue;
     let sum = sums.get(o.fiscalYear);
     if (!sum) {
-      sum = { nominal: 0, custodial: 0, transfers: 0, sourceIds: new Set() };
+      sum = { nominal: 0, custodial: 0, transfers: 0, ownTransfers: 0, sourceIds: new Set() };
       sums.set(o.fiscalYear, sum);
     }
     // The AFR is the source of the year's total even when some cells are excluded.
     sum.sourceIds.add(o.sourceId);
+    const transfer = isTransferAccount(o.account, o.flow);
     if (o.fundType === 'custodial') {
       sum.custodial += o.amount;
       if (!includeCustodial) continue;
+    } else if (transfer) {
+      sum.ownTransfers += o.amount;
     }
-    if (isTransferAccount(o.account, o.flow)) {
+    if (transfer) {
       sum.transfers += o.amount;
       if (net) continue;
     }

@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import { readFileSync } from 'node:fs';
 import type {
   AfrObservation,
   Annotation,
@@ -5,10 +7,12 @@ import type {
   CpiFile,
   CpiSeriesFile,
   PopulationFile,
+  SourceRecord,
   WorkbookTotal,
 } from './models';
 import {
   annotationsInRange,
+  availableJurisdictions,
   availableYears,
   buildSeries,
   DEFAULT_SETTINGS,
@@ -19,19 +23,13 @@ import {
   isTransferImbalanceNote,
   TRANSFER_IMBALANCE_NOTE_PREFIX,
   TRANSFER_ACCOUNTS,
-  TRANSFER_IMBALANCE_NOTE_SHARE,
+  TRANSFER_IMBALANCE_THRESHOLD,
   selectCpi,
   type SeriesPoint,
   type TransformData,
   type TransformSettings,
 } from './transform';
 
-import observationsJson from '../../assets/data/hillsborough.observations.json';
-import populationJson from '../../assets/data/population.json';
-import cpiJson from '../../assets/data/cpi.json';
-import annotationsJson from '../../assets/data/annotations.json';
-import sourcesJson from '../../assets/data/sources.json';
-import workbookTotalsJson from '../../assets/data/hillsborough.workbook-totals.json';
 
 // ---------------------------------------------------------------------------
 // Fixture
@@ -198,6 +196,7 @@ describe('DEFAULT_SETTINGS', () => {
       cpiIndex: 'cpi-u-us',
       cpiPeriod: 'fiscal',
       transfers: 'gross',
+      jurisdiction: 'hillsborough',
     });
   });
 
@@ -915,7 +914,7 @@ describe('buildSeries: transfers', () => {
     expect(plain.transfersNominal).toBe(0);
   });
 
-  it('transferImbalance = 581 - 381, only for years with both flows', () => {
+  it('transferImbalance = 581 - 381 in non-custodial funds, only for years with both flows', () => {
     const d = transferFixture();
     const rev = buildSeries(d, settings());
     expect(byYear(rev, 2019).transferImbalance).toBe(0);
@@ -924,27 +923,56 @@ describe('buildSeries: transfers', () => {
     const exp = buildSeries(d, settings({ flow: 'expenditure' }));
     expect(byYear(exp, 2018).transferImbalance).toBeUndefined();
     expect(byYear(exp, 2020).transferImbalance).toBe(480);
-    // Custodial included: (600 + 7) - (120 + 3).
-    expect(byYear(buildSeries(d, settings({ includeCustodial: true })), 2020).transferImbalance).toBe(484);
+    // Custodial transfers (7 out, 3 in) never count, whatever the toggle.
+    expect(byYear(buildSeries(d, settings({ includeCustodial: true })), 2020).transferImbalance).toBe(480);
   });
 
-  it("a material imbalance is noted on both flows in both modes, citing the other flow's source", () => {
-    const d = transferFixture();
-    const gross = 'Transfers out (581) and transfers in (381) differ in FY 2019-20: $600 out, $120 in (difference $480).';
+  const M = 1_000_000;
+  /** 2019: imbalance $0.5M (under threshold). 2020: $480M out > in. 2021: revenue only. */
+  function imbalanceFixture(): TransformData {
+    return {
+      ...fixture(),
+      observations: [
+        tobs(2019, 'revenue', '381', 'general', 10 * M),
+        tobs(2019, 'expenditure', '581', 'general', 10.5 * M),
+        obs(2020, 'general', 1000 * M),
+        tobs(2020, 'revenue', '381', 'general', 100 * M),
+        tobs(2020, 'revenue', '381.1', 'enterprise', 20 * M),
+        tobs(2020, 'revenue', '381', 'custodial', 3 * M),
+        obs(2020, 'general', 800 * M, 'expenditure'),
+        tobs(2020, 'expenditure', '581', 'general', 600 * M),
+        tobs(2020, 'expenditure', '581', 'custodial', 7 * M),
+        tobs(2021, 'revenue', '381', 'general', 40 * M),
+      ],
+    };
+  }
+
+  it("an imbalance over the threshold is noted on both flows in both modes, citing the other flow's source", () => {
+    const d = imbalanceFixture();
+    const gross =
+      'Transfers out (581) and transfers in (381) differ in FY 2019-20: $600,000,000 out, $120,000,000 in (difference $480,000,000).';
     const net = gross + ' Removing transfers reduces revenue and expenditure by different amounts.';
-    const rg = byYear(buildSeries(d, settings()), 2020);
     const cust = 'Custodial fund amounts (GASB 84) are excluded.';
+    const rg = byYear(buildSeries(d, settings()), 2020);
     expect(rg.notes).toEqual([cust, gross]);
     expect(rg.sourceIds).toEqual([REV, EXP]);
     const rn = byYear(buildSeries(d, settings({ transfers: 'net' })), 2020);
-    expect(rn.notes).toEqual([cust, 'Interfund transfers (account 381, $120) are excluded.', net]);
+    expect(rn.notes).toEqual([cust, 'Interfund transfers (account 381, $120,000,000) are excluded.', net]);
     const en = byYear(buildSeries(d, settings({ flow: 'expenditure', transfers: 'net' })), 2020);
-    expect(en.notes).toEqual([cust, 'Interfund transfers (account 581, $600) are excluded.', net]);
+    expect(en.notes).toEqual([cust, 'Interfund transfers (account 581, $600,000,000) are excluded.', net]);
     expect(en.sourceIds).toEqual([EXP, REV]);
   });
 
+  it('with custodial included, the note keeps the non-custodial figures and says so', () => {
+    const p = byYear(buildSeries(imbalanceFixture(), settings({ includeCustodial: true })), 2020);
+    expect(p.transfersNominal).toBe(123 * M);
+    expect(p.notes.filter(isTransferImbalanceNote)).toEqual([
+      'Transfers out (581) and transfers in (381) differ in FY 2019-20: $600,000,000 out, $120,000,000 in (difference $480,000,000, custodial funds excluded).',
+    ]);
+  });
+
   it('isTransferImbalanceNote recognises exactly the imbalance note', () => {
-    const d = transferFixture();
+    const d = imbalanceFixture();
     for (const transfers of ['gross', 'net'] as const) {
       const notes = byYear(buildSeries(d, settings({ transfers, includeCustodial: true })), 2020).notes;
       expect(notes.filter(isTransferImbalanceNote)).toHaveLength(1);
@@ -954,31 +982,38 @@ describe('buildSeries: transfers', () => {
     expect(isTransferImbalanceNote('Interfund transfers (account 381, $1) are excluded.')).toBe(false);
   });
 
-  it('a balanced year has no imbalance note and no extra source', () => {
+  it('a balanced year, or one under the threshold, has no imbalance note and no extra source', () => {
     const p = byYear(buildSeries(transferFixture(), settings()), 2019);
     expect(p.notes).toEqual([]);
     expect(p.sourceIds).toEqual([REV]);
+    const q = byYear(buildSeries(imbalanceFixture(), settings()), 2019);
+    expect(q.transferImbalance).toBe(0.5 * M);
+    expect(q.notes).toEqual([]);
+    expect(q.sourceIds).toEqual([REV]);
   });
 
-  it('an imbalance at or below the threshold share is not noted; above it is', () => {
-    const at = 1000 * TRANSFER_IMBALANCE_NOTE_SHARE;
+  it('threshold is the pipeline rule: |581 - 381| > $1,000,000 (strictly greater)', () => {
+    expect(TRANSFER_IMBALANCE_THRESHOLD).toBe(1_000_000);
     const mk = (out: number): TransformData => ({
       ...fixture(),
-      observations: [tobs(2019, 'revenue', '381', 'general', 1000), tobs(2019, 'expenditure', '581', 'general', out)],
+      observations: [tobs(2019, 'revenue', '381', 'general', 5 * M), tobs(2019, 'expenditure', '581', 'general', out)],
     });
-    expect(buildSeries(mk(1000 - at), settings())[0].notes).toEqual([]);
-    expect(buildSeries(mk(1000 - at), settings())[0].transferImbalance).toBe(-at);
-    expect(buildSeries(mk(1000 - 2 * at), settings())[0].notes).toHaveLength(1);
-    expect(buildSeries(mk(1000 + 2 * at), settings())[0].notes).toHaveLength(1);
+    const notes = (out: number) => buildSeries(mk(out), settings())[0].notes;
+    expect(notes(5 * M + TRANSFER_IMBALANCE_THRESHOLD)).toEqual([]);
+    expect(notes(5 * M - TRANSFER_IMBALANCE_THRESHOLD)).toEqual([]);
+    expect(notes(5 * M + TRANSFER_IMBALANCE_THRESHOLD + 1)).toHaveLength(1);
+    expect(notes(5 * M - TRANSFER_IMBALANCE_THRESHOLD - 1)).toHaveLength(1);
+    // Pinellas FY 2022-23: $369,300 is not noted.
+    expect(notes(5 * M + 369_300)).toEqual([]);
   });
 
   it('a negative imbalance (381 > 581) is noted too', () => {
     const d: TransformData = {
       ...fixture(),
-      observations: [tobs(2019, 'revenue', '381', 'general', 500), tobs(2019, 'expenditure', '581', 'general', 100)],
+      observations: [tobs(2019, 'revenue', '381', 'general', 5 * M), tobs(2019, 'expenditure', '581', 'general', 1 * M)],
     };
     expect(buildSeries(d, settings())[0].notes).toEqual([
-      'Transfers out (581) and transfers in (381) differ in FY 2018-19: $100 out, $500 in (difference -$400).',
+      'Transfers out (581) and transfers in (381) differ in FY 2018-19: $1,000,000 out, $5,000,000 in (difference -$4,000,000).',
     ]);
   });
 
@@ -1069,70 +1104,59 @@ describe('annotationsInRange: conditions', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Golden tests against the real pipeline output
+// Golden tests against the real pipeline output (src/assets/data), for every
+// jurisdiction listed in manifest.json. Files are read from disk so a newly
+// added county is covered without editing this spec.
 // ---------------------------------------------------------------------------
 
-describe('golden: src/assets/data', () => {
-  const data: TransformData = {
-    observations: observationsJson as AfrObservation[],
-    population: populationJson as PopulationFile,
-    cpi: cpiJson as unknown as CpiFile,
-    annotations: annotationsJson as Annotation[],
-    sources: sourcesJson,
-  };
-  const totals = workbookTotalsJson as WorkbookTotal[];
-  const full = (over: Partial<TransformSettings> = {}) => settings({ range: [1900, 2100], baseYear: 2025, ...over });
+const DATA_DIR = 'src/assets/data';
+const readJson = <T>(file: string): T => JSON.parse(readFileSync(`${DATA_DIR}/${file}`, 'utf8')) as T;
+const JURISDICTIONS = readJson<{ jurisdictions: string[] }>('manifest.json').jurisdictions;
+const realData: TransformData = {
+  observations: JURISDICTIONS.flatMap((j) => readJson<AfrObservation[]>(`${j}.observations.json`)),
+  population: readJson<PopulationFile>('population.json'),
+  cpi: readJson<CpiFile>('cpi.json'),
+  annotations: readJson<AnnotationRecord[]>('annotations.json'),
+  sources: readJson<SourceRecord[]>('sources.json'),
+};
+const goldenFull = (over: Partial<TransformSettings> = {}) => settings({ range: [1900, 2100], baseYear: 2025, ...over });
 
-  it('pinned values: FY 2024-25 revenue incl./excl. custodial, FY 2021-22 revenue excl.', () => {
-    const incl = buildSeries(data, full({ includeCustodial: true }));
-    const excl = buildSeries(data, full());
-    expect(byYear(incl, 2025).value).toBe(9_597_307_134);
-    expect(byYear(excl, 2025).value).toBe(5_468_332_134);
-    expect(byYear(excl, 2022).value).toBe(3_583_795_000);
+describe('golden: manifest', () => {
+  it('lists at least one jurisdiction, each with observations', () => {
+    expect(JURISDICTIONS.length).toBeGreaterThan(0);
+    expect(availableJurisdictions(realData)).toEqual([...JURISDICTIONS].sort());
+  });
+});
+
+describe.each(JURISDICTIONS)('golden: %s', (jurisdiction) => {
+  const data = realData;
+  const totals = readJson<WorkbookTotal[]>(`${jurisdiction}.workbook-totals.json`);
+  const full = (over: Partial<TransformSettings> = {}) => goldenFull({ jurisdiction, ...over });
+  const flows = ['revenue', 'expenditure'] as const;
+  const ownOrStatewide = (a: AnnotationRecord) => a.jurisdiction === undefined || a.jurisdiction === jurisdiction;
+
+  it('available years are exactly the workbook sheets, with no gaps', () => {
+    for (const flow of flows) {
+      const years = totals.filter((t) => t.flow === flow).map((t) => t.fiscalYear).sort((a, b) => a - b);
+      expect(years.length).toBeGreaterThan(0);
+      expect(availableYears(data, flow, jurisdiction)).toEqual(years);
+      expect(years[years.length - 1] - years[0] + 1).toBe(years.length);
+    }
   });
 
-  it('transfers: FY 2021-22 revenue excl. custodial, gross -22.9% vs net -6.4% (QA-02)', () => {
-    const g = buildSeries(data, full());
-    const n = buildSeries(data, full({ transfers: 'net' }));
-    expect(byYear(n, 2022).value).toBe(3_583_795_000 - 381_557_000);
-    expect(byYear(n, 2021).value).toBe(4_646_108_000 - 1_223_354_000);
-    const change = (p: SeriesPoint[]) => byYear(p, 2022).value! / byYear(p, 2021).value! - 1;
-    expect(change(g)).toBeCloseTo(-0.229, 3);
-    expect(change(n)).toBeCloseTo(-0.064, 3);
+  it("defaultSettingsFor spans the jurisdiction's years", () => {
+    for (const flow of flows) {
+      const years = availableYears(data, flow, jurisdiction);
+      expect(defaultSettingsFor(data, flow, jurisdiction)).toMatchObject({
+        flow,
+        jurisdiction,
+        range: [years[0], years[years.length - 1]],
+        baseYear: years[years.length - 1],
+      });
+    }
   });
 
-  it('transfers: net mode keeps the FY 2022-23 / FY 2023-24 381-vs-581 imbalance visible (QA-01)', () => {
-    for (const flow of ['revenue', 'expenditure'] as const)
-      for (const transfers of ['gross', 'net'] as const) {
-        const pts = buildSeries(data, full({ flow, transfers }));
-        expect(byYear(pts, 2023).transferImbalance).toBe(624_603_841);
-        expect(byYear(pts, 2024).transferImbalance).toBe(535_878_141);
-        expect(byYear(pts, 2023).notes.some((t) => t.includes('difference $624,603,841'))).toBe(true);
-        expect(byYear(pts, 2024).notes.some((t) => t.includes('difference $535,878,141'))).toBe(true);
-        // Years where 381 and 581 agree within a few hundred dollars carry no imbalance note.
-        for (const fy of [2021, 2022, 2025]) {
-          expect(Math.abs(byYear(pts, fy).transferImbalance!)).toBeLessThanOrEqual(2000);
-          expect(byYear(pts, fy).notes.some((t) => t.startsWith('Transfers out'))).toBe(false);
-        }
-      }
-    // Including custodial adds FY 2023-24 custodial 581 transfers ($1,722,657).
-    expect(byYear(buildSeries(data, full({ includeCustodial: true })), 2024).transferImbalance).toBe(537_600_798);
-  });
-
-  it('transfers: only FY 2022-23 and FY 2023-24 carry an imbalance note', () => {
-    const noted = buildSeries(data, full({ flow: 'expenditure' }))
-      .filter((p) => p.notes.some((t) => t.startsWith('Transfers out')))
-      .map((p) => p.fiscalYear);
-    expect(noted).toEqual([2023, 2024]);
-  });
-
-  it('available years: revenue FY 2005-06..2024-25, expenditure FY 2004-05..2024-25, no gaps', () => {
-    const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-    expect(availableYears(data, 'revenue')).toEqual(range(2006, 2025));
-    expect(availableYears(data, 'expenditure')).toEqual(range(2005, 2025));
-  });
-
-  for (const flow of ['revenue', 'expenditure'] as const) {
+  for (const flow of flows) {
     it(`${flow}: every year matches the workbook Total row (incl.) and Total minus Custodial (excl.)`, () => {
       const incl = buildSeries(data, full({ flow, includeCustodial: true }));
       const excl = buildSeries(data, full({ flow }));
@@ -1146,26 +1170,33 @@ describe('golden: src/assets/data', () => {
       }
     });
 
-    it(`${flow}: per capita (incl. custodial) matches EDR's Per Capita column and population`, () => {
+    it(`${flow}: per capita matches EDR's Per Capita column and population`, () => {
       const pts = buildSeries(data, full({ flow, includeCustodial: true, measure: 'per_capita' }));
       for (const r of totals.filter((t) => t.flow === flow)) {
         const p = byYear(pts, r.fiscalYear);
         expect(p.population).toBe(r.population);
         expect(p.value).toBeCloseTo(r.perCapita, 6);
+        expect(p.sourceIds).toContain(data.population[jurisdiction].sourceId);
       }
+    });
+
+    it(`${flow}: gross = net + transfers for every year`, () => {
+      const g = buildSeries(data, full({ flow }));
+      const n = buildSeries(data, full({ flow, transfers: 'net' }));
+      g.forEach((p, i) => expect(p.nominal).toBe(n[i].nominal + n[i].transfersNominal));
     });
   }
 
-  it('real (CPI-U U.S., fiscal) is fully populated for both flows', () => {
-    for (const flow of ['revenue', 'expenditure'] as const) {
-      const pts = buildSeries(data, full({ flow, measure: 'real_per_capita' }));
-      for (const p of pts) expect(Number.isFinite(p.value)).toBe(true);
+  it('real per capita (CPI-U U.S., fiscal) is fully populated for both flows', () => {
+    for (const flow of flows) {
+      for (const p of buildSeries(data, full({ flow, measure: 'real_per_capita' }))) {
+        expect(Number.isFinite(p.value)).toBe(true);
+      }
     }
   });
 
-  it('Tampa fiscal: null before FY 2017-18 with the published reason, values from FY 2017-18', () => {
-    const pts = buildSeries(data, full({ measure: 'real', cpiIndex: 'cpi-u-tampa' }));
-    for (const p of pts) {
+  it('Tampa: fiscal is null before FY 2017-18 with the published reason; calendar covers every year', () => {
+    for (const p of buildSeries(data, full({ measure: 'real', cpiIndex: 'cpi-u-tampa' }))) {
       if (p.fiscalYear < 2018) {
         expect(p.value).toBeNull();
         const reason = data.cpi.tampa.fiscalYearUnavailable[String(p.fiscalYear)];
@@ -1173,66 +1204,167 @@ describe('golden: src/assets/data', () => {
         expect(p.notes.some((n) => n.includes(reason))).toBe(true);
       } else expect(Number.isFinite(p.value)).toBe(true);
     }
+    const cal = buildSeries(data, full({ measure: 'real', cpiIndex: 'cpi-u-tampa', cpiPeriod: 'calendar' }));
+    expect(cal).toHaveLength(availableYears(data, 'revenue', jurisdiction).length);
+    for (const p of cal) expect(Number.isFinite(p.value)).toBe(true);
   });
 
-  it('Tampa calendar: values for every revenue year', () => {
-    const pts = buildSeries(data, full({ measure: 'real', cpiIndex: 'cpi-u-tampa', cpiPeriod: 'calendar' }));
-    expect(pts).toHaveLength(20);
-    for (const p of pts) expect(Number.isFinite(p.value)).toBe(true);
-  });
-
-  it('every source id on a point resolves to sources.json', () => {
+  it("every source id on a point resolves to sources.json, and no other county's AFR source appears", () => {
     const ids = new Set(data.sources.map((s) => s.id));
-    for (const measure of ['real_per_capita'] as const)
+    const ownAfr = new Set(data.observations.filter((o) => o.jurisdiction === jurisdiction).map((o) => o.sourceId));
+    const otherAfr = new Set(
+      data.observations.filter((o) => o.jurisdiction !== jurisdiction && !ownAfr.has(o.sourceId)).map((o) => o.sourceId),
+    );
+    for (const flow of flows)
       for (const cpiIndex of ['cpi-u-us', 'cpi-u-tampa'] as const)
         for (const cpiPeriod of ['fiscal', 'calendar'] as const)
-          for (const p of buildSeries(data, full({ measure, cpiIndex, cpiPeriod, indexTo100: true })))
-            for (const id of p.sourceIds) expect(ids.has(id)).toBe(true);
+          for (const p of buildSeries(data, full({ flow, measure: 'real_per_capita', cpiIndex, cpiPeriod, indexTo100: true }))) {
+            for (const id of p.sourceIds) {
+              expect(ids.has(id)).toBe(true);
+              expect(otherAfr.has(id)).toBe(false);
+            }
+          }
     for (const a of data.annotations) expect(ids.has(a.sourceId)).toBe(true);
   });
 
-  it('annotations.json: conditions select the expected rows', () => {
-    const labels = (s: Partial<TransformSettings>) => annotationsInRange(data, full(s)).map((a) => `${a.fiscalYear} ${a.label}`);
-    const all = data.annotations.length;
-    // Default view: no custodial-only rows, no per-resident rows, revenue only.
+  it("transfer-imbalance notes fall in exactly the years of the pipeline's transfer-imbalance annotations", () => {
+    const annotated = data.annotations
+      .filter((a) => a.jurisdiction === jurisdiction && a.label.startsWith('Transfers out (581)'))
+      .map((a) => a.fiscalYear)
+      .sort((a, b) => a - b);
+    for (const flow of flows)
+      for (const transfers of ['gross', 'net'] as const)
+        for (const includeCustodial of [false, true]) {
+          const noted = buildSeries(data, full({ flow, transfers, includeCustodial }))
+            .filter((p) => p.notes.some(isTransferImbalanceNote))
+            .map((p) => p.fiscalYear);
+          expect(noted).toEqual(annotated);
+        }
+  });
+
+  it('annotations: rows for other jurisdictions never appear; every own or statewide row is reachable', () => {
+    const seen = new Set<AnnotationRecord>();
+    for (const flow of flows)
+      for (const includeCustodial of [false, true])
+        for (const measure of ['nominal', 'per_capita', 'real', 'real_per_capita'] as const)
+          for (const a of annotationsInRange(data, full({ flow, includeCustodial, measure }))) {
+            expect(ownOrStatewide(a)).toBe(true);
+            seen.add(a);
+          }
+    expect(seen.size).toBe(data.annotations.filter(ownOrStatewide).length);
+  });
+
+  it('annotations: default view has no custodial-only, per-resident or expenditure rows', () => {
     const def = annotationsInRange(data, full());
     expect(def.every((a) => a.custodial !== 'included' && a.measures === undefined && a.flow !== 'expenditure')).toBe(true);
-    // The transfer-imbalance rows are expenditure rows.
-    expect(labels({ flow: 'expenditure' }).some((l) => l.startsWith('2023 Transfers out (581)'))).toBe(true);
-    expect(labels({}).some((l) => l.includes('Transfers out (581)'))).toBe(false);
-    // Per-resident rows appear only with a per-resident measure.
-    const perResident = data.annotations.filter((a) => a.measures?.includes('per_capita')).length;
-    expect(perResident).toBeGreaterThan(0);
+    const perResident = data.annotations.filter((a) => ownOrStatewide(a) && a.measures?.includes('per_capita')).length;
     expect(annotationsInRange(data, full({ measure: 'per_capita' })).filter((a) => a.measures !== undefined)).toHaveLength(
       perResident,
     );
-    expect(annotationsInRange(data, full()).filter((a) => a.measures !== undefined)).toHaveLength(0);
-    // Every row is reachable by some view, and no view shows a row for another jurisdiction.
-    const seen = new Set<AnnotationRecord>();
+  });
+
+  it('GASB 84 annotation shows at FY 2020-21 for both flows', () => {
+    for (const flow of flows) {
+      expect(annotationsInRange(data, full({ flow }))).toContainEqual(
+        expect.objectContaining({
+          fiscalYear: 2021,
+          label: expect.stringMatching(/^Custodial fund reporting begins \(GASB 84\)/),
+          kind: 'methodology',
+        }),
+      );
+    }
+  });
+});
+
+describe('golden: hillsborough pinned values', () => {
+  const data = realData;
+  const full = (over: Partial<TransformSettings> = {}) => goldenFull({ jurisdiction: 'hillsborough', ...over });
+
+  it('FY 2024-25 revenue incl./excl. custodial, FY 2021-22 revenue excl.', () => {
+    const incl = buildSeries(data, full({ includeCustodial: true }));
+    const excl = buildSeries(data, full());
+    expect(byYear(incl, 2025).value).toBe(9_597_307_134);
+    expect(byYear(excl, 2025).value).toBe(5_468_332_134);
+    expect(byYear(excl, 2022).value).toBe(3_583_795_000);
+  });
+
+  it('available years: revenue FY 2005-06..2024-25, expenditure FY 2004-05..2024-25', () => {
+    const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+    expect(availableYears(data, 'revenue', 'hillsborough')).toEqual(range(2006, 2025));
+    expect(availableYears(data, 'expenditure', 'hillsborough')).toEqual(range(2005, 2025));
+  });
+
+  it('transfers: FY 2021-22 revenue excl. custodial, gross -22.9% vs net -6.4% (QA-02)', () => {
+    const g = buildSeries(data, full());
+    const n = buildSeries(data, full({ transfers: 'net' }));
+    expect(byYear(n, 2022).value).toBe(3_583_795_000 - 381_557_000);
+    expect(byYear(n, 2021).value).toBe(4_646_108_000 - 1_223_354_000);
+    const change = (p: SeriesPoint[]) => byYear(p, 2022).value! / byYear(p, 2021).value! - 1;
+    expect(change(g)).toBeCloseTo(-0.229, 3);
+    expect(change(n)).toBeCloseTo(-0.064, 3);
+  });
+
+  it('transfers: the FY 2022-23 / FY 2023-24 381-vs-581 imbalance is noted in every mode (QA-01)', () => {
     for (const flow of ['revenue', 'expenditure'] as const)
-      for (const includeCustodial of [false, true])
-        for (const measure of ['nominal', 'per_capita'] as const)
-          annotationsInRange(data, full({ flow, includeCustodial, measure })).forEach((a) => seen.add(a));
-    expect(seen.size).toBe(all);
-    expect(annotationsInRange(data, full({ jurisdiction: 'pasco' })).every((a) => a.jurisdiction === undefined)).toBe(true);
+      for (const transfers of ['gross', 'net'] as const)
+        for (const includeCustodial of [false, true]) {
+          const pts = buildSeries(data, full({ flow, transfers, includeCustodial }));
+          expect(byYear(pts, 2023).transferImbalance).toBe(624_603_841);
+          expect(byYear(pts, 2024).transferImbalance).toBe(535_878_141);
+          expect(byYear(pts, 2023).notes.some((t) => t.includes('difference $624,603,841'))).toBe(true);
+          expect(byYear(pts, 2024).notes.some((t) => t.includes('difference $535,878,141'))).toBe(true);
+          for (const fy of [2021, 2022, 2025]) {
+            expect(Math.abs(byYear(pts, fy).transferImbalance!)).toBeLessThanOrEqual(2000);
+            expect(byYear(pts, fy).notes.some(isTransferImbalanceNote)).toBe(false);
+          }
+        }
+    // Default-view note text is unchanged from Phase 2.
+    expect(byYear(buildSeries(data, full()), 2023).notes.filter(isTransferImbalanceNote)).toEqual([
+      'Transfers out (581) and transfers in (381) differ in FY 2022-23: $1,160,934,246 out, $536,330,405 in (difference $624,603,841).',
+    ]);
   });
 
   it('national calendar CPI for 2025 carries the published-as-is caveat', () => {
-    const p = byYear(buildSeries(data, full({ measure: 'real', cpiPeriod: 'calendar', baseYear: 2025 })), 2025);
-    expect(Number.isFinite(p.value)).toBe(true);
-    expect(p.notes.some((n) => n.startsWith('CPI-U, U.S. city average, calendar-year annual average for calendar year 2025: '))).toBe(true);
-    const q = byYear(buildSeries(data, full({ measure: 'real', cpiPeriod: 'calendar', baseYear: 2025 })), 2010);
-    expect(q.notes.some((n) => n.includes('calendar year 2025'))).toBe(true);
+    const pts = buildSeries(data, full({ measure: 'real', cpiPeriod: 'calendar', baseYear: 2025 }));
+    expect(Number.isFinite(byYear(pts, 2025).value)).toBe(true);
+    expect(
+      byYear(pts, 2025).notes.some((n) =>
+        n.startsWith('CPI-U, U.S. city average, calendar-year annual average for calendar year 2025: '),
+      ),
+    ).toBe(true);
+    expect(byYear(pts, 2010).notes.some((n) => n.includes('calendar year 2025'))).toBe(true);
+  });
+});
+
+describe('golden: transfer-imbalance note years (pipeline rule, |581 - 381| > $1,000,000 non-custodial)', () => {
+  const noted = (jurisdiction: string, over: Partial<TransformSettings> = {}) =>
+    buildSeries(realData, goldenFull({ jurisdiction, flow: 'expenditure', ...over }));
+  const modes = [
+    {},
+    { flow: 'revenue' as const },
+    { transfers: 'net' as const },
+    { includeCustodial: true },
+  ];
+
+  it('hillsborough: FY 2022-23 and FY 2023-24 only', () => {
+    for (const m of modes) {
+      const pts = noted('hillsborough', m);
+      expect(pts.filter((p) => p.notes.some(isTransferImbalanceNote)).map((p) => p.fiscalYear)).toEqual([2023, 2024]);
+    }
   });
 
-  it('GASB 84 annotation is at FY 2020-21', () => {
-    const a = annotationsInRange(data, full());
-    expect(a).toContainEqual(
-      expect.objectContaining({
-        fiscalYear: 2021,
-        label: expect.stringMatching(/^Custodial fund reporting begins \(GASB 84\)/),
-        kind: 'methodology',
-      }),
-    );
+  it.runIf(JURISDICTIONS.includes('pinellas'))('pinellas: FY 2005-06 and FY 2021-22; not FY 2022-23 ($369,300)', () => {
+    for (const m of modes) {
+      const pts = noted('pinellas', m);
+      expect(pts.filter((p) => p.notes.some(isTransferImbalanceNote)).map((p) => p.fiscalYear)).toEqual([2006, 2022]);
+      expect(byYear(pts, 2006).transferImbalance).toBe(283_213_259);
+      expect(byYear(pts, 2022).transferImbalance).toBe(13_778_002);
+      expect(byYear(pts, 2023).transferImbalance).toBe(369_300);
+      for (const p of pts) {
+        if (![2006, 2022, 2023].includes(p.fiscalYear) && p.transferImbalance !== undefined) {
+          expect(p.transferImbalance).toBe(0);
+        }
+      }
+    }
   });
 });
