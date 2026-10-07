@@ -88,11 +88,23 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   min-height: var(--fx-figure-min-height);
   display: flex;
   flex-direction: column;
+
+  // Phones: the wrapped category legend takes several rows; keep the plot near the line chart's
+  // size. Set from the URL's chart type at first render, so no layout shift (QA-45).
+  &.with-legend {
+    height: calc(var(--fx-figure-height) + var(--fx-legend-reserve));
+  }
 }
 
 .fill {
   flex: 1;
   min-height: 0;
+}
+
+.scope-includes {
+  flex: none;
+  margin: var(--fx-space-1) 0 0;
+  color: var(--fx-color-text-muted);
 }
 
 .state {
@@ -179,7 +191,8 @@ app-view-notes:empty {
     display: none;
   }
 
-  .figure {
+  .figure,
+  .figure.with-legend {
     height: min(var(--fx-figure-height), var(--fx-figure-max-height));
   }
 

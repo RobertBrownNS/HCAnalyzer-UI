@@ -76,7 +76,13 @@ describe('fund and category wording', () => {
 
     it('is the preset name, else the funds in column order, else a count', () => {
       expect(fundScopeText(['general'], available, meta)).toBe('General Fund');
-      expect(fundScopeText(null, available, meta)).toBe('All funds');
+      // The every-fund scope uses its full name (QA-42); the short form is the preset label (chip).
+      expect(fundScopeText(null, available, meta)).toBe('All funds as reported by EDR');
+      expect(fundScopeText(['capital', 'enterprise', 'general', 'special_revenue'], available, meta)).toBe(
+        'All funds as reported by EDR',
+      );
+      expect(fundScopeText(null, available, meta, 'short')).toBe('All funds');
+      expect(fundScopeText(['general'], available, meta, 'short')).toBe('General Fund');
       expect(fundScopeText(['enterprise', 'general'], available, meta)).toBe('Funds: General, Enterprise');
       expect(fundScopeText(['capital', 'enterprise', 'special_revenue'], ['general', ...available.slice(1), 'pension'], meta)).toBe(
         'Funds: Special Revenue, Capital Projects, Enterprise',

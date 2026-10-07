@@ -15,6 +15,11 @@ export const CHART_LABELS: Record<ChartType, string> = {
 };
 
 /** Chart types that show categories (and use the category picker). */
+/** Line and lines by category: the chart types that can show index-to-100. */
+export function isLineChart(chart: ChartType): boolean {
+  return chart === 'line' || chart === 'lines';
+}
+
 export function isCategoryChart(chart: ChartType): boolean {
   return chart !== 'line';
 }

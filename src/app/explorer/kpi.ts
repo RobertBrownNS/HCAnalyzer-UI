@@ -19,6 +19,17 @@ export interface KpiCard {
 }
 
 /** Describes the unit of the values: "Nominal dollars", "Per resident, FY 2024-25 dollars", ... */
+/** The unit in running text: "nominal dollars", "FY 2024-25 dollars per resident". */
+export function unitPhrase(s: TransformSettings): string {
+  const base = fiscalYearLabel(s.baseYear);
+  return {
+    nominal: 'nominal dollars',
+    per_capita: 'nominal dollars per resident',
+    real: `${base} dollars`,
+    real_per_capita: `${base} dollars per resident`,
+  }[s.measure];
+}
+
 export function measureCaption(s: TransformSettings): string {
   const base = fiscalYearLabel(s.baseYear);
   const unit = {

@@ -60,19 +60,30 @@ export function matchingPreset(
   return 'custom';
 }
 
+/** The every-fund scope's full name (D-18, P3-02). The preset button and phone chip say "All funds". */
+export const ALL_FUNDS_NAME = 'All funds as reported by EDR';
+
+/** The every-fund preset (funds.json id "all"), or no fund selection at all. */
+export function isAllFundsScope(selection: readonly string[] | null, available: readonly string[], meta: FundsFile | null): boolean {
+  return selection === null || matchingPreset(selection, available, meta) === 'all';
+}
+
 /**
- * Plain statement of the fund scope for the line under the chart title: the preset's name when the
- * selection is a preset, else the funds named. Custodial is stated separately by the caller.
+ * Plain statement of the fund scope: the preset's name when the selection is a preset (the full
+ * name for every fund, QA-42; the preset label with `short`), else the funds named. Custodial is
+ * stated separately by the caller.
  */
 export function fundScopeText(
   selection: readonly string[] | null,
   available: readonly string[],
   meta: FundsFile | null,
+  form: 'full' | 'short' = 'full',
 ): string {
   const preset = matchingPreset(selection, available, meta);
   const p = meta?.presets.find((x) => x.id === preset);
+  if (form === 'full' && isAllFundsScope(selection, available, meta)) return ALL_FUNDS_NAME;
   if (p) return p.label;
-  if (selection === null) return 'All funds as reported by EDR';
+  if (selection === null) return ALL_FUNDS_NAME;
   const names = inMetaOrder(selection, meta).map((id) => fundLabel(id, meta));
   return names.length <= 3 ? `Funds: ${names.join(', ')}` : `Funds: ${names.length} of ${available.length} selected`;
 }

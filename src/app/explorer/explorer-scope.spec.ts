@@ -9,9 +9,10 @@ import { ANALYTICS_TOKEN } from '../core/analytics';
 import { DataService, DataStatus } from '../core/data.service';
 import { formatValue } from '../core/format';
 import { AccountRecord, AfrObservation, CategoriesFile, CpiFile, FundsFile, PopulationFile } from '../core/models';
-import { TransformData } from '../core/transform';
+import { TransformData, settingsWithDefaults } from '../core/transform';
 import { ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
+import { kpiCards, measureCaption, unitPhrase } from './kpi';
 import { MethodologyComponent, categoryMappingRows } from './methodology.component';
 
 // Phase 3 store behaviour: fund and category selection (D-18, D-19), chart type (D-20) in the URL,
@@ -279,9 +280,12 @@ describe('ExplorerStore fund scope, categories and chart type', () => {
   describe('fund scope wording', () => {
     it('names the preset the selection matches, else the funds', async () => {
       let store = await open('/');
-      expect(store.fundScope()).toBe('All funds');
+      expect(store.fundScope()).toBe('All funds as reported by EDR');
+      expect(store.fundScopeShort()).toBe('All funds');
+      expect(store.fundsIncluded()).toBe('Includes General, Special Revenue and Enterprise.');
       store = await open('/?funds=general');
       expect(store.fundScope()).toBe('General Fund');
+      expect(store.fundsIncluded()).toBeNull();
       store = await open('/?funds=general,special_revenue');
       expect(store.fundScope()).toBe('Governmental funds');
       store = await open('/?funds=enterprise,general');
@@ -321,7 +325,7 @@ describe('ExplorerStore fund scope, categories and chart type', () => {
       const store = await open('/?from=2019&to=2021');
       const c = store.drawerContent(2019, null, 'Revenues, nominal dollars')!;
       expect(c.fiscalYearLabel).toBe('FY 2018-19');
-      expect(c.context).toBe('Hillsborough County · All funds, excluding custodial');
+      expect(c.context).toBe('Hillsborough County · All funds as reported by EDR, excluding custodial');
       expect(c.seriesLabel).toBe('Revenues, nominal dollars');
       expect(c.valueText).toBe(formatValue(190, store.settings()));
       expect(c.nominalText).toBe('$190');
@@ -538,5 +542,57 @@ describe('Privacy line (Cloudflare Web Analytics)', () => {
     expect(el.querySelector('.privacy')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'This site counts page views with Cloudflare Web Analytics. It sets no cookies and collects no personal information. Do Not Track and Global Privacy Control are respected.',
     );
+  });
+});
+
+describe('Index to 100 on stacked, share and bars (QA-39)', () => {
+  let harness: RouterTestingHarness;
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([{ path: '', component: HostComponent }]),
+        provideLocationMocks(),
+        { provide: DataService, useClass: FakeDataService },
+      ],
+    });
+    harness = await RouterTestingHarness.create();
+  });
+
+  async function open(url: string): Promise<ExplorerStore> {
+    const host = await harness.navigateByUrl(url, HostComponent);
+    await harness.fixture.whenStable();
+    return host.store;
+  }
+
+  for (const chart of ['stacked', 'share', 'bars']) {
+    it(`${chart}: the setting stays on, but everything shown uses values (no index)`, async () => {
+      const store = await open(`/?chart=${chart}&idx=1&base=2019`);
+      expect(store.settings().indexTo100).toBe(true);
+      expect(store.indexNotShown()).toBe(true);
+      expect(store.displaySettings().indexTo100).toBe(false);
+      // The total the chart, table and KPIs use is dollars, not 100 at the base year.
+      expect(store.chartTotal().map((p) => p.value)).toEqual([190, 190, 190]);
+      const kpis = kpiCards(store.chartTotal(), store.displaySettings());
+      expect(kpis[0].value).toContain('$');
+      expect(measureCaption(store.displaySettings())).toBe('Nominal dollars');
+      expect(store.drawerContent(2019, null, 'x')!.valueText).toBe('$190');
+    });
+  }
+
+  it('line and lines by category show the index', async () => {
+    for (const chart of ['line', 'lines']) {
+      const store = await open(`/?chart=${chart}&idx=1&base=2019`);
+      expect(store.indexNotShown()).toBe(false);
+      expect(store.displaySettings()).toBe(store.settings());
+      expect(store.chartTotal()[0].value).toBe(100);
+      expect(measureCaption(store.displaySettings())).toContain('Index, FY 2018-19 = 100');
+    }
+  });
+
+  it('unitPhrase names the unit for the note line', () => {
+    const s = settingsWithDefaults('hillsborough', { baseYear: 2019 });
+    expect(unitPhrase(s)).toBe('nominal dollars');
+    expect(unitPhrase({ ...s, measure: 'real_per_capita' })).toBe('FY 2018-19 dollars per resident');
   });
 });

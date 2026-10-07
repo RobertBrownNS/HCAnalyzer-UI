@@ -9,6 +9,8 @@ import {
   categorySeriesOptions,
   categoryTooltipHtml,
   formatShare,
+  LEGEND,
+  legendHeight,
 } from './category-chart';
 
 const s = settingsWithDefaults('hillsborough');
@@ -110,5 +112,25 @@ describe('category chart options (D-20)', () => {
       expect(categoryAt('stacked', cats, 0, -1)).toBeNull();
       expect(categoryAt('lines', cats, 0, 10)).toBeNull();
     });
+  });
+});
+
+describe('legendHeight (QA-45: wrapped legend, no paging)', () => {
+  const w = (t: string) => t.length * 6;
+  it('one row when everything fits; more rows as the width shrinks', () => {
+    const labels = ['Total', 'Ad Valorem Taxes', 'Other Taxes'];
+    const one = legendHeight(labels, 2000, w, 16);
+    expect(one).toBe(16 + 2 * LEGEND.padding);
+    const narrow = legendHeight(labels, 120, w, 16);
+    expect(narrow).toBe(3 * 16 + 2 * LEGEND.itemGap + 2 * LEGEND.padding);
+    expect(legendHeight([], 400, w, 16)).toBe(0);
+  });
+
+  it('eleven long labels at phone width need several rows, all reserved', () => {
+    const labels = Array.from({ length: 11 }, (_, i) => `Category name number ${i}`);
+    const h = legendHeight(labels, 358, w, 15);
+    const rows = (h - 2 * LEGEND.padding + LEGEND.itemGap) / (15 + LEGEND.itemGap);
+    expect(Number.isInteger(rows)).toBe(true);
+    expect(rows).toBeGreaterThanOrEqual(6);
   });
 });

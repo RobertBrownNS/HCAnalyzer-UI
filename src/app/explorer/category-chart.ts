@@ -72,6 +72,36 @@ export function categoryAt(
   return null;
 }
 
+/** Legend geometry (ECharts plain legend, horizontal): icon, icon-to-text gap, item gap, padding. */
+export const LEGEND = { itemWidth: 25, itemHeight: 14, textGap: 5, itemGap: 10, padding: 5 } as const;
+
+/**
+ * Height the wrapped legend needs at `width` px (QA-45: every entry visible, no paging). Mirrors
+ * ECharts' horizontal box layout: items flow left to right and wrap when the next one doesn't fit.
+ * `textWidth` measures a label in the legend font; `lineHeight` is the label line height.
+ */
+export function legendHeight(
+  labels: readonly string[],
+  width: number,
+  textWidth: (label: string) => number,
+  lineHeight: number,
+): number {
+  if (!labels.length) return 0;
+  const avail = Math.max(1, width - 2 * LEGEND.padding);
+  let rows = 1;
+  let x = 0;
+  for (const label of labels) {
+    const w = LEGEND.itemWidth + LEGEND.textGap + textWidth(label);
+    if (x > 0 && x + w > avail) {
+      rows++;
+      x = 0;
+    }
+    x += w + LEGEND.itemGap;
+  }
+  const row = Math.max(LEGEND.itemHeight, lineHeight);
+  return rows * row + (rows - 1) * LEGEND.itemGap + 2 * LEGEND.padding;
+}
+
 /** ECharts series for a category chart, total first where the type shows it. */
 export function categorySeriesOptions(inp: CategoryChartInput): Record<string, unknown>[] {
   const { type, c, m } = inp;

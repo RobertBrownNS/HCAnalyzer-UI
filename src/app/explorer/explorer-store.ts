@@ -7,8 +7,8 @@ import { formatUsd, formatValue } from '../core/format';
 import { fundScopeLabel } from '../core/labels';
 import { formatShare } from './category-chart';
 import { DrawerContent, accountName, drawerAnnotations, drawerSources } from './source-drawer';
-import { categoryLabel, fundLabel, fundScopeText } from '../core/scope';
-import { coverageFor, crossCheckByYear, crossCheckYearText } from '../core/cross-check';
+import { categoryLabel, fundLabel, fundScopeText, fundsIncludedText, isAllFundsScope } from '../core/scope';
+import { coverageFor, crossCheckByYear, crossCheckYearText, withFundSelection } from '../core/cross-check';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
@@ -28,7 +28,7 @@ import {
   selectCpi,
   settingsWithDefaults,
 } from '../core/transform';
-import { DEFAULT_CHART, VIEW_KEYS, ViewState, isCategoryChart, parseView, serializeView } from '../core/view-state';
+import { DEFAULT_CHART, VIEW_KEYS, ViewState, isCategoryChart, isLineChart, parseView, serializeView } from '../core/view-state';
 import { SKELETON_DELAY_MS } from './skeleton';
 import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
@@ -145,6 +145,21 @@ export class ExplorerStore {
   readonly fundScope = computed(() =>
     fundScopeText(this.settings().funds ?? null, this.fundsAvailable(), this.dataService.fundsMeta()),
   );
+  /** Short form for the phone chip: the preset's own label ("All funds"). */
+  readonly fundScopeShort = computed(() =>
+    fundScopeText(this.settings().funds ?? null, this.fundsAvailable(), this.dataService.fundsMeta(), 'short'),
+  );
+  /**
+   * For the every-fund scope, the funds it covers in this county (QA-07, QA-42): "Includes General,
+   * Special Revenue … and Component Units." Null for any other selection.
+   */
+  readonly fundsIncluded = computed(() => {
+    const available = this.fundsAvailable();
+    const meta = this.dataService.fundsMeta();
+    const selection = this.settings().funds ?? null;
+    if (!available.length || !isAllFundsScope(selection, available, meta)) return null;
+    return fundsIncludedText(available, available, meta) || null;
+  });
   /** Display label per category id (categories.json, else readable ids). */
   readonly categoryLabels = computed<Record<string, string>>(() => {
     const meta = this.dataService.categoriesMeta();
@@ -158,15 +173,24 @@ export class ExplorerStore {
   });
 
   /**
-   * The total as the current chart shows it: on stacked area, share and bars (no index-to-100),
-   * the same total without indexing, so it matches the stack exactly; otherwise `points`.
+   * Index to 100 is set, but the chart is stacked area, 100% share or bars, which show values
+   * without the index (summed indexes have no meaning; DR-53, QA-39).
    */
+  readonly indexNotShown = computed(() => this.settings().indexTo100 && !isLineChart(this.view().chart));
+
+  /**
+   * The settings as the current chart shows them: without index-to-100 when indexNotShown. Every
+   * label, axis format, table, KPI and drawer value uses these, so units always match the values.
+   */
+  readonly displaySettings = computed<TransformSettings>(() =>
+    this.indexNotShown() ? { ...this.settings(), indexTo100: false } : this.settings(),
+  );
+
+  /** The total as the current chart shows it (see displaySettings). */
   readonly chartTotal = computed(() => {
     const data = this.data();
-    const chart = this.view().chart;
-    const s = this.settings();
-    if (!data || !s.indexTo100 || chart === 'line' || chart === 'lines') return this.points();
-    return buildSeries(data, { ...s, indexTo100: false });
+    if (!data || !this.indexNotShown()) return this.points();
+    return buildSeries(data, this.displaySettings());
   });
 
   /**
@@ -223,11 +247,14 @@ export class ExplorerStore {
   readonly crossCheck = computed(() => {
     const data = this.data();
     if (!data) return null;
-    const coverage = coverageFor(data.sources, data.observations, this.county(), this.settings().flow);
-    return crossCheckByYear(
+    const s = this.settings();
+    const coverage = coverageFor(data.sources, data.observations, this.county(), s.flow);
+    const byYear = crossCheckByYear(
       this.points().map((p) => p.fiscalYear),
       coverage,
     );
+    // A fund selection that splits a reclassified pair no longer matches the county filing (QA-40).
+    return withFundSelection(byYear, data.annotations, data.observations, s);
   });
 
   readonly cpiSelection = computed(() => {
@@ -329,7 +356,7 @@ export class ExplorerStore {
       fiscalYearLabel: point.label,
       seriesLabel: `${catLabel}${valueLabel}`,
       context: `${this.countyLabel()} · ${fundScopeLabel(s, this.fundScope())}`,
-      valueText: `${formatValue(point.value, this.view().chart === 'line' || this.view().chart === 'lines' ? s : { ...s, indexTo100: false })}${share}`,
+      valueText: `${formatValue(point.value, this.displaySettings())}${share}`,
       nominalText: formatUsd(rows.reduce((sum, r) => sum + r.amount, 0)),
       rows,
       sources: drawerSources([...point.sourceIds, ...annotations.map((a) => a.sourceId)], data.sources, this.county()),

@@ -17,7 +17,30 @@ import {
   categoryFromSeriesId,
   categorySeriesOptions,
   categoryTooltipHtml,
+  LEGEND,
+  legendHeight,
 } from './category-chart';
+
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+/** Label width in px in the given CSS font; an estimate where canvas text metrics are missing (tests). */
+function textMeasurer(font: string, size: number): (text: string) => number {
+  if (measureCtx === undefined) {
+    try {
+      measureCtx = document.createElement('canvas').getContext('2d');
+    } catch {
+      measureCtx = null;
+    }
+  }
+  const ctx = measureCtx;
+  return (text) => {
+    if (ctx?.measureText) {
+      ctx.font = font;
+      const w = ctx.measureText(text).width;
+      if (w > 0) return w;
+    }
+    return text.length * size * 0.6;
+  };
+}
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ZOOM_SETTLE_MS, zoomWindowToRange } from './chart-zoom';
 import { AnnotationNote, annotationsForTooltip, markLineGroups } from './view-notes';
@@ -169,6 +192,8 @@ export class SeriesChartComponent {
 
   /** Narrow screens: annotation lines carry note numbers only; full labels go in the caption. */
   readonly compact = signal(false);
+  /** Host width in px, for laying out the wrapped legend (QA-45). */
+  readonly width = signal(0);
 
   constructor() {
     const win = this.host.nativeElement.ownerDocument?.defaultView;
@@ -181,6 +206,12 @@ export class SeriesChartComponent {
       inject(DestroyRef).onDestroy(() => mql.removeEventListener('change', sync));
     }
     inject(DestroyRef).onDestroy(() => clearTimeout(this.zoomTimer));
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(([entry]) => this.width.set(Math.round(entry.contentRect.width)));
+      ro.observe(this.host.nativeElement);
+      inject(DestroyRef).onDestroy(() => ro.disconnect());
+    }
 
 
     // QA-11: ECharts' inside dataZoom cancels every wheel event over the plot, even with
@@ -287,8 +318,17 @@ export class SeriesChartComponent {
     const cats = this.categories();
     const categoryInput: CategoryChartInput | null =
       type !== 'line' && cats
-        ? { type, total: pts, categories: cats, labels: this.categoryLabels(), totalColor: series, totalLabel: label, s, c, m }
+        ? { type, total: pts, categories: cats, labels: this.categoryLabels(), totalColor: c.total, totalLabel: label, s, c, m }
         : null;
+    const legendLine = Math.round(m.labelSize * 1.3);
+    const legendSpace = categoryInput
+      ? legendHeight(
+          categorySeriesOptions(categoryInput).map((x) => String(x['name'])),
+          this.width() || this.host.nativeElement.clientWidth,
+          textMeasurer(`${m.labelSize}px ${m.fontFamily}`, m.labelSize),
+          legendLine,
+        )
+      : 0;
     const markLines = markLineGroups(notes, this.compact()).map((g) => ({
       xAxis: fiscalYearLabel(g.fiscalYear),
       label: { formatter: g.label },
@@ -300,12 +340,18 @@ export class SeriesChartComponent {
       color: [series],
       // Decal patterns on stacked areas and bars, so colour is never the only cue (D-20).
       aria: { enabled: true, decal: { show: !!categoryInput && type !== 'lines' } },
+      // Plain legend that wraps (no paging, QA-45); the grid reserves the rows it needs.
       legend: categoryInput
         ? {
-            type: 'scroll',
+            type: 'plain',
             bottom: 0,
-            textStyle: { color: c.textMuted, fontSize: m.labelSize },
-            pageTextStyle: { color: c.textMuted },
+            left: 0,
+            right: 0,
+            padding: LEGEND.padding,
+            itemGap: LEGEND.itemGap,
+            itemWidth: LEGEND.itemWidth,
+            itemHeight: LEGEND.itemHeight,
+            textStyle: { color: c.textMuted, fontSize: m.labelSize, lineHeight: legendLine },
           }
         : { show: false },
       animationDuration: 300,
@@ -314,7 +360,7 @@ export class SeriesChartComponent {
         left: m.space(2),
         right: m.space(4),
         top: m.space(6) + m.space(2),
-        bottom: categoryInput ? m.space(6) : m.space(2), // room for the legend
+        bottom: categoryInput ? legendSpace + m.space(2) : m.space(2), // room for the legend
         containLabel: true,
       },
       tooltip: {
@@ -367,7 +413,7 @@ export class SeriesChartComponent {
         splitLine: { lineStyle: { color: c.gridLine } },
       },
       series: categoryInput
-        ? withMarkLines(withCrossCheckMarkers(categorySeriesOptions(categoryInput), pts, check, series, c.surface, m), markLines, c, m)
+        ? withMarkLines(withCrossCheckMarkers(categorySeriesOptions(categoryInput), pts, check, c.total, c.surface, m), markLines, c, m)
         : [
         {
           type: 'line',

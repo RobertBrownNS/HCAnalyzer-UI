@@ -93,7 +93,8 @@ export type AnnotationTopic =
   | 'custodial-accounts'
   | 'custodial-zero'
   | 'custodial-start'
-  | 'population-source';
+  | 'population-source'
+  | 'reconciliation-difference';
 
 /** categories.json rows (D-19), in display order. */
 export interface CategoryDef {

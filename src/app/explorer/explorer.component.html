@@ -41,9 +41,12 @@
             @if (countyLabel()) {<span class="sr-only">{{ countyLabel() }}: </span>}{{ chartTitle() }}
           </h1>
           <p class="fx-caption meta">
-            <span class="swatch" [style.background]="seriesColor()"></span>{{ caption() }}
+            <span class="swatch" [style.background]="totalColor()"></span>{{ caption() }}
           </p>
           <p class="fx-caption meta">{{ scopeLine() }}</p>
+          @if (indexNote(); as note) {
+            <p class="fx-caption meta index-note">{{ note }}</p>
+          }
         </div>
         <div class="view-controls">
         <label class="chart-type">
@@ -65,7 +68,7 @@
         </div>
       </div>
 
-      <div class="figure">
+      <div class="figure" [class.with-legend]="chartType() !== 'line' && view() === 'chart'">
         @switch (store.status()) {
           @case ('error') {
             <div class="state" role="alert">
@@ -79,7 +82,7 @@
                 class="fill"
                 [points]="store.chartTotal()"
                 [annotations]="store.annotationNotes()"
-                [settings]="store.settings()"
+                [settings]="store.displaySettings()"
                 [valueLabel]="valueLabel()"
                 [seriesIndex]="seriesIndex()"
                 [revealSkeleton]="reveal()"
@@ -93,7 +96,7 @@
               @if (crossCheckLegend().length) {
                 <!-- Inside the fixed-height figure, below the chart: appearing after load moves
                      nothing (the chart's top stays put; QA-34). -->
-                <ul class="fx-caption fx-marker-legend check-legend" aria-label="Point markers" [style.--series-color]="seriesColor()">
+                <ul class="fx-caption fx-marker-legend check-legend" aria-label="Point markers" [style.--series-color]="totalColor()">
                   @for (item of crossCheckLegend(); track item.status) {
                     <li>
                       <svg class="fx-marker" viewBox="0 0 12 12" aria-hidden="true">
@@ -114,7 +117,7 @@
                 [total]="store.chartTotal()"
                 [categories]="cats"
                 [labels]="store.categoryLabels()"
-                [settings]="store.settings()"
+                [settings]="store.displaySettings()"
                 [chartType]="chartType()"
                 [valueLabel]="valueLabel()"
                 (cellSelect)="openDrawer($event.fiscalYear, $event.category)"
@@ -123,7 +126,7 @@
               <app-series-table
                 class="fill"
                 [points]="store.points()"
-                [settings]="store.settings()"
+                [settings]="store.displaySettings()"
                 [valueLabel]="valueLabel()"
                 [crossCheck]="store.crossCheck()"
                 (rowSelect)="openDrawer($event, null)"
@@ -133,6 +136,10 @@
           @default {
             <app-chart-skeleton class="fill" [class.fx-skel-pending]="!reveal()" />
           }
+        }
+        @if (store.loaded() && store.fundsIncluded(); as included) {
+          <!-- Data-dependent, so inside the fixed-height figure: appearing after load moves nothing (QA-34). -->
+          <p class="fx-caption scope-includes">{{ store.fundScope() }}: {{ included }}</p>
         }
       </div>
 

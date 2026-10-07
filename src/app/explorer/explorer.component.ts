@@ -19,7 +19,7 @@ import { CategoryTableComponent } from './category-table.component';
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
-import { kpiCards, measureCaption } from './kpi';
+import { kpiCards, measureCaption, unitPhrase } from './kpi';
 import { KpiRowComponent } from './kpi-row.component';
 import { MethodologyComponent } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
@@ -86,8 +86,9 @@ export class ExplorerComponent {
     void import('../core/echarts');
   }
 
+  /** Units of what the chart shows (displaySettings: no index on stacked, share and bars). */
   readonly valueLabel = computed(() => {
-    const s = this.store.settings();
+    const s = this.store.displaySettings();
     const parts = [FLOW_LABELS[s.flow], MEASURE_LABELS[s.measure].toLowerCase()];
     if (isReal(s.measure)) parts.push(`${fiscalYearLabel(s.baseYear)} dollars`);
     if (s.indexTo100) parts.push(`index, ${fiscalYearLabel(s.baseYear)} = 100`);
@@ -105,9 +106,19 @@ export class ExplorerComponent {
   /** Series 1 is revenue, series 2 is spending (expenditure); see _tokens.scss. */
   readonly seriesIndex = computed<1 | 2>(() => (this.store.settings().flow === 'revenue' ? 1 : 2));
   readonly seriesColor = computed(() => `var(--fx-series-${this.seriesIndex()})`);
+  /** Colour of the plotted total: the flow's series colour, or chart-total on category charts (QA-41). */
+  readonly totalColor = computed(() =>
+    this.chartType() === 'line' ? this.seriesColor() : 'var(--fx-color-chart-total)',
+  );
 
   readonly chartTitle = computed(() => `${FLOW_LABELS[this.store.settings().flow]} by fiscal year`);
-  readonly caption = computed(() => measureCaption(this.store.settings()));
+  readonly caption = computed(() => measureCaption(this.store.displaySettings()));
+  /** Said whenever index-to-100 is on but this chart type shows values (QA-39). */
+  readonly indexNote = computed(() =>
+    this.store.indexNotShown()
+      ? `Index to 100 applies to the line charts only; this chart shows values in ${unitPhrase(this.store.displaySettings())}.`
+      : null,
+  );
   /** Annotations that apply to every view (e.g. GASB 84), spelled out under the chart on phones. */
   readonly keyAnnotations = computed(() => this.store.annotationNotes().filter((a) => a.universal));
 
@@ -128,7 +139,8 @@ export class ExplorerComponent {
   });
 
   readonly kpis = computed(() =>
-    kpiCards(this.store.points(), this.store.settings(), this.store.loaded() ? undefined : 'Data not loaded'),
+    // The KPIs describe what the chart shows: dollars, not index values, on stacked, share and bars.
+    kpiCards(this.store.chartTotal(), this.store.displaySettings(), this.store.loaded() ? undefined : 'Data not loaded'),
   );
 
   /** The AFR workbook behind the selected flow, for the line under the chart. */
@@ -167,7 +179,7 @@ export class ExplorerComponent {
       label: !this.store.loaded() ? 'Fiscal years' : `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
       aria: 'Fiscal years',
     });
-    chips.push({ group: 'funds', label: this.store.fundScope(), aria: 'Funds' });
+    chips.push({ group: 'funds', label: this.store.fundScopeShort(), aria: 'Funds' });
     if (isCategoryChart(this.store.view().chart)) {
       const n = s.categories?.length;
       chips.push({ group: 'categories', label: n ? `${n} categories` : 'All categories', aria: 'Categories' });

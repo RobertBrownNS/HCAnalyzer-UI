@@ -20,6 +20,7 @@ $app-colors: (
   gridline: (#edeff2, #2a2f39),
   axis-line: (#b9c0cb, #4a5160),       // dark: derived
   text: (#1b2230, #e6e9ef),
+  chart-total: (#2b3240, #f2f4f7),   // total line on category charts: not a category colour (QA-41)
   text-muted: (#5b6474, #9aa3b2),
   text-faint: (#6b7585, #8f98a8),      // axis labels; darker/lighter than mockup (#8c96a5/#7d8696) for WCAG AA 4.5:1
   header-bg: (#1f2a44, #1f2a44),
@@ -132,10 +133,12 @@ $series: (
   (#b8a800, #f0e442), // yellow (darkened on light backgrounds)
 );
 
-// Category series (stacked area, share, bars, category lines): Okabe & Ito's eight colours
-// plus a neutral ninth, so up to nine categories never repeat a colour (expenditures have
-// nine). Areas and bars also get ECharts decal patterns, and lines distinct marker shapes, so
-// colour is never the only cue. Dark values are lightened for contrast on dark tiles.
+// Category series (stacked area, share, bars, category lines): Okabe & Ito's colours first,
+// then extras that differ in hue and lightness, so up to eleven categories never repeat a colour
+// (most in data: expenditures, 10). Okabe & Ito's black is left out: the total line uses
+// chart-total, a near-black / near-white not in this list (QA-41). Areas and bars also get ECharts
+// decal patterns, and lines distinct marker shapes, so colour is never the only cue. Dark values
+// are lightened for contrast on dark tiles. category-palette.spec checks the list for duplicates.
 $categories: (
   (#e69f00, #f0b13a), // orange
   (#56b4e9, #7cc6ef), // sky blue
@@ -144,8 +147,10 @@ $categories: (
   (#d55e00, #f08a4b), // vermillion
   (#cc79a7, #e4a3c8), // reddish purple
   (#b8a800, #f0e442), // yellow (darkened on light backgrounds)
-  (#4d4d4d, #bdbdbd), // neutral dark / light
-  (#8c96a5, #7d8696), // neutral mid (ninth)
+  (#8c96a5, #7d8696), // neutral mid grey
+  (#8c510a, #c99a5b), // dark brown
+  (#5e3c99, #a68fd9), // deep purple
+  (#80cdc1, #3f8f84), // light teal (dark: deeper, to stay apart from bluish green)
 );
 
 // Annotation lines by Annotation.kind: muted grey, dashed.
@@ -249,6 +254,7 @@ $layout: (
   code-scale: 0.95em,
   figure-height: 60dvh,       // chart/table area on phones (CLAUDE.md: ~60% of viewport)
   figure-min-height: 300px,
+  legend-reserve: 160px,      // phones, category charts: extra height for the wrapped legend (QA-45)
   figure-max-height: 520px,   // desktop cap
   content-max-width: 1440px,
   slider-height: 48px,        // Material range slider box (keeps the loading placeholder the same size)

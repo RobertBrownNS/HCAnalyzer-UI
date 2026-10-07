@@ -1,6 +1,7 @@
 // Per-year cross-check status of a county's EDR figures against the county-filed Annual
 // Financial Report, from the source's `crossCheckCoverage` ranges (pipeline, DR-45). Pure.
-import { CrossCheckRange, CrossCheckStatus, Flow, SourceRecord } from './models';
+import { formatUsd } from './format';
+import { AfrObservation, AnnotationRecord, CrossCheckRange, CrossCheckStatus, Flow, SourceRecord } from './models';
 
 /** Neutral display text per status (tooltip line, table column, legend). */
 export const CROSS_CHECK_LABELS: Record<CrossCheckStatus, string> = {
@@ -23,12 +24,27 @@ export const CROSS_CHECK_SHORT: Record<CrossCheckStatus, string> = {
 const amounts = (n: number) => `${n} ${n === 1 ? 'amount' : 'amounts'}`;
 
 /**
+ * One year's cross-check as the current view shows it. `selectionDifference`: the fund selection
+ * holds only part of a reclassified pair, so its total differs from the county filing by this
+ * amount, even though the yearly total for all funds matches (QA-40).
+ */
+export interface YearCrossCheck extends CrossCheckRange {
+  selectionDifference?: number;
+}
+
+/**
  * Text for one year in the tooltip and table. For a mismatch year it says whether the yearly total
  * matches (only when the data says so: `totalsMatch`) and what differs, from the data's counts.
  * Today's mismatch years read "Total matches; 1 amount classified differently" (QA-35).
  */
-export function crossCheckYearText(range: Omit<CrossCheckRange, 'fromFiscalYear' | 'toFiscalYear'>, form: 'long' | 'short' = 'long'): string {
+export function crossCheckYearText(range: Omit<YearCrossCheck, 'fromFiscalYear' | 'toFiscalYear'>, form: 'long' | 'short' = 'long'): string {
   const status = range.status;
+  if (range.selectionDifference) {
+    const amount = formatUsd(range.selectionDifference);
+    return form === 'long'
+      ? `Total for this fund selection differs from the county filing by ${amount} (an amount classified differently)`
+      : `Total for these funds differs by ${amount}; an amount classified differently`;
+  }
   if (status !== 'mismatch') return form === 'long' ? CROSS_CHECK_LABELS[status] : CROSS_CHECK_SHORT[status];
   const prefix =
     range.totalsMatch === true ? 'Total matches' : range.totalsMatch === false ? 'Total differs from the county filing' : 'Cross-checked';
@@ -83,4 +99,50 @@ export function crossCheckByYear(
 ): Map<number, CrossCheckRange | null> | null {
   if (!coverage) return null;
   return new Map(years.map((fy) => [fy, crossCheckRange(fy, coverage)]));
+}
+
+/**
+ * Applies the fund selection to each year's cross-check (QA-40). A reconciliation difference
+ * between funds (annotation topic `reconciliation-difference` with `funds`) moves an amount from
+ * one fund to another, so the all-funds total matches the county filing. When the selection holds
+ * some but not all of those funds, the selection's total differs by that amount: the sum of the
+ * EDR cells the annotation names (`cells`, account + fund, same county, flow and year). No
+ * selection (= all funds), or a selection holding none or all of them, leaves the year unchanged.
+ */
+export function withFundSelection(
+  byYear: ReadonlyMap<number, CrossCheckRange | null> | null,
+  annotations: readonly AnnotationRecord[],
+  observations: readonly AfrObservation[],
+  scope: { jurisdiction: string; flow: Flow; funds?: readonly string[] },
+): Map<number, YearCrossCheck | null> | null {
+  if (!byYear) return null;
+  const out = new Map<number, YearCrossCheck | null>(byYear);
+  const selected = scope.funds;
+  if (!selected || selected.length === 0) return out;
+  for (const a of annotations) {
+    if (a.topic !== 'reconciliation-difference' || !a.funds || !a.cells) continue;
+    if (a.jurisdiction !== undefined && a.jurisdiction !== scope.jurisdiction) continue;
+    if (a.flow !== undefined && a.flow !== scope.flow) continue;
+    const range = out.get(a.fiscalYear);
+    if (!range) continue;
+    const inSelection = a.funds.filter((f) => selected.includes(f)).length;
+    if (inSelection === 0 || inSelection === a.funds.length) continue;
+    const cells = a.cells;
+    const amount = observations
+      .filter(
+        (o) =>
+          o.jurisdiction === scope.jurisdiction &&
+          o.flow === scope.flow &&
+          o.fiscalYear === a.fiscalYear &&
+          cells.some((c) => c.fundType === o.fundType && Number(c.account) === Number(o.account)),
+      )
+      .reduce((sum, o) => sum + o.amount, 0);
+    if (!amount) continue;
+    out.set(a.fiscalYear, {
+      ...range,
+      totalsMatch: false,
+      selectionDifference: ((range as YearCrossCheck).selectionDifference ?? 0) + Math.abs(amount),
+    });
+  }
+  return out;
 }
