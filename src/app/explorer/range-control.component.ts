@@ -33,13 +33,17 @@ const PRESETS: RangePreset[] = [
           matSliderStartThumb
           aria-label="First fiscal year"
           [value]="from()"
-          (valueChange)="setRange($event, to())"
+          (dragStart)="onDragStart()"
+          (valueChange)="onThumbChange('start', $event)"
+          (dragEnd)="onDragEnd('start', $event.value)"
         />
         <input
           matSliderEndThumb
           aria-label="Last fiscal year"
           [value]="to()"
-          (valueChange)="setRange(from(), $event)"
+          (dragStart)="onDragStart()"
+          (valueChange)="onThumbChange('end', $event)"
+          (dragEnd)="onDragEnd('end', $event.value)"
         />
       </mat-slider>
       <div class="presets" role="group" aria-label="Range presets">
@@ -83,8 +87,32 @@ export class RangeControlComponent {
   /** Thumb label: "FY 2020-21" is too wide for the thumb, so show "20-21". */
   readonly shortLabel = (fy: number) => fiscalYearLabel(fy).slice(5);
 
+  /** True between a thumb's pointer down and up. */
+  private dragging = false;
+
   setRange(from: number, to: number): void {
     this.store.update({ range: [from, to] });
+  }
+
+  // QA-23: a pointer press moves the thumb (and emits valueChange) before the drag ends, which
+  // made one drag two history entries. During a drag nothing is committed; the final value is
+  // committed once on dragEnd. Keyboard changes (no drag) commit immediately.
+  onDragStart(): void {
+    this.dragging = true;
+  }
+
+  onThumbChange(thumb: 'start' | 'end', value: number): void {
+    if (!this.dragging) this.commit(thumb, value);
+  }
+
+  onDragEnd(thumb: 'start' | 'end', value: number): void {
+    this.dragging = false;
+    this.commit(thumb, value);
+  }
+
+  private commit(thumb: 'start' | 'end', value: number): void {
+    if (thumb === 'start') this.setRange(value, this.to());
+    else this.setRange(this.from(), value);
   }
 
   applyPreset(p: RangePreset): void {
