@@ -345,11 +345,12 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 - [ ] Findings are logged in the findings log.
 
 **P4a-07 LOGERX cross-reference, both counties (DE; D-15, D-16)**
-> **Status (2026-10-07):** LOGERX has a public JSON API covering FY 2012-13 to FY 2024-25, so the **machine-readable path is active** (DR-44). Raw storage follows DR-43. Years before FY 2012-13, including Pinellas FY 2005-06, stay "not cross-checked". UI wording is driven by `countyAfrCrossCheck` (DR-45). The PDF-only and manual-export criteria below do not apply.
+> **Status (2026-10-07):** LOGERX has a public JSON API covering FY 2012-13 to FY 2024-25, so the **machine-readable path is active** (DR-44). Raw storage follows DR-43. Years before FY 2012-13, including Pinellas FY 2005-06, stay "not cross-checked". UI wording is driven by `countyAfrCrossCheck` and `crossCheckCoverage` for each year range (DR-45). Both counties are `"partial"`. The PDF-only and manual-export criteria below do not apply.
 >
 > **Extra criteria:**
-> - `countyAfrCrossCheck` is set for every county and year range.
-> - A test asserts the UI wording for each value.
+> - `countyAfrCrossCheck` is set for every county. `crossCheckCoverage` covers every fiscal year in the data, with no gaps or overlaps.
+> - Top-level `"full"` appears only if every year is covered and matched. A test asserts that both counties are currently `"partial"`.
+> - A test asserts the UI wording for each status value (`not-checked`, `spot-check`, `partial`, `full`) and for each year range.
 > - Gitignored cache files are never needed for `npm run pipeline`; the committed extracts are enough.
 
 - [ ] **Availability report first:** for Hillsborough and Pinellas, DE reports which fiscal years LOGERX covers and in what form. The forms are: machine-readable (CSV/XLSX/API), PDF only, or manual export only. The report gives URLs, retrieval dates and sha256 for each file, and is recorded in `docs/data-layout.md`. Raw files go in `data/raw/` with the manifest entries. If LOGERX can't be reached or has nothing usable, DE says so and the DR-42 caveat stays.
