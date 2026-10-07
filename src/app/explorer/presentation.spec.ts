@@ -2,7 +2,14 @@ import { cssLengthToPx } from '../core/chart-palette';
 import { formatAxisValue, formatValue } from '../core/format';
 import { DEFAULT_SETTINGS, SeriesPoint } from '../core/transform';
 import { AnnotationRecord, SourceRecord } from '../core/models';
-import { annotationNotes, groupPointNotes, markLineGroups } from './view-notes';
+import {
+  annotationNotes,
+  annotationsForTooltip,
+  groupPointNotes,
+  isTransferImbalanceAnnotation,
+  isTransferImbalanceNote,
+  markLineGroups,
+} from './view-notes';
 import { tooltipHtml } from './series-chart.component';
 
 const point = (fy: number, notes: string[] = [], extra: Partial<SeriesPoint> = {}): SeriesPoint => ({
@@ -111,5 +118,56 @@ describe('cssLengthToPx', () => {
     expect(cssLengthToPx('6', 16, 0)).toBe(6);
     expect(cssLengthToPx('', 16, 11)).toBe(11);
     expect(cssLengthToPx('calc(1px + 1rem)', 16, 11)).toBe(11);
+  });
+});
+
+describe('transfer-imbalance dedupe (annotation vs per-point note)', () => {
+  const NOTE =
+    'Transfers out (581) and transfers in (381) differ in FY 2022-23: $1,160,934,246 out, $536,330,405 in (difference $624,603,841).';
+  const sources = [] as SourceRecord[];
+  const imbalanceAnnotation = {
+    fiscalYear: 2023,
+    kind: 'methodology',
+    label: 'Transfers out (581) exceed transfers in (381) by $624.6M; account 521 Law Enforcement $732,874',
+    sourceId: 'exp',
+    flow: 'expenditure',
+  } as AnnotationRecord;
+  const other = { ...imbalanceAnnotation, label: 'Amounts reported rounded to $1,000' } as AnnotationRecord;
+  const p2023 = point(2023, [NOTE, 'Custodial fund amounts (GASB 84) are excluded.']);
+  const p2024 = point(2024, [NOTE.replace('2022-23', '2023-24')]);
+
+  it('recognises the note and the annotation', () => {
+    expect(isTransferImbalanceNote(NOTE)).toBe(true);
+    expect(isTransferImbalanceNote('Custodial fund amounts (GASB 84) are excluded.')).toBe(false);
+    expect(isTransferImbalanceAnnotation(imbalanceAnnotation)).toBe(true);
+    expect(isTransferImbalanceAnnotation({ label: NOTE })).toBe(false);
+    expect(isTransferImbalanceAnnotation(other)).toBe(false);
+  });
+
+  it('Notes for this view: the annotation wins; the per-point note is dropped for that year only', () => {
+    const notes = annotationNotes([imbalanceAnnotation, other], sources);
+    const grouped = groupPointNotes([p2023, p2024], notes);
+    expect(grouped.map((g) => g.note)).not.toContain(NOTE);
+    // FY 2023-24 has no annotation in this fixture, so its note stays.
+    expect(grouped.map((g) => g.years)).toContain('FY 2023-24');
+    expect(grouped.find((g) => g.note.startsWith('Custodial'))?.years).toBe('FY 2022-23');
+  });
+
+  it('revenue flow: no expenditure annotation in view, so the per-point note is the only display', () => {
+    expect(groupPointNotes([p2023], []).map((g) => g.note)).toContain(NOTE);
+  });
+
+  it('tooltip: keeps the per-point note and leaves out the matching annotation', () => {
+    const notes = annotationNotes([imbalanceAnnotation, other], sources);
+    const html = tooltipHtml(p2023, DEFAULT_SETTINGS, 'Expenditures', notes);
+    expect(html).toContain('Transfers out (581) and transfers in (381) differ');
+    expect(html).not.toContain('exceed transfers in');
+    expect(html).toContain('Amounts reported rounded to $1,000');
+    expect(annotationsForTooltip(point(2023), notes)).toHaveLength(2); // no note: annotation kept
+  });
+
+  it('chart lines still mark the annotation year', () => {
+    const groups = markLineGroups(annotationNotes([imbalanceAnnotation], sources));
+    expect(groups).toEqual([{ fiscalYear: 2023, kind: 'methodology', label: 'Note 1' }]);
   });
 });

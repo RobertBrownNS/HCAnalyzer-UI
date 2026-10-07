@@ -1,6 +1,10 @@
 @use 'sass:map';
+@use 'sass:meta';
 @use './styles/tokens';
 @use './styles/material';
+
+@include tokens.font-faces;
+@include meta.load-css('styles/ui');
 
 html {
   // Follows the OS preference; [data-theme] allows an explicit override.
@@ -11,6 +15,8 @@ html {
 
   // Page side padding; widens from the tablet breakpoint.
   --fx-page-gutter: var(--fx-gutter);
+  // Interactive height: compact with a mouse, at least the touch target on touch screens.
+  --fx-control-h: var(--fx-control-height);
 }
 
 html[data-theme='light'] { color-scheme: light; }
@@ -18,6 +24,10 @@ html[data-theme='dark'] { color-scheme: dark; }
 
 @media (min-width: map.get(tokens.$breakpoints, tablet)) {
   html { --fx-page-gutter: var(--fx-gutter-wide); }
+}
+
+@media (pointer: coarse) {
+  html { --fx-control-h: var(--fx-touch-target); }
 }
 
 *,
@@ -33,15 +43,48 @@ body {
 
 body {
   margin: 0;
-  background: var(--fx-color-surface);
-  color: var(--fx-color-on-surface);
-  font: var(--fx-type-body-large);
+  background: var(--fx-color-page);
+  color: var(--fx-color-text);
+  font: var(--fx-type-body-medium);
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
 }
 
+a {
+  color: var(--fx-color-link);
+
+  &:hover {
+    color: var(--fx-color-link-hover);
+  }
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
 code {
   font-family: var(--fx-font-mono);
+}
+
+/* Numbers use the mono face (tables, readouts). */
+.num {
+  font: var(--fx-type-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visually hidden, still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 :focus-visible {

@@ -1,125 +1,96 @@
 @if (show('flow')) {
-  <fieldset class="group">
-    <legend>Data</legend>
-    <mat-button-toggle-group
-      class="segmented"
-      aria-label="Revenues or expenditures"
-      hideSingleSelectionIndicator
-      [value]="settings().flow"
-      (change)="setFlow($event.value)"
-    >
+  <label class="fx-field">
+    Data
+    <select class="fx-select" (change)="setFlow(value($event))">
       @for (f of flows; track f.value) {
-        <mat-button-toggle [value]="f.value">{{ f.label }}</mat-button-toggle>
+        <option [value]="f.value" [selected]="f.value === settings().flow">{{ f.label }}</option>
       }
-    </mat-button-toggle-group>
-  </fieldset>
+    </select>
+  </label>
 }
 
 @if (show('measure')) {
-  <fieldset class="group">
-    <legend>Measure</legend>
-    <mat-radio-group
-      class="stack"
-      aria-label="Measure"
-      [value]="settings().measure"
-      (change)="setMeasure($event.value)"
-    >
+  <label class="fx-field">
+    Measure
+    <select class="fx-select" (change)="setMeasure(value($event))">
       @for (m of measures; track m.value) {
-        <mat-radio-button [value]="m.value">{{ m.label }}</mat-radio-button>
+        <option [value]="m.value" [selected]="m.value === settings().measure">{{ m.label }}</option>
       }
-    </mat-radio-group>
+    </select>
+  </label>
 
-    <mat-form-field class="field" subscriptSizing="dynamic">
-      <mat-label>Base year</mat-label>
-      <mat-select [value]="settings().baseYear" (valueChange)="setBaseYear($event)">
-        @for (y of years(); track y) {
-          <mat-option [value]="y">{{ fyLabel(y) }}</mat-option>
-        }
-      </mat-select>
-      <mat-hint>Dollars of this year for inflation adjustment; 100 when indexed.</mat-hint>
-    </mat-form-field>
+  <label class="fx-field">
+    Base year
+    <select class="fx-select" (change)="setBaseYear(+value($event))">
+      @for (y of years(); track y) {
+        <option [value]="y" [selected]="y === settings().baseYear">{{ fyLabel(y) }}</option>
+      }
+    </select>
+    <span class="hint">Dollars of this year for inflation adjustment; 100 when indexed.</span>
+  </label>
 
-    <mat-slide-toggle
-      class="toggle"
-      [checked]="settings().indexTo100"
-      (change)="setIndexTo100($event.checked)"
-    >
-      Index to 100 at base year
-    </mat-slide-toggle>
-  </fieldset>
+  <label class="fx-check">
+    <input type="checkbox" [checked]="settings().indexTo100" (change)="setIndexTo100(checked($event))" />
+    Index to 100 at base year
+  </label>
 }
 
 @if (show('inflation')) {
-  <fieldset class="group" [disabled]="!real()">
-    <legend>Inflation index</legend>
-    @if (!real()) {
-      <p class="hint">Applies to the inflation-adjusted measures.</p>
-    }
-    <mat-radio-group
-      class="stack"
-      aria-label="CPI series"
-      [disabled]="!real()"
-      [value]="settings().cpiIndex"
-      (change)="setCpiIndex($event.value)"
-    >
+  <label class="fx-field">
+    Inflation index
+    <select class="fx-select" [disabled]="!real()" (change)="setCpiIndex(value($event))">
       @for (c of cpiIndexes; track c.value) {
-        <mat-radio-button [value]="c.value">{{ c.label }}</mat-radio-button>
+        <option [value]="c.value" [selected]="c.value === settings().cpiIndex">{{ c.label }}</option>
       }
-    </mat-radio-group>
-    <mat-radio-group
-      class="stack"
-      aria-label="CPI period"
-      [disabled]="!real()"
-      [value]="settings().cpiPeriod"
-      (change)="setCpiPeriod($event.value)"
-    >
+    </select>
+  </label>
+  <label class="fx-field">
+    CPI period
+    <select class="fx-select" [disabled]="!real()" (change)="setCpiPeriod(value($event))">
       @for (p of cpiPeriods; track p.value) {
-        <mat-radio-button [value]="p.value">{{ p.label }}</mat-radio-button>
+        <option [value]="p.value" [selected]="p.value === settings().cpiPeriod">{{ p.label }}</option>
       }
-    </mat-radio-group>
-  </fieldset>
+    </select>
+    @if (!real()) {
+      <span class="hint">Applies to the inflation-adjusted measures.</span>
+    }
+  </label>
 }
 
 @if (show('funds')) {
-  <fieldset class="group">
-    <legend>Funds</legend>
-    <p class="hint">{{ scope() }}.</p>
-    <mat-slide-toggle
-      class="toggle"
-      [checked]="settings().includeCustodial"
-      (change)="setIncludeCustodial($event.checked)"
-    >
+  <div class="divider" role="group" aria-labelledby="funds-label">
+    <span id="funds-label" class="group-label">Funds</span>
+    <span class="hint">{{ scope() }}.</span>
+    <label class="fx-check">
+      <input
+        type="checkbox"
+        [checked]="settings().includeCustodial"
+        (change)="setIncludeCustodial(checked($event))"
+      />
       Include custodial fund
-    </mat-slide-toggle>
-    <p class="hint">
-      Reported from FY 2020-21 (GASB Statement No. 84). Amounts the county holds or collects for
-      others.
-    </p>
-  </fieldset>
-
-  <fieldset class="group">
-    <legend>Transfers between funds</legend>
-    <mat-radio-group
-      class="stack"
-      aria-label="Transfers between funds"
-      [value]="settings().transfers ?? 'gross'"
-      (change)="setTransfers($event.value)"
-    >
-      @for (t of transferModes; track t.value) {
-        <mat-radio-button [value]="t.value">{{ t.label }}</mat-radio-button>
-      }
-    </mat-radio-group>
-    <p class="hint">Account 381 (transfers in, revenues) and 581 (transfers out, expenditures).</p>
-  </fieldset>
+    </label>
+    <span class="hint">
+      Reported from FY 2020-21 (GASB Statement No. 84). Amounts the county holds or collects for others.
+    </span>
+    <label class="fx-field">
+      Transfers between funds
+      <select class="fx-select" (change)="setTransfers(value($event))">
+        @for (t of transferModes; track t.value) {
+          <option [value]="t.value" [selected]="t.value === (settings().transfers ?? 'gross')">{{ t.label }}</option>
+        }
+      </select>
+      <span class="hint">Account 381 (transfers in, revenues) and 581 (transfers out, expenditures).</span>
+    </label>
+  </div>
 }
 
 @if (show('range')) {
-  <fieldset class="group">
-    <legend>Fiscal years</legend>
+  <div class="fx-field">
+    Fiscal years
     <app-range-control />
-  </fieldset>
+  </div>
 }
 
 @if (only() === null) {
-  <button matButton type="button" class="reset" (click)="reset()">Reset to defaults</button>
+  <button type="button" class="fx-button reset" (click)="reset()">Reset to defaults</button>
 }

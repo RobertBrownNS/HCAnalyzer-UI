@@ -1,7 +1,5 @@
 import { Component, ViewContainerRef, computed, inject, signal } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import {
@@ -17,6 +15,8 @@ import {
 import { fiscalYearLabel } from '../core/transform';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
+import { kpiCards, measureCaption } from './kpi';
+import { KpiRowComponent } from './kpi-row.component';
 import { MethodologyComponent } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
 import { SeriesChartComponent } from './series-chart.component';
@@ -35,8 +35,7 @@ export interface SettingChip {
   selector: 'app-explorer',
   imports: [
     ExplorerControlsComponent,
-    MatButtonModule,
-    MatButtonToggleModule,
+    KpiRowComponent,
     MatProgressBarModule,
     MethodologyComponent,
     RangeControlComponent,
@@ -61,6 +60,22 @@ export class ExplorerComponent {
     if (isReal(s.measure)) parts.push(`${fiscalYearLabel(s.baseYear)} dollars`);
     if (s.indexTo100) parts.push(`index, ${fiscalYearLabel(s.baseYear)} = 100`);
     return parts.join(', ');
+  });
+
+  /** Series 1 is revenue, series 2 is spending (expenditure); see _tokens.scss. */
+  readonly seriesIndex = computed<1 | 2>(() => (this.store.settings().flow === 'revenue' ? 1 : 2));
+  readonly seriesColor = computed(() => `var(--fx-series-${this.seriesIndex()})`);
+
+  readonly chartTitle = computed(() => `${FLOW_LABELS[this.store.settings().flow]} by fiscal year`);
+  readonly caption = computed(() => measureCaption(this.store.settings()));
+  readonly kpis = computed(() => kpiCards(this.store.points(), this.store.settings()));
+
+  /** The AFR workbook behind the selected flow, for the line under the chart. */
+  readonly afrSource = computed(() => {
+    const data = this.store.data();
+    const flow = this.store.settings().flow;
+    const id = data?.observations.find((o) => o.flow === flow)?.sourceId;
+    return data?.sources.find((s) => s.id === id) ?? null;
   });
 
   /** "All funds as reported by EDR, excluding custodial. Transfers between funds: as reported (gross)" */

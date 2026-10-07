@@ -1,6 +1,6 @@
 // Pairs chart annotations with the "Notes for this view" list. Pure; exported for tests.
 import { AnnotationRecord, SourceRecord } from '../core/models';
-import { SeriesPoint, fiscalYearLabel } from '../core/transform';
+import { SeriesPoint, TRANSFER_ACCOUNTS, fiscalYearLabel } from '../core/transform';
 
 /** Fields the pipeline may add to annotations (detail text and workbook cells). */
 type AnnotationWithDetail = AnnotationRecord & { detail?: string; refs?: readonly string[] };
@@ -42,8 +42,10 @@ export function annotationNotes(
   sources: readonly SourceRecord[],
 ): AnnotationNote[] {
   const byId = new Map(sources.map((s) => [s.id, s]));
+  const isUniversal = (a: AnnotationRecord) => a.flow === undefined && a.custodial === undefined && a.measures === undefined;
   return [...annotations]
-    .sort((a, b) => a.fiscalYear - b.fiscalYear)
+    // By year; within a year, view-independent annotations (e.g. GASB 84) first.
+    .sort((a, b) => a.fiscalYear - b.fiscalYear || Number(isUniversal(b)) - Number(isUniversal(a)))
     .map((raw, i) => {
       const a = raw as AnnotationWithDetail;
       const source = byId.get(a.sourceId);
@@ -53,7 +55,7 @@ export function annotationNotes(
         yearLabel: fiscalYearLabel(a.fiscalYear),
         kind: a.kind,
         label: a.label,
-        universal: a.flow === undefined && a.custodial === undefined && a.measures === undefined,
+        universal: isUniversal(a),
         text: a.detail ? [a.detail] : (source?.caveats ?? []),
         refs: a.refs ?? [],
         source,
@@ -77,11 +79,42 @@ export function markLineGroups(notes: readonly AnnotationNote[]): MarkLineGroup[
   });
 }
 
+// The 581/381 transfer imbalance reaches the UI twice: as a data annotation (expenditure only)
+// and as a per-point note from the transform (both flows). Each surface shows it once:
+// chart lines and "Notes for this view" use the annotation; tooltip and table use the note.
+// TODO: switch to a transform export once it owns this matcher (requested).
+const IMBALANCE_NOTE_START = `Transfers out (${TRANSFER_ACCOUNTS.expenditure}) and transfers in (${TRANSFER_ACCOUNTS.revenue}) differ`;
+const IMBALANCE_ANNOTATION_START = `Transfers out (${TRANSFER_ACCOUNTS.expenditure})`;
+
+export function isTransferImbalanceNote(note: string): boolean {
+  return note.startsWith(IMBALANCE_NOTE_START);
+}
+
+export function isTransferImbalanceAnnotation(a: Pick<AnnotationNote, 'label'>): boolean {
+  return a.label.startsWith(IMBALANCE_ANNOTATION_START) && !isTransferImbalanceNote(a.label);
+}
+
+function hasImbalanceAnnotation(annotations: readonly AnnotationNote[], fiscalYear: number): boolean {
+  return annotations.some((a) => a.fiscalYear === fiscalYear && isTransferImbalanceAnnotation(a));
+}
+
+/** Per-point notes for "Notes for this view": drops notes an in-view annotation already covers. */
+export function notesForView(p: SeriesPoint, annotations: readonly AnnotationNote[]): string[] {
+  if (!hasImbalanceAnnotation(annotations, p.fiscalYear)) return p.notes;
+  return p.notes.filter((n) => !isTransferImbalanceNote(n));
+}
+
+/** Annotations for the tooltip of one point: drops those its own notes already cover. */
+export function annotationsForTooltip(p: SeriesPoint, annotations: readonly AnnotationNote[]): AnnotationNote[] {
+  const covered = p.notes.some(isTransferImbalanceNote);
+  return annotations.filter((a) => a.fiscalYear === p.fiscalYear && !(covered && isTransferImbalanceAnnotation(a)));
+}
+
 /** Groups identical per-point notes and lists the fiscal years each applies to. */
-export function groupPointNotes(points: readonly SeriesPoint[]): PointNote[] {
+export function groupPointNotes(points: readonly SeriesPoint[], annotations: readonly AnnotationNote[] = []): PointNote[] {
   const byNote = new Map<string, string[]>();
   for (const p of points) {
-    for (const n of p.notes) byNote.set(n, [...(byNote.get(n) ?? []), p.label]);
+    for (const n of notesForView(p, annotations)) byNote.set(n, [...(byNote.get(n) ?? []), p.label]);
   }
   return [...byNote].map(([note, labels]) => ({ note, years: labels.join(', ') }));
 }

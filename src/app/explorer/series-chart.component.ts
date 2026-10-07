@@ -7,7 +7,7 @@ import { ColorSchemeService } from '../core/color-scheme.service';
 import { formatAxisValue, formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
 import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
-import { AnnotationNote, markLineGroups } from './view-notes';
+import { AnnotationNote, annotationsForTooltip, markLineGroups } from './view-notes';
 
 // ECharts renders the tooltip as HTML in the page, so tokens apply.
 const NOTE_STYLE = 'max-width:var(--fx-tooltip-width);white-space:normal;margin-top:var(--fx-space-1)';
@@ -30,10 +30,9 @@ export function tooltipHtml(
     rows.push([`CPI ${fiscalYearLabel(s.baseYear)} (base)`, formatCpi(p.cpiBase)]);
   }
   const table = rows
-    .map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td style="text-align:right;padding-left:var(--fx-space-3)">${escapeHtml(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td style="text-align:right;padding-left:var(--fx-space-3);font-family:var(--fx-font-mono)">${escapeHtml(v)}</td></tr>`)
     .join('');
-  const marks = annotations
-    .filter((a) => a.fiscalYear === p.fiscalYear)
+  const marks = annotationsForTooltip(p, annotations)
     .map((a) => `<div style="${NOTE_STYLE}">${a.n}. ${escapeHtml(a.label)}</div>`)
     .join('');
   const notes = p.notes.map((n) => `<div style="${NOTE_STYLE}">${escapeHtml(n)}</div>`).join('');
@@ -62,6 +61,8 @@ export class SeriesChartComponent {
   readonly settings = input.required<TransformSettings>();
   /** Axis/series name, e.g. "Revenues, per resident". */
   readonly valueLabel = input.required<string>();
+  /** Palette slot for the line: 1 = revenue, 2 = spending (see _tokens.scss $series). */
+  readonly seriesIndex = input<number>(1);
 
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly scheme = inject(ColorSchemeService).scheme;
@@ -98,7 +99,7 @@ export class SeriesChartComponent {
 
     return {
       backgroundColor: 'transparent',
-      color: c.series,
+      color: [c.series[this.seriesIndex() - 1] ?? c.series[0]],
       aria: { enabled: true },
       animationDuration: 300,
       textStyle: { color: c.text, fontFamily: m.fontFamily },
@@ -107,7 +108,7 @@ export class SeriesChartComponent {
         trigger: 'axis',
         confine: true,
         backgroundColor: c.surface,
-        borderColor: c.gridLine,
+        borderColor: c.axisLine,
         textStyle: { color: c.text },
         formatter: (params: unknown) => {
           const first = Array.isArray(params) ? params[0] : params;
@@ -124,12 +125,17 @@ export class SeriesChartComponent {
         data: pts.map((p) => p.label),
         boundaryGap: false,
         axisLine: { lineStyle: { color: c.axisLine } },
-        axisLabel: { color: c.textMuted, hideOverlap: true },
+        axisLabel: { color: c.textFaint, hideOverlap: true, fontFamily: m.monoFamily, fontSize: m.axisSize },
       },
       yAxis: {
         type: 'value',
         scale: s.indexTo100,
-        axisLabel: { color: c.textMuted, formatter: (v: number) => formatAxisValue(v, s) },
+        axisLabel: {
+          color: c.textFaint,
+          fontFamily: m.monoFamily,
+          fontSize: m.axisSize,
+          formatter: (v: number) => formatAxisValue(v, s),
+        },
         splitLine: { lineStyle: { color: c.gridLine } },
       },
       series: [
@@ -144,8 +150,9 @@ export class SeriesChartComponent {
           markLine: {
             silent: true,
             symbol: 'none',
-            lineStyle: { type: 'dashed', width: 1.5 },
-            label: { position: 'insideEndTop', distance: m.symbolSize, color: c.text, fontSize: m.labelSize },
+            lineStyle: { type: 'dashed', width: m.annotationWidth },
+            // Anchored at the axis: on 0-based charts the lower area is usually empty.
+            label: { position: 'insideStartTop', distance: m.symbolSize, color: c.textMuted, fontSize: m.labelSize },
             data: markLines,
           },
         },

@@ -3,74 +3,99 @@
 // and the ECharts canvas via chart-palette.ts) reads the --fx-* custom properties emitted below.
 // Switching theme = editing this file.
 //
-// Current values reproduce Angular Material's azure/blue M3 theme (placeholder until a custom
-// theme is chosen). Colors are (light, dark) pairs, emitted with light-dark() so they follow
-// the active color-scheme (prefers-color-scheme, or html[data-theme]).
+// Theme: "D · BI dashboard" (chosen 2026-10-06). Colors are (light, dark) pairs, emitted with
+// light-dark() so they follow the active color-scheme (prefers-color-scheme, or html[data-theme]).
+// Values marked "derived" are not in the mockup and were chosen to fit it.
 @use 'sass:list';
 @use 'sass:map';
+@use 'sass:meta';
 
-// --- Color roles (Material 3 names) -----------------------------------------------------------
+// --- App color roles ----------------------------------------------------------------------------
+$app-colors: (
+  page: (#eef0f3, #14171d),
+  tile: (#ffffff, #1d2129),
+  tile-shadow: (rgba(20, 30, 50, 0.08), rgba(0, 0, 0, 0.4)),   // dark: derived
+  border: (#dce0e6, #343a46),          // tile and pane edges
+  border-strong: (#cbd1da, #4a5160),   // controls; dark: derived
+  gridline: (#edeff2, #2a2f39),
+  axis-line: (#b9c0cb, #4a5160),       // dark: derived
+  text: (#1b2230, #e6e9ef),
+  text-muted: (#5b6474, #9aa3b2),
+  text-faint: (#8c96a5, #7d8696),      // axis labels
+  header-bg: (#1f2a44, #1f2a44),
+  header-text: (#ffffff, #ffffff),
+  header-text-muted: (#a9b4cc, #a9b4cc),
+  header-border: (#3d4a68, #3d4a68),
+  logo-accent: (#f2b544, #f2b544),
+  selected-bg: (#e6eef9, #23324a),     // active nav item; dark: derived
+  kpi-neutral: (#8c96a5, #7d8696),     // top border of non-series KPI cards
+  link: (#1f5fad, #5b9be6),
+  link-hover: (#164682, #8bbcf0),      // dark: derived
+  primary-hover: (#164682, #7fb1ec),   // dark: derived
+);
+
+// --- Material 3 color roles (Material components read these through _material.scss) ----------
 $colors: (
-  primary: (#005cbb, #abc7ff),
-  on-primary: (#ffffff, #002f65),
-  primary-container: (#d7e3ff, #00458f),
-  on-primary-container: (#00458f, #d7e3ff),
-  primary-fixed: (#d7e3ff, #d7e3ff),
-  primary-fixed-dim: (#abc7ff, #abc7ff),
-  on-primary-fixed: (#001b3f, #001b3f),
-  on-primary-fixed-variant: (#00458f, #00458f),
-  inverse-primary: (#abc7ff, #005cbb),
-  surface-tint: (#005cbb, #abc7ff),
+  primary: (#1f5fad, #5b9be6),
+  on-primary: (#ffffff, #0e1626),
+  primary-container: (#e6eef9, #23324a),
+  on-primary-container: (#164682, #cfe0f7),
+  primary-fixed: (#e6eef9, #e6eef9),
+  primary-fixed-dim: (#b9d0ee, #b9d0ee),
+  on-primary-fixed: (#0e2a4f, #0e2a4f),
+  on-primary-fixed-variant: (#164682, #164682),
+  inverse-primary: (#5b9be6, #1f5fad),
+  surface-tint: (#1f5fad, #5b9be6),
 
-  secondary: (#565e71, #bec6dc),
-  on-secondary: (#ffffff, #283041),
-  secondary-container: (#dae2f9, #3e4759),
-  on-secondary-container: (#3e4759, #dae2f9),
-  secondary-fixed: (#dae2f9, #dae2f9),
-  secondary-fixed-dim: (#bec6dc, #bec6dc),
-  on-secondary-fixed: (#131c2b, #131c2b),
-  on-secondary-fixed-variant: (#3e4759, #3e4759),
+  secondary: (#5b6474, #9aa3b2),
+  on-secondary: (#ffffff, #14171d),
+  secondary-container: (#e4e7ec, #2a2f39),
+  on-secondary-container: (#1b2230, #e6e9ef),
+  secondary-fixed: (#e4e7ec, #e4e7ec),
+  secondary-fixed-dim: (#cbd1da, #cbd1da),
+  on-secondary-fixed: (#1b2230, #1b2230),
+  on-secondary-fixed-variant: (#3d4a68, #3d4a68),
 
-  tertiary: (#343dff, #bec2ff),
-  on-tertiary: (#ffffff, #0001ac),
-  tertiary-container: (#e0e0ff, #0000ef),
-  on-tertiary-container: (#0000ef, #e0e0ff),
-  tertiary-fixed: (#e0e0ff, #e0e0ff),
-  tertiary-fixed-dim: (#bec2ff, #bec2ff),
-  on-tertiary-fixed: (#00006e, #00006e),
-  on-tertiary-fixed-variant: (#0000ef, #0000ef),
+  tertiary: (#8a5a00, #f2b544),
+  on-tertiary: (#ffffff, #2a1d00),
+  tertiary-container: (#fdecc8, #4a3a12),
+  on-tertiary-container: (#4a3200, #fdecc8),
+  tertiary-fixed: (#fdecc8, #fdecc8),
+  tertiary-fixed-dim: (#f2b544, #f2b544),
+  on-tertiary-fixed: (#2a1d00, #2a1d00),
+  on-tertiary-fixed-variant: (#4a3200, #4a3200),
 
-  error: (#ba1a1a, #ffb4ab),
-  on-error: (#ffffff, #690005),
-  error-container: (#ffdad6, #93000a),
-  on-error-container: (#93000a, #ffdad6),
+  error: (#b3261e, #f2b8b5),
+  on-error: (#ffffff, #601410),
+  error-container: (#f9dedc, #8c1d18),
+  on-error-container: (#410e0b, #f9dedc),
 
-  background: (#faf9fd, #121316),
-  on-background: (#1a1b1f, #e3e2e6),
-  surface: (#faf9fd, #121316),
-  on-surface: (#1a1b1f, #e3e2e6),
-  surface-variant: (#e0e2ec, #44474e),
-  on-surface-variant: (#44474e, #e0e2ec),
-  surface-dim: (#dbd9dd, #121316),
-  surface-bright: (#faf9fd, #38393c),
-  surface-container-lowest: (#ffffff, #0d0e11),
-  surface-container-low: (#f4f3f6, #1a1b1f),
-  surface-container: (#efedf0, #1f2022),
-  surface-container-high: (#e9e7eb, #292a2c),
-  surface-container-highest: (#e3e2e6, #343537),
-  inverse-surface: (#2f3033, #e3e2e6),
-  inverse-on-surface: (#f2f0f4, #2f3033),
+  background: (#eef0f3, #14171d),
+  on-background: (#1b2230, #e6e9ef),
+  surface: (#eef0f3, #14171d),
+  on-surface: (#1b2230, #e6e9ef),
+  surface-variant: (#e4e7ec, #2a2f39),
+  on-surface-variant: (#5b6474, #9aa3b2),
+  surface-dim: (#dfe2e7, #14171d),
+  surface-bright: (#ffffff, #2a2f39),
+  surface-container-lowest: (#ffffff, #171a20),
+  surface-container-low: (#ffffff, #1d2129),
+  surface-container: (#f7f8fa, #22262f),
+  surface-container-high: (#eef0f3, #2a2f39),
+  surface-container-highest: (#e4e7ec, #343a46),
+  inverse-surface: (#1f2a44, #e6e9ef),
+  inverse-on-surface: (#ffffff, #1b2230),
 
-  outline: (#74777f, #8e9099),
-  outline-variant: (#c4c6d0, #44474e),
+  outline: (#cbd1da, #4a5160),
+  outline-variant: (#dce0e6, #343a46),
   shadow: (#000000, #000000),
   scrim: (#000000, #000000),
 );
 
 // Fixed palette tones Material reads directly (not light/dark).
 $tones: (
-  neutral10: #1a1b1f,
-  neutral-variant20: #2d3038,
+  neutral10: #1b2230,
+  neutral-variant20: #2a2f39,
 );
 
 // Interaction state-layer opacities.
@@ -81,76 +106,90 @@ $state-layers: (
   dragged: 0.16,
 );
 
-// Elevation shadows, level 0-5.
+// Elevation shadows, level 0-5 (Material menus, sheets). Tiles use --fx-shadow-tile instead.
 $elevation: (
-  (0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12)),
-  (0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12)),
-  (0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12)),
-  (0px 3px 5px -1px rgba(0, 0, 0, 0.2), 0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12)),
-  (0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12)),
-  (0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12)),
+  (0px 0px 0px 0px rgba(20, 30, 50, 0)),
+  (0px 1px 2px 0px rgba(20, 30, 50, 0.08)),
+  (0px 2px 6px 0px rgba(20, 30, 50, 0.12)),
+  (0px 4px 12px 0px rgba(20, 30, 50, 0.14)),
+  (0px 6px 16px 0px rgba(20, 30, 50, 0.16)),
+  (0px 8px 24px 0px rgba(20, 30, 50, 0.18)),
 );
 
 // --- Chart colors -------------------------------------------------------------------------------
-// Colorblind-safe categorical palette (Okabe & Ito), ordered so the first series have the
-// strongest contrast against each background.
+// Series 1 = revenue, series 2 = spending (expenditure); then the rest of Okabe & Ito, a
+// colorblind-safe categorical palette.
 $series: (
-  (#0072b2, #56b4e9), // blue / sky blue
-  (#e69f00, #e69f00), // orange
+  (#1f5fad, #5b9be6), // revenue blue
+  (#d55e00, #f08a4b), // spending orange (vermillion)
   (#009e73, #2ec4a0), // bluish green
-  (#d55e00, #ff8a3d), // vermillion
   (#cc79a7, #e4a3c8), // reddish purple
-  (#56b4e9, #0b8fd6), // sky blue / blue
-  (#4d4d4d, #bdbdbd), // neutral
+  (#56b4e9, #56b4e9), // sky blue
+  (#e69f00, #e69f00), // orange
+  (#0072b2, #0b8fd6), // blue
   (#b8a800, #f0e442), // yellow (darkened on light backgrounds)
 );
 
-// Annotation lines by Annotation.kind.
+// Annotation lines by Annotation.kind: muted grey, dashed.
 $annotation: (
-  methodology: (#5f5f5f, #a8a8a8),
-  policy: (#0072b2, #56b4e9),
-  event: (#d55e00, #ff8a3d),
+  methodology: (#8c96a5, #7d8696),
+  policy: (#8c96a5, #7d8696),
+  event: (#8c96a5, #7d8696),
 );
 
 // --- Typography ---------------------------------------------------------------------------------
 $fonts: (
   // Headings (display, headline, title-large).
-  brand: (system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif),
-  // Everything else.
-  plain: (system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif),
-  mono: (ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace),
+  brand: ('IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif),
+  // UI text.
+  plain: ('IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif),
+  // Every number: axis labels, KPI values, table figures.
+  mono: ('IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace),
 );
 
-$weights: (regular: 400, medium: 500, semibold: 600, bold: 700);
+$weights: (regular: 400, medium: 500, semibold: 600, bold: 600);
 
 // Type roles (Material 3 names): size, line-height, weight, tracking, font family key.
 $type-scale: (
-  display-large: (3.562rem, 4rem, 400, -0.016rem, brand),
-  display-medium: (2.812rem, 3.25rem, 400, 0, brand),
-  display-small: (2.25rem, 2.75rem, 400, 0, brand),
-  headline-large: (2rem, 2.5rem, 400, 0, brand),
-  headline-medium: (1.75rem, 2.25rem, 400, 0, brand),
-  headline-small: (1.5rem, 2rem, 400, 0, brand),
-  title-large: (1.375rem, 1.75rem, 400, 0, brand),
-  title-medium: (1rem, 1.5rem, 500, 0.009rem, plain),
-  title-small: (0.875rem, 1.25rem, 500, 0.006rem, plain),
-  body-large: (1rem, 1.5rem, 400, 0.031rem, plain),
-  body-medium: (0.875rem, 1.25rem, 400, 0.016rem, plain),
-  body-small: (0.75rem, 1rem, 400, 0.025rem, plain),
-  label-large: (0.875rem, 1.25rem, 500, 0.006rem, plain),
-  label-medium: (0.75rem, 1rem, 500, 0.031rem, plain),
-  label-small: (0.688rem, 1rem, 500, 0.031rem, plain),
+  display-large: (3rem, 3.5rem, 400, 0, brand),
+  display-medium: (2.5rem, 3rem, 400, 0, brand),
+  display-small: (2rem, 2.5rem, 400, 0, brand),
+  headline-large: (1.75rem, 2.25rem, 500, 0, brand),
+  headline-medium: (1.5rem, 2rem, 500, 0, brand),
+  headline-small: (1.25rem, 1.75rem, 500, 0, brand),
+  title-large: (1.125rem, 1.5rem, 600, 0, brand),
+  title-medium: (0.9375rem, 1.375rem, 600, 0, plain),   // 15px: header title
+  title-small: (0.875rem, 1.25rem, 600, 0, plain),      // 14px: tile titles
+  body-large: (0.9375rem, 1.375rem, 400, 0, plain),
+  body-medium: (0.8125rem, 1.25rem, 400, 0, plain),     // 13px: default UI text
+  body-small: (0.75rem, 1rem, 400, 0, plain),           // 12px
+  label-large: (0.8125rem, 1.25rem, 500, 0, plain),     // 13px: buttons, chips
+  label-medium: (0.75rem, 1rem, 500, 0, plain),
+  label-small: (0.6875rem, 1rem, 500, 0, plain),        // 11px
+);
+
+// App-only type roles (same shape as $type-scale).
+$app-type: (
+  kpi: (1.5rem, 1.875rem, 500, 0, mono),          // 24px KPI value
+  kpi-compact: (1.25rem, 1.625rem, 500, 0, mono), // 20px, phone
+  numeric: (0.8125rem, 1.25rem, 400, 0, mono),    // table figures, readouts
+  axis: (0.625rem, 0.875rem, 400, 0, mono),       // 10px chart axis labels
+  caption: (0.6875rem, 1rem, 400, 0, plain),      // 11px footnotes, KPI sub-lines
 );
 
 // --- Shape, spacing, layout ---------------------------------------------------------------------
 $radii: (
   none: 0,
-  xs: 4px,
-  sm: 8px,
-  md: 12px,
-  lg: 16px,
-  xl: 28px,
+  xs: 2px,
+  sm: 4px,   // tiles, chips, selects, buttons
+  md: 4px,
+  lg: 8px,
+  xl: 12px,  // bottom sheet top corners
   full: 9999px,
+);
+
+$shadows: (
+  tile: 0 1px 2px var(--fx-color-tile-shadow),
 );
 
 $space: (
@@ -164,25 +203,35 @@ $space: (
 );
 
 $layout: (
-  gutter: 16px,         // page side padding, phone
-  gutter-wide: 24px,    // page side padding from the tablet breakpoint
-  touch-target: 44px,   // minimum interactive size
-  header-height: 56px,
-  panel-width: 320px,   // desktop controls panel
+  gutter: 12px,         // page side padding, phone
+  gutter-wide: 16px,    // page side padding from the tablet breakpoint
+  touch-target: 44px,   // minimum interactive size on touch (pointer: coarse)
+  control-height: 34px, // selects and buttons with a fine pointer
+  header-height: 48px,
+  header-button-height: 32px,
+  panel-width: 260px,   // desktop Filters pane (right)
+  tab-height: 34px,
+  tab-indicator: 3px,
+  kpi-accent: 3px,      // KPI card top border
   border-width: 1px,
   focus-ring: 2px,
-  chart-line: 2.5px,
-  chart-symbol: 6px,
-  chart-min-height: 280px,
+  check-size: 16px,
+  disabled-opacity: 0.55,
+  logo-size: 18px,
+  chart-line: 2px,
+  annotation-line: 1px,
+  chart-symbol: 5px,
+  chart-min-height: 260px,
   tooltip-width: 260px,
   notes-min-width: 16rem,  // table notes column
-  list-indent: 1.5rem,
+  list-indent: 1.25rem,
   button-min-width: 96px,
   link-min-height: 24px,
   code-scale: 0.95em,
   figure-height: 60dvh,       // chart/table area on phones (CLAUDE.md: ~60% of viewport)
   figure-min-height: 300px,
-  figure-max-height: 600px,   // desktop cap
+  figure-max-height: 520px,   // desktop cap
+  content-max-width: 1440px,
 );
 
 // Media-query breakpoints (Sass only: custom properties can't be used in media queries).
@@ -192,13 +241,43 @@ $breakpoints: (
   desktop: 1024px,
 );
 
+// Self-hosted font files (no third-party requests): latin subsets of the weights used above.
+$font-files: (
+  '@fontsource/ibm-plex-sans/latin-400.css',
+  '@fontsource/ibm-plex-sans/latin-500.css',
+  '@fontsource/ibm-plex-sans/latin-600.css',
+  '@fontsource/ibm-plex-mono/latin-400.css',
+  '@fontsource/ibm-plex-mono/latin-500.css',
+);
+
 // --- Emit ---------------------------------------------------------------------------------------
+
+// Emits the @font-face rules. Included once, from styles.scss.
+@mixin font-faces {
+  @each $file in $font-files {
+    @include meta.load-css($file);
+  }
+}
+
 @function _ld($pair) {
   @return light-dark(list.nth($pair, 1), list.nth($pair, 2));
 }
 
+@mixin _type-roles($scale) {
+  @each $role, $t in $scale {
+    --fx-type-#{$role}-size: #{list.nth($t, 1)};
+    --fx-type-#{$role}-line-height: #{list.nth($t, 2)};
+    --fx-type-#{$role}-weight: #{list.nth($t, 3)};
+    --fx-type-#{$role}-tracking: #{list.nth($t, 4)};
+    --fx-type-#{$role}-font: var(--fx-font-#{list.nth($t, 5)});
+    // Shorthand for `font:`
+    --fx-type-#{$role}: var(--fx-type-#{$role}-weight) var(--fx-type-#{$role}-size) /
+      var(--fx-type-#{$role}-line-height) var(--fx-type-#{$role}-font);
+  }
+}
+
 @mixin emit {
-  @each $name, $pair in $colors {
+  @each $name, $pair in map.merge($colors, $app-colors) {
     --fx-color-#{$name}: #{_ld($pair)};
   }
   @each $name, $c in $tones {
@@ -210,6 +289,9 @@ $breakpoints: (
   @for $i from 1 through list.length($elevation) {
     --fx-elevation-#{$i - 1}: #{list.nth($elevation, $i)};
   }
+  @each $name, $v in $shadows {
+    --fx-shadow-#{$name}: #{$v};
+  }
   @each $pair in $series {
     --fx-series-#{list.index($series, $pair)}: #{_ld($pair)};
   }
@@ -218,21 +300,13 @@ $breakpoints: (
   }
 
   @each $name, $stack in $fonts {
-    --fx-font-#{$name}: #{$stack};
+    --fx-font-#{$name}: #{meta.inspect($stack)};
   }
   @each $name, $w in $weights {
     --fx-weight-#{$name}: #{$w};
   }
-  @each $role, $t in $type-scale {
-    --fx-type-#{$role}-size: #{list.nth($t, 1)};
-    --fx-type-#{$role}-line-height: #{list.nth($t, 2)};
-    --fx-type-#{$role}-weight: #{list.nth($t, 3)};
-    --fx-type-#{$role}-tracking: #{list.nth($t, 4)};
-    --fx-type-#{$role}-font: var(--fx-font-#{list.nth($t, 5)});
-    // Shorthand for `font:`
-    --fx-type-#{$role}: var(--fx-type-#{$role}-weight) var(--fx-type-#{$role}-size) /
-      var(--fx-type-#{$role}-line-height) var(--fx-type-#{$role}-font);
-  }
+  @include _type-roles($type-scale);
+  @include _type-roles($app-type);
 
   @each $name, $r in $radii {
     --fx-radius-#{$name}: #{$r};

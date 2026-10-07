@@ -1,5 +1,4 @@
 import { Component, computed, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 
 import { fiscalYearLabel } from '../core/transform';
@@ -18,10 +17,10 @@ const PRESETS: RangePreset[] = [
 
 @Component({
   selector: 'app-range-control',
-  imports: [MatSliderModule, MatButtonModule],
+  imports: [MatSliderModule],
   template: `
     @if (years().length > 1) {
-      <div class="readout" aria-live="polite">{{ fromLabel() }} to {{ toLabel() }}</div>
+      <div class="readout" aria-live="polite">{{ fromLabel() }} – {{ toLabel() }}</div>
       <mat-slider
         class="slider"
         [min]="min()"
@@ -45,7 +44,7 @@ const PRESETS: RangePreset[] = [
       </mat-slider>
       <div class="presets" role="group" aria-label="Range presets">
         @for (p of presets; track p.label) {
-          <button matButton="outlined" type="button" (click)="applyPreset(p)">{{ p.label }}</button>
+          <button type="button" class="fx-button" (click)="applyPreset(p)">{{ p.label }}</button>
         }
       </div>
     }
@@ -55,8 +54,8 @@ const PRESETS: RangePreset[] = [
       display: block;
     }
     .readout {
-      font: var(--fx-type-label-large);
-      color: var(--fx-color-on-surface-variant);
+      font: var(--fx-type-numeric);
+      color: var(--fx-color-text);
     }
     .slider {
       width: 100%;
@@ -66,9 +65,6 @@ const PRESETS: RangePreset[] = [
       display: flex;
       flex-wrap: wrap;
       gap: var(--fx-space-2);
-    }
-    .presets button {
-      min-height: var(--fx-touch-target);
     }
   `,
 })

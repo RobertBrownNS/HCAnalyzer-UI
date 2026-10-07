@@ -1,26 +1,99 @@
+@use 'sass:map';
+@use 'tokens';
+
 :host {
   display: flex;
   flex-direction: column;
   min-height: 100dvh; // full viewport (layout, not theme)
 }
 
-.site-header {
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
+  gap: var(--fx-space-4);
   min-height: var(--fx-header-height);
   padding: 0 var(--fx-page-gutter);
-  background: var(--fx-color-surface-container);
-  color: var(--fx-color-on-surface);
-  border-bottom: var(--fx-border-width) solid var(--fx-color-outline-variant);
+  background: var(--fx-color-header-bg);
+  color: var(--fx-color-header-text);
 }
 
-.site-title {
+.brand {
   display: inline-flex;
   align-items: center;
+  gap: var(--fx-space-2);
   min-height: var(--fx-touch-target);
-  font: var(--fx-type-title-medium);
+  min-width: 0;
   color: inherit;
   text-decoration: none;
+  font: var(--fx-type-title-medium);
+
+  &:hover {
+    color: inherit;
+  }
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logo {
+  flex: none;
+  width: var(--fx-logo-size);
+  height: var(--fx-logo-size);
+  fill: none;
+  stroke: var(--fx-color-logo-accent);
+  stroke-width: 2.2; // SVG user units (icon geometry)
+}
+
+.jurisdiction {
+  display: none;
+  font: var(--fx-type-body-medium);
+  color: var(--fx-color-header-text-muted);
+  white-space: nowrap;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--fx-space-2);
+}
+
+.bar-button {
+  min-height: var(--fx-header-button-height);
+  padding: 0 var(--fx-space-3);
+  border: var(--fx-border-width) solid var(--fx-color-header-border);
+  border-radius: var(--fx-radius-sm);
+  background: transparent;
+  color: var(--fx-color-header-text);
+  font: var(--fx-type-label-large);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: var(--fx-disabled-opacity);
+  }
+
+  @media (pointer: coarse) {
+    min-height: var(--fx-touch-target);
+  }
+}
+
+// Export is disabled until Phase 5; keep the phone bar uncluttered.
+.export {
+  display: none;
+}
+
+@media (min-width: map.get(tokens.$breakpoints, desktop)) {
+  .jurisdiction,
+  .export {
+    display: inline-block;
+  }
 }
 
 .site-main {

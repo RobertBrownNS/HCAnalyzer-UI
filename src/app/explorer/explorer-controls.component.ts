@@ -1,9 +1,4 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import {
   CPI_LABELS,
@@ -32,14 +27,7 @@ function entries<K extends string>(labels: Record<K, string>): { value: K; label
  */
 @Component({
   selector: 'app-explorer-controls',
-  imports: [
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatRadioModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    RangeControlComponent,
-  ],
+  imports: [RangeControlComponent],
   templateUrl: './explorer-controls.component.html',
   styleUrl: './explorer-controls.component.scss',
 })
@@ -61,16 +49,23 @@ export class ExplorerControlsComponent {
   readonly real = computed(() => isReal(this.settings().measure));
   readonly scope = computed(() => fundScopeLabel(this.settings()));
 
+  value(e: Event): string {
+    return (e.target as HTMLSelectElement).value;
+  }
+  checked(e: Event): boolean {
+    return (e.target as HTMLInputElement).checked;
+  }
+
   show(group: ControlGroup): boolean {
     const only = this.only();
     return only === null ? group !== 'range' : only === group;
   }
 
-  setFlow(flow: Flow): void {
-    this.store.update({ flow });
+  setFlow(flow: string): void {
+    this.store.update({ flow: flow as Flow });
   }
-  setMeasure(measure: Measure): void {
-    this.store.update({ measure });
+  setMeasure(measure: string): void {
+    this.store.update({ measure: measure as Measure });
   }
   setBaseYear(baseYear: number): void {
     this.store.update({ baseYear });
@@ -81,14 +76,14 @@ export class ExplorerControlsComponent {
   setIncludeCustodial(includeCustodial: boolean): void {
     this.store.update({ includeCustodial });
   }
-  setCpiIndex(cpiIndex: CpiIndex): void {
-    this.store.update({ cpiIndex });
+  setCpiIndex(cpiIndex: string): void {
+    this.store.update({ cpiIndex: cpiIndex as CpiIndex });
   }
-  setCpiPeriod(cpiPeriod: CpiPeriod): void {
-    this.store.update({ cpiPeriod });
+  setCpiPeriod(cpiPeriod: string): void {
+    this.store.update({ cpiPeriod: cpiPeriod as CpiPeriod });
   }
-  setTransfers(transfers: TransferMode): void {
-    this.store.update({ transfers });
+  setTransfers(transfers: string): void {
+    this.store.update({ transfers: transfers as TransferMode });
   }
   reset(): void {
     this.store.reset();

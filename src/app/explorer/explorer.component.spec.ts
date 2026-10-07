@@ -37,7 +37,7 @@ describe('ExplorerComponent', () => {
   it('shows one chip per active setting, custodial excluded by default', async () => {
     await harness.navigateByUrl('/', ExplorerComponent);
     await harness.fixture.whenStable();
-    const chips = [...(harness.routeNativeElement as HTMLElement).querySelectorAll('.chip')].map((c) =>
+    const chips = [...(harness.routeNativeElement as HTMLElement).querySelectorAll('.fx-chip')].map((c) =>
       c.textContent?.trim(),
     );
     expect(chips).toContain('Revenues');
@@ -56,13 +56,31 @@ describe('ExplorerComponent', () => {
     expect(page.valueLabel()).toBe('Revenues, inflation-adjusted, FY 2019-20 dollars');
   });
 
+  it('renders the Filters pane, report tab and chart tile title', async () => {
+    await harness.navigateByUrl('/?flow=expenditure', ExplorerComponent);
+    await harness.fixture.whenStable();
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(el.querySelector('aside.filters h2')?.textContent).toBe('Filters');
+    expect(el.querySelector('.tab[aria-current="page"]')?.textContent?.trim()).toBe('Overview');
+    expect(el.querySelector('#chart-title')?.textContent).toContain('Expenditures by fiscal year');
+  });
+
+  it('colors the series by flow: revenue = series 1, expenditure = series 2', async () => {
+    const page = await harness.navigateByUrl('/?flow=expenditure', ExplorerComponent);
+    await harness.fixture.whenStable();
+    expect(page.seriesColor()).toBe('var(--fx-series-2)');
+    const rev = await harness.navigateByUrl('/?flow=revenue', ExplorerComponent);
+    await harness.fixture.whenStable();
+    expect(rev.seriesColor()).toBe('var(--fx-series-1)');
+  });
+
   it('states the fund scope and transfer mode under the title', async () => {
     const page = await harness.navigateByUrl('/?cust=1&xfer=net', ExplorerComponent);
     await harness.fixture.whenStable();
     expect(page.scopeLine()).toBe(
       'All funds as reported by EDR, including custodial. Transfers between funds: excluded (net).',
     );
-    const scope = (harness.routeNativeElement as HTMLElement).querySelector('.scope')?.textContent;
-    expect(scope).toContain('All funds as reported by EDR, including custodial');
+    const tile = (harness.routeNativeElement as HTMLElement).querySelector('.chart-tile')?.textContent ?? '';
+    expect(tile).toContain('All funds as reported by EDR, including custodial');
   });
 });

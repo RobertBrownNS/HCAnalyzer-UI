@@ -1,0 +1,141 @@
+// Shared UI primitives (tiles, controls, chips). Global so every component uses the same
+// classes. No values here: everything comes from the tokens.
+
+.fx-tile {
+  background: var(--fx-color-tile);
+  border-radius: var(--fx-radius-sm);
+  box-shadow: var(--fx-shadow-tile);
+  padding: var(--fx-space-3) var(--fx-space-4);
+  min-width: 0;
+}
+
+.fx-tile-title {
+  margin: 0;
+  font: var(--fx-type-title-small);
+  color: var(--fx-color-text);
+}
+
+.fx-caption {
+  font: var(--fx-type-caption);
+  color: var(--fx-color-text-muted);
+}
+
+// Labelled native select / field.
+.fx-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fx-space-1);
+  font: var(--fx-type-body-small);
+  color: var(--fx-color-text-muted);
+}
+
+.fx-select {
+  min-height: var(--fx-control-h);
+  width: 100%;
+  padding: 0 var(--fx-space-2);
+  border: var(--fx-border-width) solid var(--fx-color-border-strong);
+  border-radius: var(--fx-radius-sm);
+  background: var(--fx-color-tile);
+  color: var(--fx-color-text);
+  font: var(--fx-type-body-medium);
+  accent-color: var(--fx-color-primary);
+
+  &:disabled {
+    color: var(--fx-color-text-faint);
+    background: var(--fx-color-page);
+  }
+}
+
+// Checkbox row with a full-height hit area.
+.fx-check {
+  display: flex;
+  align-items: center;
+  gap: var(--fx-space-2);
+  min-height: var(--fx-control-h);
+  font: var(--fx-type-body-medium);
+  color: var(--fx-color-text);
+  cursor: pointer;
+
+  input {
+    width: var(--fx-check-size); // the label row is the hit area
+    height: var(--fx-check-size);
+    margin: 0;
+    accent-color: var(--fx-color-primary);
+  }
+}
+
+// Bordered button (header actions, presets, view toggle).
+.fx-button {
+  min-height: var(--fx-control-h);
+  padding: 0 var(--fx-space-3);
+  border: var(--fx-border-width) solid var(--fx-color-border-strong);
+  border-radius: var(--fx-radius-sm);
+  background: var(--fx-color-tile);
+  color: var(--fx-color-text);
+  font: var(--fx-type-label-large);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--fx-color-surface-container-high);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: var(--fx-disabled-opacity);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--fx-color-selected-bg);
+    border-color: var(--fx-color-primary);
+    color: var(--fx-color-on-primary-container);
+  }
+}
+
+.fx-button-primary {
+  background: var(--fx-color-primary);
+  border-color: var(--fx-color-primary);
+  color: var(--fx-color-on-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--fx-color-primary-hover);
+    border-color: var(--fx-color-primary-hover);
+  }
+}
+
+// Joined buttons acting as one switch.
+.fx-segmented {
+  display: inline-flex;
+
+  .fx-button {
+    border-radius: 0;
+  }
+  .fx-button + .fx-button {
+    margin-left: calc(-1 * var(--fx-border-width));
+  }
+  .fx-button:first-child {
+    border-radius: var(--fx-radius-sm) 0 0 var(--fx-radius-sm);
+  }
+  .fx-button:last-child {
+    border-radius: 0 var(--fx-radius-sm) var(--fx-radius-sm) 0;
+  }
+}
+
+// Setting chip: opens a bottom sheet (phone).
+.fx-chip {
+  flex: 0 0 auto;
+  min-height: var(--fx-touch-target);
+  padding: 0 var(--fx-space-3);
+  border: var(--fx-border-width) solid var(--fx-color-border);
+  border-radius: var(--fx-radius-sm);
+  background: var(--fx-color-tile);
+  color: var(--fx-color-text);
+  font: var(--fx-type-label-large);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &::after {
+    content: ' ▾';
+    color: var(--fx-color-text-muted);
+  }
+}

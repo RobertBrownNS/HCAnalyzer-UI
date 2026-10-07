@@ -83,5 +83,5 @@ import { groupPointNotes } from './view-notes';
 export class ViewNotesComponent {
   private readonly store = inject(ExplorerStore);
   readonly annotations = this.store.annotationNotes;
-  readonly pointNotes = computed(() => groupPointNotes(this.store.points()));
+  readonly pointNotes = computed(() => groupPointNotes(this.store.points(), this.annotations()));
 }

@@ -1,4 +1,5 @@
-// Mobile first: chips + bottom sheet on phones and tablets, persistent side panel from desktop.
+// Mobile first: KPI pair + chips + bottom sheet on phones and tablets; from desktop, report
+// tabs, a four-card KPI row and a persistent Filters pane on the right.
 @use 'sass:map';
 @use 'tokens';
 
@@ -8,25 +9,22 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   display: block;
 }
 
-.layout {
+.page {
   display: block;
 }
 
-.panel {
-  display: none;
-}
-
-.content {
+.main {
   display: flex;
   flex-direction: column;
-  gap: var(--fx-space-3);
+  gap: var(--fx-space-2);
   padding: var(--fx-space-3) var(--fx-page-gutter) var(--fx-space-6);
   min-width: 0;
 }
 
-.title {
-  margin: 0;
-  font: var(--fx-type-title-medium);
+.tabs,
+.kpis-wide,
+.filters {
+  display: none;
 }
 
 .chips {
@@ -39,29 +37,35 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   padding: 0 var(--fx-page-gutter);
 }
 
-.chip {
-  flex: 0 0 auto;
-  min-height: var(--fx-touch-target);
-  padding: 0 var(--fx-space-4);
-  border-radius: var(--fx-radius-sm);
-  border: var(--fx-border-width) solid var(--fx-color-outline);
-  background: var(--fx-color-surface-container-low);
-  color: var(--fx-color-on-surface);
-  font: var(--fx-type-label-large);
-  white-space: nowrap;
-  cursor: pointer;
-
-  &:hover {
-    background: var(--fx-color-surface-container-high);
-  }
+.chart-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fx-space-2);
 }
 
-.view-switch {
-  align-self: flex-start;
+.tile-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fx-space-2);
+}
 
-  mat-button-toggle {
-    min-height: var(--fx-touch-target);
-  }
+.heading {
+  min-width: 0;
+}
+
+.meta {
+  margin: var(--fx-space-0) 0 0;
+  display: flex;
+  align-items: center;
+  gap: var(--fx-space-2);
+}
+
+.swatch {
+  flex: none;
+  width: var(--fx-space-3);
+  height: var(--fx-kpi-accent);
 }
 
 .figure {
@@ -84,40 +88,76 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   gap: var(--fx-space-3);
 }
 
-.scope {
-  margin: var(--fx-space-1) 0 0;
-  font: var(--fx-type-body-medium);
-  color: var(--fx-color-on-surface-variant);
+.source {
+  margin: 0;
 }
 
-.section:not(:empty) {
-  margin-top: var(--fx-space-4);
-  padding-top: var(--fx-space-4);
-  border-top: var(--fx-border-width) solid var(--fx-color-outline-variant);
+app-view-notes:empty {
+  display: none;
 }
 
 @media (min-width: $desktop) {
-  .layout {
+  .page {
     display: grid;
-    grid-template-columns: var(--fx-panel-width) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) var(--fx-panel-width);
     align-items: start;
   }
 
-  .panel {
-    display: block;
-    position: sticky;
-    top: 0;
-    max-height: calc(100dvh - var(--fx-header-height));
-    overflow-y: auto;
-    padding: var(--fx-space-4) var(--fx-page-gutter);
-    border-right: var(--fx-border-width) solid var(--fx-color-outline-variant);
+  .main {
+    gap: var(--fx-space-3);
+    padding-top: var(--fx-space-3);
   }
 
+  .tabs {
+    display: flex;
+    gap: var(--fx-space-0);
+    border-bottom: var(--fx-border-width) solid var(--fx-color-border-strong);
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--fx-tab-height);
+    padding: 0 var(--fx-space-3);
+    font: var(--fx-type-label-large);
+    color: var(--fx-color-text-muted);
+    text-decoration: none;
+
+    &[aria-current='page'] {
+      color: var(--fx-color-text);
+      font-weight: var(--fx-weight-semibold);
+      box-shadow: inset 0 calc(-1 * var(--fx-tab-indicator)) 0 var(--fx-color-primary);
+    }
+  }
+
+  .kpis-wide {
+    display: block;
+  }
+
+  .kpis-compact,
   .chips {
     display: none;
   }
 
   .figure {
     height: min(var(--fx-figure-height), var(--fx-figure-max-height));
+  }
+
+  .filters {
+    display: block;
+    position: sticky;
+    top: var(--fx-header-height);
+    max-height: calc(100dvh - var(--fx-header-height));
+    overflow-y: auto;
+    padding: var(--fx-space-3);
+    background: var(--fx-color-tile);
+    border-left: var(--fx-border-width) solid var(--fx-color-border);
+    // Fill the column so the pane reads as a full-height panel.
+    min-height: calc(100dvh - var(--fx-header-height));
+  }
+
+  .filters-title {
+    margin: 0 0 var(--fx-space-3);
+    font: var(--fx-type-title-small);
   }
 }

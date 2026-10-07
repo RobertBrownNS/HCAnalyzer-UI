@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
@@ -11,11 +10,11 @@ export interface SettingsSheetData {
 /** Phone bottom sheet holding one control group. Changes apply immediately. */
 @Component({
   selector: 'app-settings-sheet',
-  imports: [ExplorerControlsComponent, MatButtonModule],
+  imports: [ExplorerControlsComponent],
   template: `
     <app-explorer-controls [only]="data.group" />
     <div class="actions">
-      <button matButton="filled" type="button" (click)="close()">Done</button>
+      <button type="button" class="fx-button fx-button-primary" (click)="close()">Done</button>
     </div>
   `,
   styles: `
@@ -29,7 +28,6 @@ export interface SettingsSheetData {
       margin-top: var(--fx-space-4);
     }
     .actions button {
-      min-height: var(--fx-touch-target);
       min-width: var(--fx-button-min-width);
     }
   `,

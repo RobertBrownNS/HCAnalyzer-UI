@@ -7,6 +7,8 @@ export interface ChartColors {
   series: string[];
   text: string;
   textMuted: string;
+  /** Axis tick labels. */
+  textFaint: string;
   axisLine: string;
   gridLine: string;
   surface: string;
@@ -15,7 +17,11 @@ export interface ChartColors {
 
 export interface ChartMetrics {
   fontFamily: string;
+  /** Numbers (axis labels). */
+  monoFamily: string;
+  axisSize: number;
   lineWidth: number;
+  annotationWidth: number;
   symbolSize: number;
   labelSize: number;
   /** --fx-space-1..6 in px */
@@ -37,7 +43,10 @@ export function readChartMetrics(host: Element = document.body): ChartMetrics {
   const len = (name: string, fallback: number) => cssLengthToPx(style.getPropertyValue(name), rootPx, fallback);
   return {
     fontFamily: style.getPropertyValue('--fx-font-plain').trim() || 'sans-serif',
-    lineWidth: len('--fx-chart-line', 2.5),
+    monoFamily: style.getPropertyValue('--fx-font-mono').trim() || 'monospace',
+    axisSize: len('--fx-type-axis-size', 10),
+    lineWidth: len('--fx-chart-line', 2),
+    annotationWidth: len('--fx-annotation-line', 1),
     symbolSize: len('--fx-chart-symbol', 6),
     labelSize: len('--fx-type-label-small-size', 11),
     space: (step) => len(`--fx-space-${step}`, [4, 8, 12, 16, 24, 32][step - 1]),
@@ -64,11 +73,12 @@ export function readChartColors(host?: Element): ChartColors {
   const c = (expr: string) => resolveCssColor(expr, host);
   return {
     series: readSeriesPalette(host),
-    text: c('var(--fx-color-on-surface)'),
-    textMuted: c('var(--fx-color-on-surface-variant)'),
-    axisLine: c('var(--fx-color-outline)'),
-    gridLine: c('var(--fx-color-outline-variant)'),
-    surface: c('var(--fx-color-surface-container-high)'),
+    text: c('var(--fx-color-text)'),
+    textMuted: c('var(--fx-color-text-muted)'),
+    textFaint: c('var(--fx-color-text-faint)'),
+    axisLine: c('var(--fx-color-axis-line)'),
+    gridLine: c('var(--fx-color-gridline)'),
+    surface: c('var(--fx-color-tile)'),
     annotation: {
       methodology: c('var(--fx-annotation-methodology)'),
       policy: c('var(--fx-annotation-policy)'),
