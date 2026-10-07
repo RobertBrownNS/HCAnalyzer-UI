@@ -106,12 +106,18 @@ try {
     // first frame where the explorer region is no longer busy (data shown).
     r.firstCanvas = first((x) => x[3] === 1);
     r.dataShown = (() => { const busy = f.findIndex((x) => x[4] === 'true'); const i = f.findIndex((x, k) => k > busy && busy >= 0 && x[4] === 'false'); return i >= 0 ? f[i][0] : null; })();
-    r.echartsFetches = page.requests.filter((u) => u.includes('chunk-INSTK3HA')).length;
+    // Duplicate-fetch check without hard-coding a hashed file name: count fetches per JS URL.
+    // The ECharts chunk is the largest lazy chunk; report every JS file and the highest count.
+    const jsCounts = {};
+    for (const u of page.requests.filter((x) => /\.m?js(\?|$)/.test(x))) { const k = new URL(u).pathname; jsCounts[k] = (jsCounts[k] ?? 0) + 1; }
+    r.jsMaxFetchCount = Math.max(0, ...Object.values(jsCounts));
+    r.jsFiles = Object.keys(jsCounts).length;
+    r.echartsFetches = (process.env.ECHARTS_CHUNK ? page.requests.filter((u) => u.includes(process.env.ECHARTS_CHUNK)).length : null);
     r.requestsTotal = page.requests.length;
     delete r.frames;
     results[sc.name] = r;
     console.log(sc.name, JSON.stringify(r));
-    page.close();
+    await page.close();
   }
 } finally {
   browser.close();

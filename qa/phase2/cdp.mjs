@@ -76,9 +76,12 @@ export async function newPage(port) {
       const r = await send('Page.captureScreenshot', { format: 'png', ...p });
       writeFileSync(path, Buffer.from(r.data, 'base64'));
     },
-    close: () => ws.close(),
+    // Close the tab too, not just the socket: leftover tabs push later pages into the background,
+    // where Chrome pauses requestAnimationFrame (that froze load-probe's frame recorder).
+    close: () => { ws.close(); return fetch(`http://127.0.0.1:${port}/json/close/${t.id}`).catch(() => {}); },
   };
   await send('Page.enable');
+  await send('Page.bringToFront');
   await send('Runtime.enable');
   await send('Network.enable');
   page.on((m) => {

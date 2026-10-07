@@ -426,3 +426,9 @@ Verified with no defects found:
 
 **Final Phase 2 sign-off (P2-12), 2026-10-06, at `b6a46c7`: APPROVE.** 250 tests pass. There are no open blocker, major or minor QA findings for Phase 2. QA-07 is deferred to Phase 3, and QA-15 and QA-21 are deferred by DR-33. QA agrees with DR-34 and DR-35. Doc-only follow-up (non-blocking): the `docs/performance.md` wording on errors and empty charts, and the pointer to `qa/phase2/` scripts. Probe note: two early runs showed a "stuck" load; it was a probe artifact (background tabs pause `requestAnimationFrame`, freezing the frame recorder). The app's end state was correct, and the re-runs used one scenario per browser launch (`stuck-check.mjs` 8/8 OK). Not verifiable here: real devices, screen-reader output, and live IIS/GitHub Pages deploys.
 
+**Probe fix after sign-off (2026-10-06):** FE saw null or 0 in some `load-probe.mjs` fields. Two causes, both in QA's probe:
+1. `echartsFetches` matched a hard-coded hashed file name (`chunk-INSTK3HA`), so other builds counted 0.
+2. `page.close()` closed only the DevTools socket, so leftover tabs pushed later pages into the background, where Chrome pauses `requestAnimationFrame` and the frame recorder stopped (null `firstCanvas`/`dataShown`).
+
+Fixed in `qa/phase2/cdp.mjs` (close the tab via `/json/close`, `Page.bringToFront`) and `load-probe.mjs` (`jsMaxFetchCount`/`jsFiles` count fetches per JS path; `ECHARTS_CHUNK` env var for an exact match). Re-run at `b6a46c7`, six scenarios in one launch: every field is populated, ECharts is fetched once, no JS file is fetched twice, CLS is 0, and all frames between data-ready and the canvas show the chart skeleton on throttled profiles. On unthrottled loads the 1–2 uncovered frames fall inside the 180 ms no-flash window, and desktop `firstSkelVisible` is null because fast loads show no skeleton (expected). The sign-off did not rely on the affected fields, so it is unchanged: **APPROVE**.
+
