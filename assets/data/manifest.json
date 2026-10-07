@@ -1,0 +1,91 @@
+{
+  "dataVersion": "5bb7e2af98f7d30a",
+  "generator": "scripts/pipeline (npm run build)",
+  "inputs": [
+    {
+      "path": "data/raw/bls/CUUR0000SA0.json",
+      "sha256": "24589f5d6530cf39604c9b98d1b44756d9f5cbbb8b344e9c1ffb2534f84175aa"
+    },
+    {
+      "path": "data/raw/bls/CUURS35DSA0.json",
+      "sha256": "01fda8546d9232e84c637497fc88a5672a36a4db104ef4055ec44d4e83691166"
+    },
+    {
+      "path": "data/raw/bls/CUUSS35DSA0.json",
+      "sha256": "5596c67bd1784c72154658f52069d2c6afda02a0e9a4a1bcb2d27c154c7c6fcc"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2022.pdf",
+      "sha256": "ae6f8165068003880969c8f3c7b2fa9d3a320b27f0369cb8c68e3b0333c10529"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2023.pdf",
+      "sha256": "03b62980d46ba99e8bcf6cf58f4b74dd1260da26611418d7b20bc507359ec2d7"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2024.pdf",
+      "sha256": "091092bb34ca9be55e8f9e29d71a7b03ce1d35a5a9e0c3db3b3e451a6970aa54"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2025.pdf",
+      "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2"
+    },
+    {
+      "path": "data/raw/edr-population/FLcopops.xlsx",
+      "sha256": "4cd06da54bfa7dacc2e66715451c66173170554fa60445736e803d6938c73b6f"
+    },
+    {
+      "path": "data/raw/edr/cntyfiscal.html",
+      "sha256": "13261658653bb445e70ea86ce968e1bedd215f93c45b3863f09be6a6d884a82a"
+    },
+    {
+      "path": "data/raw/edr/hillsboroughcountyexpenditures.xlsx",
+      "sha256": "d0f0c1b70c722e2693e35029852828da4d21e797e7d0cdf8d321d6080d2696b5"
+    },
+    {
+      "path": "data/raw/edr/hillsboroughcountyrevenues.xlsx",
+      "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0"
+    }
+  ],
+  "jurisdictions": [
+    "hillsborough"
+  ],
+  "outputs": [
+    {
+      "bytes": 12693,
+      "path": "annotations.json",
+      "sha256": "910adb79547053e2d748e6568ffb63e0f7a2b1c87566b9d091b8a8e239ccca7d"
+    },
+    {
+      "bytes": 27527,
+      "path": "cpi.json",
+      "sha256": "e4c93b1bc5bd00c8e47b29d636ff8968778fb61aa0e946d8bbb6a96e7b56f105"
+    },
+    {
+      "bytes": 103537,
+      "path": "hillsborough.accounts.json",
+      "sha256": "71971d599c69d95942e3c3e5c374279baffd006c1774e82d4b9a5f67ca1a4d52"
+    },
+    {
+      "bytes": 1740113,
+      "path": "hillsborough.observations.json",
+      "sha256": "7034bd05ce386383d5eae2ef652fe8ff726c7e88f2d464fbbaaddaca02c68be9"
+    },
+    {
+      "bytes": 16284,
+      "path": "hillsborough.workbook-totals.json",
+      "sha256": "dff7bc429d6bae21c3bc45ebdffbb15b38e64d1535b12b1c1fc0e6802ab6ea39"
+    },
+    {
+      "bytes": 6771,
+      "path": "population.json",
+      "sha256": "8905dc0045d98350202200f1d223f72e688b954c5275e6043436c6fcc4f52038"
+    },
+    {
+      "bytes": 21827,
+      "path": "sources.json",
+      "sha256": "6e96165680dc6696fee2652e287c9a99463458a0ced78bf03ab100f8716fffc6"
+    }
+  ],
+  "schemaVersion": 1
+}

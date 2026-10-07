@@ -1,0 +1,288 @@
+{
+  "hillsborough": {
+    "alternates": {
+      "2020": [
+        {
+          "basis": "census_count",
+          "sheet": "2020 Census",
+          "value": 1459762
+        }
+      ]
+    },
+    "byYear": {
+      "1972": {
+        "basis": "bebr_estimate",
+        "sheet": "1972 BEBR",
+        "value": 531110
+      },
+      "1973": {
+        "basis": "bebr_estimate",
+        "sheet": "1973 BEBR",
+        "value": 562462
+      },
+      "1974": {
+        "basis": "bebr_estimate",
+        "sheet": "1974 BEBR",
+        "value": 588792
+      },
+      "1975": {
+        "basis": "bebr_estimate",
+        "sheet": "1975 BEBR",
+        "value": 605597
+      },
+      "1976": {
+        "basis": "bebr_estimate",
+        "sheet": "1976 BEBR",
+        "value": 600715
+      },
+      "1977": {
+        "basis": "bebr_estimate",
+        "sheet": "1977 BEBR",
+        "value": 602667
+      },
+      "1978": {
+        "basis": "bebr_estimate",
+        "sheet": "1978 BEBR",
+        "value": 615844
+      },
+      "1979": {
+        "basis": "bebr_estimate",
+        "sheet": "1979 BEBR",
+        "value": 634469
+      },
+      "1980": {
+        "basis": "census_count",
+        "sheet": "1980 Census",
+        "value": 646939
+      },
+      "1981": {
+        "basis": "bebr_estimate",
+        "sheet": "1981 BEBR",
+        "value": 661243
+      },
+      "1982": {
+        "basis": "bebr_estimate",
+        "sheet": "1982 BEBR",
+        "value": 677733
+      },
+      "1983": {
+        "basis": "bebr_estimate",
+        "sheet": "1983 BEBR",
+        "value": 693152
+      },
+      "1984": {
+        "basis": "bebr_estimate",
+        "sheet": "1984 BEBR",
+        "value": 721990
+      },
+      "1985": {
+        "basis": "bebr_estimate",
+        "sheet": "1985 BEBR",
+        "value": 748974
+      },
+      "1986": {
+        "basis": "bebr_estimate",
+        "sheet": "1986 BEBR",
+        "value": 775269
+      },
+      "1987": {
+        "basis": "bebr_estimate",
+        "sheet": "1987 BEBR",
+        "value": 801392
+      },
+      "1988": {
+        "basis": "bebr_estimate",
+        "sheet": "1988 BEBR",
+        "value": 825411
+      },
+      "1989": {
+        "basis": "bebr_estimate",
+        "sheet": "1989 BEBR",
+        "value": 840970
+      },
+      "1990": {
+        "basis": "census_count",
+        "sheet": "1990 Census",
+        "value": 834054
+      },
+      "1991": {
+        "basis": "bebr_estimate",
+        "sheet": "1991 BEBR",
+        "value": 843203
+      },
+      "1992": {
+        "basis": "bebr_estimate",
+        "sheet": "1992 BEBR",
+        "value": 853990
+      },
+      "1993": {
+        "basis": "bebr_estimate",
+        "sheet": "1993 BEBR",
+        "value": 866134
+      },
+      "1994": {
+        "basis": "bebr_estimate",
+        "sheet": "1994 BEBR",
+        "value": 879069
+      },
+      "1995": {
+        "basis": "bebr_estimate",
+        "sheet": "1995 BEBR",
+        "value": 892874
+      },
+      "1996": {
+        "basis": "bebr_estimate",
+        "sheet": "1996 BEBR",
+        "value": 910855
+      },
+      "1997": {
+        "basis": "bebr_estimate",
+        "sheet": "1997 BEBR",
+        "value": 928731
+      },
+      "1998": {
+        "basis": "bebr_estimate",
+        "sheet": "1998 BEBR",
+        "value": 942322
+      },
+      "1999": {
+        "basis": "bebr_estimate",
+        "sheet": "1999 BEBR",
+        "value": 967511
+      },
+      "2000": {
+        "basis": "census_count",
+        "sheet": "2000 Census",
+        "value": 998948
+      },
+      "2001": {
+        "basis": "bebr_estimate",
+        "sheet": "2001 BEBR",
+        "value": 1026906
+      },
+      "2002": {
+        "basis": "bebr_estimate",
+        "sheet": "2002 BEBR",
+        "value": 1055617
+      },
+      "2003": {
+        "basis": "bebr_estimate",
+        "sheet": "2003 BEBR",
+        "value": 1079587
+      },
+      "2004": {
+        "basis": "bebr_estimate",
+        "sheet": "2004 BEBR",
+        "value": 1108435
+      },
+      "2005": {
+        "basis": "bebr_estimate",
+        "sheet": "2005 BEBR",
+        "value": 1131546
+      },
+      "2006": {
+        "basis": "bebr_estimate",
+        "sheet": "2006 BEBR",
+        "value": 1164425
+      },
+      "2007": {
+        "basis": "bebr_estimate",
+        "sheet": "2007 BEBR",
+        "value": 1192861
+      },
+      "2008": {
+        "basis": "bebr_estimate",
+        "sheet": "2008 BEBR",
+        "value": 1200541
+      },
+      "2009": {
+        "basis": "bebr_estimate",
+        "sheet": "2009 BEBR",
+        "value": 1196892
+      },
+      "2010": {
+        "basis": "census_count",
+        "sheet": "2010 Census",
+        "value": 1229226
+      },
+      "2011": {
+        "basis": "bebr_estimate",
+        "sheet": "2011 BEBR",
+        "value": 1238951
+      },
+      "2012": {
+        "basis": "bebr_estimate",
+        "sheet": "2012 BEBR",
+        "value": 1256118
+      },
+      "2013": {
+        "basis": "bebr_estimate",
+        "sheet": "2013 BEBR",
+        "value": 1276410
+      },
+      "2014": {
+        "basis": "bebr_estimate",
+        "sheet": "2014 BEBR",
+        "value": 1301887
+      },
+      "2015": {
+        "basis": "bebr_estimate",
+        "sheet": "2015 BEBR",
+        "value": 1325563
+      },
+      "2016": {
+        "basis": "bebr_estimate",
+        "sheet": "2016 BEBR",
+        "value": 1352797
+      },
+      "2017": {
+        "basis": "bebr_estimate",
+        "sheet": "2017 BEBR",
+        "value": 1379302
+      },
+      "2018": {
+        "basis": "bebr_estimate",
+        "sheet": "2018 BEBR",
+        "value": 1408864
+      },
+      "2019": {
+        "basis": "bebr_estimate",
+        "sheet": "2019 BEBR",
+        "value": 1444870
+      },
+      "2020": {
+        "basis": "bebr_revised_estimate",
+        "sheet": "2020 Revised BEBR",
+        "value": 1478759
+      },
+      "2021": {
+        "basis": "bebr_estimate",
+        "sheet": "2021 BEBR",
+        "value": 1490374
+      },
+      "2022": {
+        "basis": "bebr_estimate",
+        "sheet": "2022 BEBR",
+        "value": 1520529
+      },
+      "2023": {
+        "basis": "bebr_estimate",
+        "sheet": "2023 BEBR",
+        "value": 1541531
+      },
+      "2024": {
+        "basis": "bebr_estimate",
+        "sheet": "2024 BEBR",
+        "value": 1560449
+      },
+      "2025": {
+        "basis": "bebr_estimate",
+        "sheet": "2025 BEBR",
+        "value": 1575637
+      }
+    },
+    "fiscalYearAlignment": "Fiscal year N (Oct 1, N-1 to Sep 30, N) uses the April 1, N value: the same population EDR used for the Per Capita column of each AFR sheet (checked for every fiscal year). Basis is the BEBR estimate published for that April 1, except 2010 (census count) and 2020 (revised BEBR estimate).",
+    "reference": "April 1 of the year shown",
+    "sourceId": "edr-population-flcopops"
+  }
+}

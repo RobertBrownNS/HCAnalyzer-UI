@@ -1,0 +1,190 @@
+[
+  {
+    "accessUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "caveats": [
+      "Base period 1982-84=100. Published monthly.",
+      "Calendar-year values are the BLS-published annual averages (period M13).",
+      "Fiscal-year (Oct-Sep) values are computed by this pipeline as the simple mean of the 12 monthly index values in that fiscal year, rounded to 3 decimals; BLS does not publish fiscal-year averages.",
+      "Series data in this file run from 2000-01 to 2026-08.",
+      "BLS published no value for 2025-10: Data unavailable due to the 2025 lapse in appropriations."
+    ],
+    "id": "bls-cpi-CUUR0000SA0",
+    "publisher": "U.S. Bureau of Labor Statistics (BLS)",
+    "rawFile": "data/raw/bls/CUUR0000SA0.json",
+    "retrieved": "2026-10-06",
+    "sha256": "24589f5d6530cf39604c9b98d1b44756d9f5cbbb8b344e9c1ffb2534f84175aa",
+    "title": "Consumer Price Index for All Urban Consumers (CPI-U), series CUUR0000SA0: All items in U.S. city average, all urban consumers, not seasonally adjusted",
+    "url": "https://data.bls.gov/timeseries/CUUR0000SA0"
+  },
+  {
+    "accessUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "caveats": [
+      "Base period 1987=100. Published bimonthly (odd months: Jan, Mar, May, Jul, Sep, Nov).",
+      "Calendar-year values are the BLS-published annual averages (period M13).",
+      "Fiscal-year (Oct-Sep) values are computed by this pipeline as the simple mean of the 6 published bimonthly values in that fiscal year, rounded to 3 decimals. BLS does not publish fiscal-year averages, and the same method applied to calendar years does not reproduce the BLS-published annual averages for this area.",
+      "Series data in this file run from 2017-11 to 2026-07."
+    ],
+    "id": "bls-cpi-CUURS35DSA0",
+    "publisher": "U.S. Bureau of Labor Statistics (BLS)",
+    "rawFile": "data/raw/bls/CUURS35DSA0.json",
+    "retrieved": "2026-10-06",
+    "sha256": "01fda8546d9232e84c637497fc88a5672a36a4db104ef4055ec44d4e83691166",
+    "title": "Consumer Price Index for All Urban Consumers (CPI-U), series CUURS35DSA0: All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted",
+    "url": "https://data.bls.gov/timeseries/CUURS35DSA0"
+  },
+  {
+    "accessUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "caveats": [
+      "Base period 1987=100. Published as semiannual averages (Jan-Jun, Jul-Dec) plus an annual average.",
+      "Calendar-year values are the BLS-published annual averages (period S03).",
+      "No fiscal-year values: semiannual periods do not align with the Oct-Sep fiscal year.",
+      "Series data in this file run from 2000-H1 to 2026-H1."
+    ],
+    "id": "bls-cpi-CUUSS35DSA0",
+    "publisher": "U.S. Bureau of Labor Statistics (BLS)",
+    "rawFile": "data/raw/bls/CUUSS35DSA0.json",
+    "retrieved": "2026-10-06",
+    "sha256": "5596c67bd1784c72154658f52069d2c6afda02a0e9a4a1bcb2d27c154c7c6fcc",
+    "title": "Consumer Price Index for All Urban Consumers (CPI-U), series CUUSS35DSA0: All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted (semiannual averages)",
+    "url": "https://data.bls.gov/timeseries/CUUSS35DSA0"
+  },
+  {
+    "accessUrl": "https://hillsclerk.com/documents/d/guest/annual-local-govt-financial-report-2022?download=true",
+    "caveats": [
+      "Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.",
+      "Values were read from text extracted from the PDF. Each value read is checked against the EDR workbook, and the comparison is published in the project validation report."
+    ],
+    "id": "county-afr-hillsborough-fy2022",
+    "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+    "rawFile": "data/raw/county-afr/hillsborough/afr-fy2022.pdf",
+    "retrieved": "2026-10-06",
+    "sha256": "ae6f8165068003880969c8f3c7b2fa9d3a320b27f0369cb8c68e3b0333c10529",
+    "title": "Hillsborough County Annual Financial Report, fiscal year 2021-2022 (Florida Department of Financial Services form, as filed by the county)",
+    "url": "https://hillsclerk.com/records-and-reports/financial-reports-county"
+  },
+  {
+    "accessUrl": "https://hillsclerk.com/documents/d/guest/afr-hillsborough-2023?download=true",
+    "caveats": [
+      "Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.",
+      "Values were read from text extracted from the PDF. Each value read is checked against the EDR workbook, and the comparison is published in the project validation report."
+    ],
+    "id": "county-afr-hillsborough-fy2023",
+    "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+    "rawFile": "data/raw/county-afr/hillsborough/afr-fy2023.pdf",
+    "retrieved": "2026-10-06",
+    "sha256": "03b62980d46ba99e8bcf6cf58f4b74dd1260da26611418d7b20bc507359ec2d7",
+    "title": "Hillsborough County Annual Financial Report, fiscal year 2022-2023 (Florida Department of Financial Services form, as filed by the county)",
+    "url": "https://hillsclerk.com/records-and-reports/financial-reports-county"
+  },
+  {
+    "accessUrl": "https://hillsclerk.com/documents/d/guest/afr-pdf?download=true",
+    "caveats": [
+      "Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.",
+      "Values were read from text extracted from the PDF. Each value read is checked against the EDR workbook, and the comparison is published in the project validation report."
+    ],
+    "id": "county-afr-hillsborough-fy2024",
+    "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+    "rawFile": "data/raw/county-afr/hillsborough/afr-fy2024.pdf",
+    "retrieved": "2026-10-06",
+    "sha256": "091092bb34ca9be55e8f9e29d71a7b03ce1d35a5a9e0c3db3b3e451a6970aa54",
+    "title": "Hillsborough County Annual Financial Report, fiscal year 2023-2024 (Florida Department of Financial Services form, as filed by the county)",
+    "url": "https://hillsclerk.com/records-and-reports/financial-reports-county"
+  },
+  {
+    "accessUrl": "https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true",
+    "caveats": [
+      "Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.",
+      "Values were read from text extracted from the PDF. Each value read is checked against the EDR workbook, and the comparison is published in the project validation report.",
+      "The header of this filing shows no audit-received date: on page 1 the audit-received date field shows an unfilled placeholder instead of a date (AFR received date 6/30/2026). The FY 2021-22, FY 2022-23 and FY 2023-24 filings show audit-received dates of 6/15/2023, 6/28/2024 and 6/30/2025."
+    ],
+    "id": "county-afr-hillsborough-fy2025",
+    "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+    "rawFile": "data/raw/county-afr/hillsborough/afr-fy2025.pdf",
+    "retrieved": "2026-10-06",
+    "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2",
+    "title": "Hillsborough County Annual Financial Report, fiscal year 2024-2025 (Florida Department of Financial Services form, as filed by the county)",
+    "url": "https://hillsclerk.com/records-and-reports/financial-reports-county"
+  },
+  {
+    "caveats": [
+      "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
+      "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
+      "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
+      "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
+      "FY 2022-23, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $1,160,934,246) exceeds revenue account 381 (transfers in, $536,330,405) by $624,603,841. Non-custodial figures, FY 2022-23: account 521 $732,874, public safety section $387.4M, court-related section $24.6M, General Fund 581 $787.4M; compared with FY 2021-22: account 521 $511.3M, public safety section $883.3M, court-related section $77.6M, General Fund 581 $121.3M; FY 2024-25: account 521 $716.3M, public safety section $1.30B, court-related section $65.9M, General Fund 581 $341.1M. The Hillsborough County Annual Financial Report for FY 2022-23, as filed with the Florida Chief Financial Officer, shows the same values: expenditure account 521, general $203,849 (page 18); expenditure account 581, general $787,390,037 (page 22); revenue account 381, general $168,326,824 (page 16). Cells: revenues:2023!P124, expenditures:2023!P57, expenditures:2023!P16, expenditures:2023!D16, expenditures:2023!D57.",
+      "FY 2023-24, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $1,310,890,615) exceeds revenue account 381 (transfers in, $775,012,474) by $535,878,141. Non-custodial figures, FY 2023-24: account 521 $9.0M, public safety section $368.2M, court-related section $24.5M, General Fund 581 $912.3M; compared with FY 2021-22: account 521 $511.3M, public safety section $883.3M, court-related section $77.6M, General Fund 581 $121.3M; FY 2024-25: account 521 $716.3M, public safety section $1.30B, court-related section $65.9M, General Fund 581 $341.1M. The Hillsborough County Annual Financial Report for FY 2023-24, as filed with the Florida Chief Financial Officer, shows the same values: expenditure account 521, general $150,746 (page 8); expenditure account 581, general $912,284,168 (page 11); revenue account 381, general $186,897,223 (page 7). Cells: revenues:2024!P121, expenditures:2024!P57, expenditures:2024!P16, expenditures:2024!D16, expenditures:2024!D57, expenditures:2024!K57.",
+      "FY 2021-22 expenditures: 138 of 139 non-zero amounts are whole multiples of $1,000.",
+      "FY 2021-22: account 513 (Financial and Administrative), custodial fund, is $6,802,121 (expenditures:2022!K8), the only expenditure amount that year that is not a whole multiple of $1,000. Custodial revenue that year is $6,814,851,000.",
+      "FY 2020-21 expenditures: 142 of 142 non-zero amounts are whole multiples of $1,000.",
+      "FY 2020-21: the Custodial column is present and every custodial expenditure amount is $0 (expenditures:2021!K87).",
+      "FY 2021-22: custodial expenditures total $6,802,121 (expenditures:2022!K85), reported under account 513 Financial and Administrative $6,802,121 (expenditures:2022!K8).",
+      "FY 2022-23: custodial expenditures total $6,791,092,133 (expenditures:2023!K81), reported under account 513 Financial and Administrative $6,791,092,133 (expenditures:2023!K8).",
+      "FY 2023-24: custodial expenditures total $416,198,105 (expenditures:2024!K77), reported under account 513 Financial and Administrative $414,471,879 (expenditures:2024!K8); account 581 Inter-fund Group Transfers Out $1,722,657 (expenditures:2024!K57); and 1 other account (each under $1M).",
+      "FY 2024-25: custodial expenditures total $4,114,554,470 (expenditures:2025!K78), reported under account 513 Financial and Administrative $4,114,554,470 (expenditures:2025!K8).",
+      "FY 2023-24 expenditures, excluding custodial amounts: Enterprise funds $126.5M (FY 2022-23: $543.3M; FY 2024-25: $665.7M); account 534 Garbage / Solid Waste Control Services, enterprise: $14.4M (expenditures:2024!I27) vs $181.3M and $201.1M; account 536 Water-Sewer Combination Services, enterprise: $0 (expenditures:2024!I29) vs $234.5M and $239.4M; Internal Service funds $18.9M (FY 2022-23: $252.1M; FY 2024-25: $344.8M); account 519 Other General Government Services, internal service: $18.9M (expenditures:2024!J14) vs $231.6M and $243.2M; Component Units $0 (FY 2022-23: $7.5M; FY 2024-25: $8.5M); account 515 Comprehensive Planning, component unit: $0 (expenditures:2024!O10) vs $6.4M and $7.3M; account 559 Other Economic Environment, component unit: $0 (expenditures:2024!O43) vs $1.1M and $1.2M; physical environment section $188.3M (FY 2022-23: $586.4M; FY 2024-25: $770.6M). The Hillsborough County Annual Financial Report for FY 2023-24, as filed with the Florida Chief Financial Officer, shows the same values: expenditure total, enterprise $126,477,435 (page 16); expenditure total, internal service $18,872,025 (page 16); expenditure account 519, internal service $18,872,025 (page 15); expenditure account 533, enterprise $92,680,415 (page 15); expenditure account 536, enterprise: no line (page 15). Cells: expenditures:2024!I27, expenditures:2024!I29, expenditures:2024!J14, expenditures:2024!O10, expenditures:2024!O43."
+    ],
+    "id": "edr-afr-expenditures-hillsborough",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/hillsboroughcountyexpenditures.xlsx",
+    "retrieved": "2026-10-06",
+    "sha256": "d0f0c1b70c722e2693e35029852828da4d21e797e7d0cdf8d321d6080d2696b5",
+    "title": "Hillsborough County Government Expenditures Reported by Account (from county Annual Financial Reports)",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyexpenditures.xlsx"
+  },
+  {
+    "caveats": [
+      "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
+      "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
+      "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
+      "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
+      "FY 2021-22 revenues: 211 of 211 non-zero amounts are whole multiples of $1,000.",
+      "FY 2020-21 revenues: 212 of 212 non-zero amounts are whole multiples of $1,000.",
+      "FY 2020-21: the Custodial column is present and every custodial revenue amount is $0 (revenues:2021!K158).",
+      "FY 2021-22: custodial revenues total $6,814,851,000 (revenues:2022!K154), reported under account 311 Ad Valorem Taxes $6,356,061,000 (revenues:2022!K6); account 369.9 Other Miscellaneous Revenues - Other $458,790,000 (revenues:2022!K145).",
+      "FY 2022-23: custodial revenues total $6,787,884,848 (revenues:2023!K132), reported under account 311 Ad Valorem Taxes $6,284,716,021 (revenues:2023!K6); account 369.9 Other Miscellaneous Revenues - Other $503,168,827 (revenues:2023!K122).",
+      "FY 2023-24: custodial revenues total $2,619,613,346 (revenues:2024!K129), reported under account 311 Ad Valorem Taxes $2,219,989,146 (revenues:2024!K6); account 369.9 Other Miscellaneous Revenues - Other $399,613,572 (revenues:2024!K119); and 2 other accounts (each under $1M).",
+      "FY 2024-25: custodial revenues total $4,128,975,000 (revenues:2025!K134), reported under account 369.9 Other Miscellaneous Revenues - Other $4,126,516,697 (revenues:2025!K126); account 361.1 Interest and Other Earnings - Interest $2,458,303 (revenues:2025!K117)."
+    ],
+    "id": "edr-afr-revenues-hillsborough",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/hillsboroughcountyrevenues.xlsx",
+    "retrieved": "2026-10-06",
+    "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0",
+    "title": "Hillsborough County Government Revenues Reported by Account (from county Annual Financial Reports)",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyrevenues.xlsx"
+  },
+  {
+    "caveats": [
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "Persons interested in reviewing 2021-2025 revenues or expenditures for an individual county government, minus the impact of any Custodial Fund reporting, can simply open the relevant Excel file and delete the Custodial column. Since the figures in the Total Account and Per Capita Accounts columns are formula-driven, these amounts will automatically recalculate when the Custodial column is deleted."
+    ],
+    "id": "edr-cntyfiscal-page",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/cntyfiscal.html",
+    "retrieved": "2026-10-06",
+    "sha256": "13261658653bb445e70ea86ce968e1bedd215f93c45b3863f09be6a6d884a82a",
+    "title": "County Government Revenues and Expenditures (Annual Financial Report data) - index page and data-use notice",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal.cfm"
+  },
+  {
+    "accessUrl": "https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx",
+    "caveats": [
+      "Values are April 1 figures. Most years are BEBR estimates published that year; 2000, 2010 and 2020 also have census counts. These are not intercensal-revised series, so a census year can step up or down relative to the estimates around it.",
+      "For 2020 the pipeline uses the revised BEBR estimate (the value EDR used for FY 2019-20 per-capita figures); the 2020 census count is listed as an alternate.",
+      "EDR notes that countywide figures do not reflect the population estimates ultimately used for revenue-sharing purposes.",
+      "Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (1,229,226); FY 2008-09 used the April 1, 2009 BEBR estimate (1,196,892), a change of 2.7%. These are point-in-time figures from different sources, not a revised continuous series.",
+      "Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (1,490,374); FY 2019-20 used the revised April 1, 2020 BEBR estimate (1,478,759), a change of 0.8%. The April 1, 2020 census count was 1,459,762. These are point-in-time figures from different sources, not a revised continuous series."
+    ],
+    "id": "edr-population-flcopops",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR); estimates by the Bureau of Economic and Business Research (BEBR), University of Florida",
+    "rawFile": "data/raw/edr-population/FLcopops.xlsx",
+    "retrieved": "2026-10-06",
+    "sha256": "4cd06da54bfa7dacc2e66715451c66173170554fa60445736e803d6938c73b6f",
+    "title": "Countywide, Unincorporated and Incorporated Totals - Census Counts and Population Estimates",
+    "url": "https://edr.state.fl.us/Content/population-demographics/data/index-floridaproducts.cfm"
+  }
+]
