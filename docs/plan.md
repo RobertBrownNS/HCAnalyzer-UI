@@ -442,12 +442,15 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | review |
 | P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | in-progress |
 | P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | in-progress |
-| P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | todo |
+| P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | review |
+| P3-12 | Favicon and app icons | FE | user approval of the design | blocked |
 
 Phase 3 status notes: QA's review is committed, **approve with conditions**.
 - **Conditions** (all assigned to FE): QA-39, QA-40, QA-41.
 - **QA-43:** the caveat wording "not available to compare" is the team lead's wording and accurate. DR-51 and R-08 are amended to match.
 - **QA-44:** resolved by the `drawerOnly` change (`83e9646`, after QA's review commit). Awaiting QA re-check.
+- **P3-11 analytics:** implemented at `0a9cf12`, shipped on its own to `main` at `7c4320c`, and live on GitHub Pages. Status `review`: QA is checking it on the live site.
+- **P3-12 favicon:** `blocked` until the user approves the design.
 
 ### Acceptance criteria
 
@@ -526,6 +529,8 @@ Phase 3 status notes: QA's review is committed, **approve with conditions**.
 - [ ] Every new load path uses the P2-15 skeletons with CLS ≈ 0. Error states take precedence.
 
 **P3-11 Cookieless analytics hook (FE; D-21)**
+> **Shipped:** implemented at `0a9cf12`, released on its own to `main` at `7c4320c`, live on GitHub Pages. QA is checking it on the live site.
+>
 > **Status (2026-10-07): token configured for GitHub Pages (`robertbrownns.github.io`, github-pages build configuration only); IIS pending.** The IIS/root build stays off until the user adds that host. The token value lives only in the build config; it is not repeated in docs.
 >
 > **QA:** the GitHub Pages build loads analytics, unless DNT or GPC is set. The IIS/root build makes no Cloudflare requests.
@@ -538,6 +543,14 @@ Phase 3 status notes: QA's review is committed, **approve with conditions**.
 - [ ] A Privacy note shows the approved wording exactly: "This site counts page views with Cloudflare Web Analytics. It sets no cookies and collects no personal information. Do Not Track and Global Privacy Control are respected." It is reachable from the footer or the methodology link, and works at phone width, in light and dark.
 - [ ] No layout shift or load-time cost: the script loads async after the first render, and CLS ≈ 0 is unchanged.
 - [ ] **QA checks** (under P3-10): the network tab with the token absent, with it present, under DNT and under GPC; the cookie and storage inspection; and the Privacy wording.
+
+**P3-12 Favicon and app icons (FE)**
+- [ ] **Blocked** until the user approves the icon design. The approved design is recorded in decisions.md.
+- [ ] The design is neutral: no party colors, slogans, advocacy symbols, or official county or state seals and logos (no impersonation). It uses theme tokens or colors derived from them.
+- [ ] Assets: an SVG favicon, a PNG fallback (32 px), an `apple-touch-icon` (180 px), and the sizes needed for a later PWA manifest (192 and 512 px). Self-hosted, with no third-party requests.
+- [ ] Links resolve under the GitHub Pages sub-path and on IIS (base href). The IIS `web.config` serves `.svg` and `.ico` with the correct MIME types.
+- [ ] The icon is legible at 16 px on light and dark browser tab bars.
+- [ ] QA checks it on the live GitHub Pages build and the IIS build (or its local stand-in).
 
 **P3-09 QA: independent sums (QA)**
 - [ ] QA uses its own stdlib reader (no shared code) and its own reading of the UAS mapping source. For both counties and every FY and flow, it re-derives:
@@ -558,7 +571,7 @@ Phase 3 status notes: QA's review is committed, **approve with conditions**.
 - [ ] Spot-check 3 values per chart type per county against the raw xlsx.
 
 ### Phase 3 Definition of Done
-- [ ] P3-01 to P3-11 are `done`, with no open blocker or major findings.
+- [ ] P3-01 to P3-12 are `done`, with no open blocker or major findings. P3-12 may move to Phase 6 if the user hasn't approved a design by then.
 - [ ] Category and fund sums equal EDR totals for every county, FY and flow, confirmed independently by QA.
 - [ ] **DR-47 is closed**, with both reclassifications annotated in scoped views. **QA-07 / O-07 are closed**, with "All funds" wording shown on site.
 - [ ] The net-of-transfers rule is enforced and explained (O-11 interim).
