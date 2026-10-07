@@ -1,0 +1,31 @@
+# Risk Register
+
+These are methodology and delivery risks a skeptical reader would raise. Each one has a mitigation that can be checked, and an owner.
+Likelihood/Impact: H/M/L. Owners: DE data · TE transform · FE frontend · QA · PM.
+
+## Methodology risks
+
+| ID | Risk | L | I | Mitigation | Owner |
+|---|---|---|---|---|---|
+| R-01 | **Custodial comparability (GASB 84).** From FY 2020-21, the Custodial column adds money the county only holds for others (taxes collected for schools/cities, court registry). Including it inflates growth from FY 2020 onward. | H | H | Exclude by default. Always show the GASB 84 marker at FY 2020-21. Validation: custodial-excluded totals equal the EDR recalculation for every year. Include-mode shows a caveat. | DE, TE, FE |
+| R-02 | **One-time federal funds** (CARES FY 2020–21, ARPA FY 2021–23, FEMA disaster aid) create a spike and fall that can be read as permanent growth or as cuts. | H | H | Phase 3: event annotations for CARES/ARPA, sourced from AFR account codes (federal grants, UAS 331) or the federal award records, not press coverage. A category breakdown lets users separate intergovernmental revenue. Phase 2 has totals only, so this risk stays open at the Phase 2 checkpoint. | DE, FE |
+| R-03 | **Inflation index choice changes conclusions.** CPI-U and Tampa CPI can diverge by several points in a year (DE to quantify from the raw series), which can flip "real growth" from positive to flat. | H | H | Index is user-selectable and always shown in a chip and the axis label. No default is framed as "correct". Claim presets later carry their index explicitly. | TE, FE |
+| R-04 | **Tampa CPI series coverage and frequency.** The BLS Tampa index is recent (base Dec 2017 = 100) and not monthly, so it cannot cover FY 2005–2017 or produce a clean Oct–Sep average. | H | M | DE records start year and frequency in `Source.caveats`. Tampa mode shows a gap (null, explained) for uncovered years. No splicing onto CPI-U without a visible caveat and a user decision. | DE, TE |
+| R-05 | **CPI calendar vs fiscal-year mismatch.** Deflating Oct–Sep fiscal amounts with calendar-year CPI shifts each year by 3 months, a material error in 2021–22. | M | M | Interim default: Oct–Sep average of monthly CPI-U (decisions O-03). The rule is in the JSON metadata and on screen. TE tests the averaging with fixtures. | DE, TE |
+| R-06 | **Per-capita denominator choice.** April 1 estimate vs FY timing, census-year revisions (2010, 2020 rebasing), and counting all residents vs unincorporated-area residents (who receive more county services) all change the result. | M | M | Use the same population EDR used for its Per Capita column (O-05), so ours reconcile with EDR. Document vintage and revisions. Flag 2010/2020 census rebasing. Unincorporated split is out of scope; noted in methodology. | DE, TE |
+| R-07 | **Fund reclassification across years.** Activities move between General Fund, special revenue, and enterprise funds (for example, a utility or fire service district moves funds). Fund-scope trends then show breaks that are only accounting changes. | M | H | Phase 2 uses totals across all non-custodial funds (stable). Before the Phase 3 fund-scope control, DE scans for large year-to-year swings between fund columns and logs them as annotations with a source. | DE, QA |
+| R-08 | **Account code changes in the Uniform Accounting System (UAS).** DFS revised the chart of accounts over the period (for example, new or retired codes, regrouped object codes), so the same code can mean different things in different years. | M | H | Keep codes exactly as published. Category mapping (Phase 3) is versioned by year range and sourced to the UAS manual edition. Pipeline reports codes that appear or disappear across years. | DE |
+| R-09 | **Subtotal double counting.** EDR sheets contain subtotal/total rows. Parsing them as data doubles totals. | M | H | Parser excludes subtotal rows and uses them only for validation. Validation to the cent catches any leak. | DE, QA |
+| R-10 | **Rounding and float error.** Summing many floats or rounding before aggregation produces totals that don't match EDR by a few dollars. Per-capita and real values rounded differently in chart vs table. | M | L | Keep full precision in data. Round only at display, via one shared formatter for chart, tooltip, table, CSV. State the per-capita tolerance in the validation report. | DE, TE, FE |
+| R-11 | **Fiscal-year off-by-one.** Mixing up "FY 2020-21" with 2020 vs 2021 misaligns the GASB 84 marker, CPI, and population. | M | H | Single source of truth: `fiscalYear` = ending year. One label function in `transform.ts`, tested at edge cases (1999-00, 2009-10, 2020-21). QA checks the marker position. | TE, QA |
+| R-12 | **Base-year framing.** The choice of start/base year (for example a pre- or post-recession year, FY 2020 vs FY 2021) strongly shapes the apparent growth rate. | H | M | Base year and range are user-controlled, always visible, and in the URL. No default chosen to support a narrative; default is the full available range. | FE, PM |
+| R-13 | **Neutrality drift.** Editorial copy, loaded adjectives, or advocacy-group figures creep into UI text, presets, or docs. | M | H | QA neutrality sweep at each phase sign-off. Allowed data sources are only those in the CLAUDE.md table. | QA |
+
+## Delivery risks
+
+| ID | Risk | L | I | Mitigation | Owner |
+|---|---|---|---|---|---|
+| R-20 | State/BLS sites block scripted downloads or change file URLs/layout. | M | M | Raw files are committed to `data/raw/` with sha256 and retrieval date. Parser fails loudly on layout changes. | DE |
+| R-21 | `ngx-echarts` / Angular Material lag the latest Angular major. | M | M | Check peer dependencies before upgrading. If incompatible, pin to the newest supported major and log it in decisions.md. | FE |
+| R-22 | Transform work starts before the data shape is known and has to be redone. | M | M | TE starts on models and pure helpers (FY labels, deflation math) only. Join logic starts after P1-01 is done. | PM |
+| R-23 | Pinch-zoom and 44px targets regress on real phones but pass in desktop devtools. | M | M | QA checks at 360px and 430px widths with touch emulation. Real-device check before the public release. | FE, QA |
