@@ -187,7 +187,7 @@ Phase 2 status notes: QA's conditional approval (`5a4afb2`) became final approva
 - [ ] The output carries the provenance needed by the UI (sourceIds for amount, population, CPI per point).
 
 **P2-05 Data loading**
-- [ ] It loads only bundled static JSON. No runtime calls to state or BLS sites, no tracking, no third-party requests.
+- [ ] It loads only bundled static JSON. No runtime calls to state or BLS sites, no tracking, no third-party requests. *(Amended by D-21: cookieless Cloudflare Web Analytics is allowed when a token is configured. Its two hosts are the only permitted third-party requests. See P3-11.)*
 - [ ] A data version mismatch or missing file shows a clear error state, not an empty chart.
 
 **P2-06 URL state**
@@ -441,7 +441,8 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-07 | Source drawer on point tap | FE | P3-03, P3-04 | review |
 | P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | review |
 | P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | in-progress |
-| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer) | QA | P3-05..P3-08, P3-09 | in-progress |
+| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | in-progress |
+| P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | todo |
 
 ### Acceptance criteria
 
@@ -519,6 +520,16 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 - [ ] The multi-series table view has one row per FY and one column per series, plus a total column for stacked and share charts. It has a caption, `th scope` and units. Its values equal the chart values.
 - [ ] Every new load path uses the P2-15 skeletons with CLS ≈ 0. Error states take precedence.
 
+**P3-11 Cookieless analytics hook (FE; D-21)**
+- [ ] It is **off by default.** With no token configured, the build loads no analytics script and makes no request to any Cloudflare host (checked in the network tab and by a test).
+- [ ] With a token configured (a build-time setting, documented in `docs/deploy.md` for both hosts), it loads only Cloudflare Web Analytics from `static.cloudflareinsights.com`, and beacons only to `cloudflareinsights.com`. **There are no other third-party requests**, and fonts stay self-hosted.
+- [ ] It is skipped when `navigator.doNotTrack === "1"` or `navigator.globalPrivacyControl === true`: no script and no beacon. Tests cover both, plus the token-absent case.
+- [ ] No cookies, localStorage or sessionStorage keys are set by analytics. It collects page views and referrers only; no custom events carry settings, values or anything identifying.
+- [ ] It works under the GitHub Pages sub-path and on IIS. The IIS `web.config` and any CSP allow only those two hosts.
+- [ ] A Privacy note shows the approved wording exactly: "This site counts page views with Cloudflare Web Analytics. It sets no cookies and collects no personal information. Do Not Track and Global Privacy Control are respected." It is reachable from the footer or the methodology link, and works at phone width, in light and dark.
+- [ ] No layout shift or load-time cost: the script loads async after the first render, and CLS ≈ 0 is unchanged.
+- [ ] **QA checks** (under P3-10): the network tab with the token absent, with it present, under DNT and under GPC; the cookie and storage inspection; and the Privacy wording.
+
 **P3-09 QA: independent sums (QA)**
 - [ ] QA uses its own stdlib reader (no shared code) and its own reading of the UAS mapping source. For both counties and every FY and flow, it re-derives:
   - category sums;
@@ -538,7 +549,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 - [ ] Spot-check 3 values per chart type per county against the raw xlsx.
 
 ### Phase 3 Definition of Done
-- [ ] P3-01 to P3-10 are `done`, with no open blocker or major findings.
+- [ ] P3-01 to P3-11 are `done`, with no open blocker or major findings.
 - [ ] Category and fund sums equal EDR totals for every county, FY and flow, confirmed independently by QA.
 - [ ] **DR-47 is closed**, with both reclassifications annotated in scoped views. **QA-07 / O-07 are closed**, with "All funds" wording shown on site.
 - [ ] The net-of-transfers rule is enforced and explained (O-11 interim).
@@ -557,6 +568,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
   - population basis;
   - known source anomalies (QA-01/QA-03);
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
+  - **privacy (D-21):** the approved Privacy wording; what Cloudflare Web Analytics collects (page views, referrers) and doesn't (no cookies, no personal information); that DNT and GPC are respected; and that no other third-party services are used.
   - **UAS edition coverage (DR-51):** categories follow the DFS UAS Manual. FY 2004-05 to FY 2009-10 use the 2011 edition's classes because the earlier editions were not checked. 39x is year-ranged (DR-48).
   - **what the LOGERX cross-check means (QA-30):** a cross-check that EDR matches the county's DFS filing; not an audit. LOGERX is the DFS system EDR compiles from, so a match shows EDR transcribed the filing faithfully. It does not show the county's figures are correct, complete or audited. The page states the covered years (FY 2012-13 onward), the match counts, and the uncovered years.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
