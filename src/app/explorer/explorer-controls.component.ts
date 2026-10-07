@@ -18,7 +18,7 @@ import { categoryLabel, fundGroups, fundsIncludedText, matchingPreset } from '..
 import { isCategoryChart } from '../core/view-state';
 import { CpiIndex, CpiPeriod, Measure, TransferMode, fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
-import { PaneSection, SECTION_TITLES, readOpenSections, sectionSummaries, writeOpenSections } from './pane-sections';
+import { PaneSection, SECTION_TITLES, readOpenSection, sectionSummaries, writeOpenSection } from './pane-sections';
 import { MAPPING_ID } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
 
@@ -132,28 +132,27 @@ export class ExplorerControlsComponent {
       (this.customSelection() && this.simpleFor() !== this.selectionKey()),
   );
   // --- Pane accordion (P3-14) ---
-  /** Sections the viewer opened (localStorage, read before first render so nothing moves). */
-  private readonly openSections = signal<Set<PaneSection>>(readOpenSections());
-  /** The custom selection the viewer closed Funds for; another one opens it again (D-23). */
-  private readonly fundsClosedFor = signal<string | null>(null);
+  /** The one open section, or null (localStorage, read before first render so nothing moves). */
+  private readonly openSection = signal<PaneSection | null>(readOpenSection());
+  /** The custom selection the viewer moved away from Funds for; another one opens it again (D-23). */
+  private readonly fundsDismissedFor = signal<string | null>(null);
+
+  /** The open section: Funds while a custom selection is new to the viewer, else their choice. */
+  private readonly shownSection = computed<PaneSection | null>(() =>
+    this.customSelection() && this.fundsDismissedFor() !== this.selectionKey() ? 'funds' : this.openSection(),
+  );
 
   isOpen(id: PaneSection): boolean {
-    if (this.openSections().has(id)) return true;
-    // A custom fund selection (link, Back/Forward) is never hidden in a closed section.
-    return id === 'funds' && this.customSelection() && this.fundsClosedFor() !== this.selectionKey();
+    return this.shownSection() === id;
   }
 
+  /** Opens `id` and closes the others (one at a time), or closes it if it is open. */
   toggleSection(id: PaneSection): void {
-    const open = new Set(this.openSections());
-    if (this.isOpen(id)) {
-      open.delete(id);
-      if (id === 'funds' && this.customSelection()) this.fundsClosedFor.set(this.selectionKey());
-    } else {
-      open.add(id);
-      if (id === 'funds') this.fundsClosedFor.set(null);
-    }
-    this.openSections.set(open);
-    writeOpenSections(open);
+    const next = this.isOpen(id) ? null : id;
+    // Leaving an auto-opened Funds holds for this selection; the next custom selection reopens it.
+    if (this.customSelection()) this.fundsDismissedFor.set(next === 'funds' ? null : this.selectionKey());
+    this.openSection.set(next);
+    writeOpenSection(next);
   }
 
   /** Fund scope for the summary: preset name, "Custom: n funds", or neutral while loading (QA-48). */

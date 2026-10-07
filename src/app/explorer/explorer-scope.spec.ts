@@ -480,18 +480,25 @@ describe('Funds and categories controls', () => {
       expect([...cats.el.querySelectorAll('.acc-title')].map((t) => t.textContent)).toContain('Categories');
     });
 
-    it('toggling opens and closes independently and is remembered; URLs untouched', async () => {
+    it('opening a section closes the others; the open one can be closed; remembered; URLs untouched', async () => {
       const { el } = await open('/');
       const url = TestBed.inject(Router).url;
       head(el, 'inflation').click();
-      head(el, 'funds').click();
-      head(el, 'view').click();
       await harness.fixture.whenStable();
-      expect(expanded(el)).toEqual({ view: 'false', inflation: 'true', funds: 'true' });
-      expect(JSON.parse(localStorage.getItem(SECTIONS_KEY)!)).toEqual(['inflation', 'funds']);
+      expect(expanded(el)).toEqual({ view: 'false', inflation: 'true', funds: 'false' });
+      head(el, 'funds').click();
+      await harness.fixture.whenStable();
+      expect(expanded(el)).toEqual({ view: 'false', inflation: 'false', funds: 'true' });
+      expect(localStorage.getItem(SECTIONS_KEY)).toBe('funds');
       expect(TestBed.inject(Router).url).toBe(url);
+      expect((await open('/')).el.querySelector('#acc-funds-head')!.getAttribute('aria-expanded')).toBe('true');
+
       const again = await open('/');
-      expect(expanded(again.el)).toEqual({ view: 'false', inflation: 'true', funds: 'true' });
+      head(again.el, 'funds').click();
+      await harness.fixture.whenStable();
+      expect(expanded(again.el)).toEqual({ view: 'false', inflation: 'false', funds: 'false' });
+      expect(localStorage.getItem(SECTIONS_KEY)).toBe('none');
+      expect(expanded((await open('/')).el)).toEqual({ view: 'false', inflation: 'false', funds: 'false' });
     });
 
     it('without storage: the default, and toggling still works for the page', async () => {
@@ -513,11 +520,13 @@ describe('Funds and categories controls', () => {
       }
     });
 
-    it('a custom fund selection opens Funds, whatever is stored (D-23); closing it holds for that selection', async () => {
-      localStorage.setItem(SECTIONS_KEY, '[]');
+    it('a custom fund selection opens Funds and closes View (D-23); leaving it holds for that selection', async () => {
       const { el, store } = await open('/?funds=enterprise,general');
-      expect(expanded(el)['funds']).toBe('true');
-      head(el, 'funds').click();
+      expect(expanded(el)).toEqual({ view: 'false', inflation: 'false', funds: 'true' });
+      head(el, 'view').click();
+      await harness.fixture.whenStable();
+      expect(expanded(el)).toEqual({ view: 'true', inflation: 'false', funds: 'false' });
+      head(el, 'view').click();
       await harness.fixture.whenStable();
       expect(expanded(el)['funds']).toBe('false');
       expect(store.settings().funds).toEqual(['enterprise', 'general']);
@@ -537,7 +546,7 @@ describe('Funds and categories controls', () => {
     });
 
     it('with every section collapsed, the headers state every active setting (P3-14)', async () => {
-      localStorage.setItem(SECTIONS_KEY, '[]');
+      localStorage.setItem(SECTIONS_KEY, 'none');
       let { el } = await open(
         '/?measure=real&base=2020&idx=0&cpi=cpi-u-tampa&cpiper=calendar&cust=1&xfer=gross&funds=general&chart=stacked&cats=ad_valorem',
       );

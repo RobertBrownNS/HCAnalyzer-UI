@@ -14,28 +14,28 @@ export const SECTION_TITLES: Record<PaneSection, string> = {
   categories: 'Categories',
 };
 
-/** Open at first visit: View only. */
-export const DEFAULT_OPEN: readonly PaneSection[] = ['view'];
+/** One section open at a time (D-24 as amended); View at first visit. */
+export const DEFAULT_OPEN: PaneSection = 'view';
 export const SECTIONS_KEY = 'fx.filterSections';
+/** Stored when the viewer closed every section. */
+const NONE = 'none';
 const ALL: readonly PaneSection[] = ['view', 'inflation', 'funds', 'categories'];
 
-/** The open sections the viewer left, or the default when storage is empty, invalid or blocked. */
-export function readOpenSections(): Set<PaneSection> {
+/** The section the viewer left open (null: all closed), or View when storage is empty, invalid or blocked. */
+export function readOpenSection(): PaneSection | null {
   try {
     const raw = globalThis.localStorage?.getItem(SECTIONS_KEY);
-    if (raw) {
-      const parsed: unknown = JSON.parse(raw);
-      if (Array.isArray(parsed)) return new Set(parsed.filter((x): x is PaneSection => ALL.includes(x)));
-    }
+    if (raw === NONE) return null;
+    if (raw && (ALL as readonly string[]).includes(raw)) return raw as PaneSection;
   } catch {
     // fall through to the default
   }
-  return new Set(DEFAULT_OPEN);
+  return DEFAULT_OPEN;
 }
 
-export function writeOpenSections(open: ReadonlySet<PaneSection>): void {
+export function writeOpenSection(open: PaneSection | null): void {
   try {
-    globalThis.localStorage?.setItem(SECTIONS_KEY, JSON.stringify(ALL.filter((id) => open.has(id))));
+    globalThis.localStorage?.setItem(SECTIONS_KEY, open ?? NONE);
   } catch {
     // Storage blocked: the state lasts for this page only.
   }

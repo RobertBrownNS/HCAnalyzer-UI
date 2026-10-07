@@ -1,29 +1,29 @@
 import { settingsWithDefaults } from '../core/transform';
-import { DEFAULT_OPEN, SECTIONS_KEY, paneFits, readOpenSections, sectionSummaries, writeOpenSections } from './pane-sections';
+import { DEFAULT_OPEN, SECTIONS_KEY, paneFits, readOpenSection, sectionSummaries, writeOpenSection } from './pane-sections';
 
-describe('pane accordion state (P3-14)', () => {
+describe('pane accordion state (P3-14, one section at a time)', () => {
   beforeEach(() => localStorage.removeItem(SECTIONS_KEY));
   afterEach(() => localStorage.removeItem(SECTIONS_KEY));
 
-  it('defaults to View open only', () => {
-    expect([...readOpenSections()]).toEqual([...DEFAULT_OPEN]);
-    expect([...DEFAULT_OPEN]).toEqual(['view']);
+  it('defaults to View', () => {
+    expect(readOpenSection()).toBe('view');
+    expect(DEFAULT_OPEN).toBe('view');
   });
 
-  it('round-trips through localStorage, in section order, ignoring unknown ids', () => {
-    writeOpenSections(new Set(['funds', 'view']));
-    expect(localStorage.getItem(SECTIONS_KEY)).toBe('["view","funds"]');
-    expect([...readOpenSections()].sort()).toEqual(['funds', 'view']);
-    localStorage.setItem(SECTIONS_KEY, '["inflation","bogus"]');
-    expect([...readOpenSections()]).toEqual(['inflation']);
-    // All closed is a valid stored state.
-    localStorage.setItem(SECTIONS_KEY, '[]');
-    expect(readOpenSections().size).toBe(0);
+  it('stores the single open id, or "none" when every section is closed', () => {
+    writeOpenSection('funds');
+    expect(localStorage.getItem(SECTIONS_KEY)).toBe('funds');
+    expect(readOpenSection()).toBe('funds');
+    writeOpenSection(null);
+    expect(localStorage.getItem(SECTIONS_KEY)).toBe('none');
+    expect(readOpenSection()).toBeNull();
   });
 
-  it('falls back to the default when storage is invalid or blocked, and writing never throws', () => {
-    localStorage.setItem(SECTIONS_KEY, '{not json');
-    expect([...readOpenSections()]).toEqual(['view']);
+  it('falls back to View when the stored value is unknown or storage is blocked; writing never throws', () => {
+    localStorage.setItem(SECTIONS_KEY, '["view","funds"]');
+    expect(readOpenSection()).toBe('view');
+    localStorage.setItem(SECTIONS_KEY, 'bogus');
+    expect(readOpenSection()).toBe('view');
     const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked');
     });
@@ -31,8 +31,8 @@ describe('pane accordion state (P3-14)', () => {
       throw new Error('blocked');
     });
     try {
-      expect([...readOpenSections()]).toEqual(['view']);
-      expect(() => writeOpenSections(new Set(['funds']))).not.toThrow();
+      expect(readOpenSection()).toBe('view');
+      expect(() => writeOpenSection('funds')).not.toThrow();
     } finally {
       get.mockRestore();
       set.mockRestore();
