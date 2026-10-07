@@ -1,4 +1,81 @@
-@if (show('county')) {
+<!--
+  Desktop pane (no `only`): four accordion sections, each header a button with a one-line summary
+  of its settings so every setting is visible while collapsed (P3-14). Phone sheets (`only` set):
+  the one group, as before.
+-->
+@if (only() === null) {
+  @for (sec of sections(); track sec.id) {
+    <section class="acc" [class.open]="isOpen(sec.id)">
+      <h3 class="acc-h">
+        <button
+          type="button"
+          class="acc-head"
+          [id]="'acc-' + sec.id + '-head'"
+          [attr.aria-expanded]="isOpen(sec.id)"
+          [attr.aria-controls]="'acc-' + sec.id"
+          (click)="toggleSection(sec.id)"
+        >
+          <span class="acc-text">
+            <span class="acc-title">{{ sec.title }}</span>
+            <span class="acc-summary">{{ sec.summary }}</span>
+          </span>
+          <svg class="acc-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+      </h3>
+      <div
+        class="acc-body"
+        [id]="'acc-' + sec.id"
+        role="region"
+        [attr.aria-labelledby]="'acc-' + sec.id + '-head'"
+        [hidden]="!isOpen(sec.id)"
+      >
+        @switch (sec.id) {
+          @case ('view') {
+            <ng-container [ngTemplateOutlet]="countyTpl" />
+            <ng-container [ngTemplateOutlet]="flowTpl" />
+            <ng-container [ngTemplateOutlet]="measureTpl" />
+          }
+          @case ('inflation') {
+            <ng-container [ngTemplateOutlet]="inflationTpl" />
+          }
+          @case ('funds') {
+            <ng-container [ngTemplateOutlet]="fundsTpl" />
+          }
+          @case ('categories') {
+            <ng-container [ngTemplateOutlet]="categoriesTpl" />
+          }
+        }
+      </div>
+    </section>
+  }
+  <button type="button" class="fx-button reset" (click)="reset()">Reset to defaults</button>
+} @else {
+  @switch (only()) {
+    @case ('county') {
+      <ng-container [ngTemplateOutlet]="countyTpl" />
+    }
+    @case ('flow') {
+      <ng-container [ngTemplateOutlet]="flowTpl" />
+    }
+    @case ('measure') {
+      <ng-container [ngTemplateOutlet]="measureTpl" />
+    }
+    @case ('inflation') {
+      <ng-container [ngTemplateOutlet]="inflationTpl" />
+    }
+    @case ('funds') {
+      <ng-container [ngTemplateOutlet]="fundsTpl" />
+    }
+    @case ('categories') {
+      <ng-container [ngTemplateOutlet]="categoriesTpl" />
+    }
+    @case ('range') {
+      <ng-container [ngTemplateOutlet]="rangeTpl" />
+    }
+  }
+}
+
+<ng-template #countyTpl>
   <label class="fx-field">
     County
     <select class="fx-select" (change)="setCounty(value($event))">
@@ -7,9 +84,9 @@
       }
     </select>
   </label>
-}
+</ng-template>
 
-@if (show('flow')) {
+<ng-template #flowTpl>
   <label class="fx-field">
     Data
     <select class="fx-select" (change)="setFlow(value($event))">
@@ -18,9 +95,9 @@
       }
     </select>
   </label>
-}
+</ng-template>
 
-@if (show('measure')) {
+<ng-template #measureTpl>
   <label class="fx-field">
     Measure
     <select class="fx-select" (change)="setMeasure(value($event))">
@@ -44,9 +121,9 @@
     <input type="checkbox" [checked]="settings().indexTo100" (change)="setIndexTo100(checked($event))" />
     Index to 100 at base year
   </label>
-}
+</ng-template>
 
-@if (show('inflation')) {
+<ng-template #inflationTpl>
   <label class="fx-field">
     Inflation index
     <select class="fx-select" [disabled]="!real()" (change)="setCpiIndex(value($event))">
@@ -66,9 +143,9 @@
       <span class="hint">Applies to the inflation-adjusted measures.</span>
     }
   </label>
-}
+</ng-template>
 
-@if (show('funds')) {
+<ng-template #fundsTpl>
   <div class="divider" role="group" aria-labelledby="funds-label">
     <div class="group-head">
       <span id="funds-label" class="group-label">Funds</span>
@@ -156,9 +233,9 @@
       </span>
     </label>
   </div>
-}
+</ng-template>
 
-@if (show('categories')) {
+<ng-template #categoriesTpl>
   <div class="divider" role="group" aria-labelledby="cats-label">
     <span id="cats-label" class="group-label">Categories</span>
     <button type="button" class="fx-button preset" [attr.aria-pressed]="!settings().categories" (click)="allCategories()">
@@ -179,15 +256,11 @@
       <button type="button" class="link" (click)="showMapping()">How account codes map to categories</button>
     }
   </div>
-}
+</ng-template>
 
-@if (show('range')) {
+<ng-template #rangeTpl>
   <div class="fx-field">
     Fiscal years
     <app-range-control />
   </div>
-}
-
-@if (only() === null) {
-  <button type="button" class="fx-button reset" (click)="reset()">Reset to defaults</button>
-}
+</ng-template>

@@ -198,7 +198,7 @@
     }
   </div>
 
-  <aside class="filters" aria-labelledby="filters-title">
+  <aside #pane class="filters" [class.sticky]="paneSticky()" aria-labelledby="filters-title">
     <h2 id="filters-title" class="filters-title">Filters</h2>
     @if (controlsReady()) {
       <app-explorer-controls />

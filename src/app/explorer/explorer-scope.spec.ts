@@ -14,6 +14,7 @@ import { ExplorerControlsComponent, FUNDS_MODE_KEY } from './explorer-controls.c
 import { ExplorerStore } from './explorer-store';
 import { kpiCards, measureCaption, unitPhrase } from './kpi';
 import { MethodologyComponent, categoryMappingRows } from './methodology.component';
+import { SECTIONS_KEY } from './pane-sections';
 
 // Phase 3 store behaviour: fund and category selection (D-18, D-19), chart type (D-20) in the URL,
 // the net-of-transfers rule, and the source drawer's content.
@@ -454,6 +455,117 @@ describe('Funds and categories controls', () => {
     [...el.querySelectorAll<HTMLButtonElement>('.presets button')].find((b) => b.textContent?.includes('Governmental'))!.click();
     await harness.fixture.whenStable();
     expect(store.settings().funds).toEqual(['general', 'special_revenue']);
+  });
+
+  describe('Filters pane accordion (P3-14)', () => {
+    const head = (el: HTMLElement, id: string) => el.querySelector<HTMLButtonElement>(`#acc-${id}-head`)!;
+    const body = (el: HTMLElement, id: string) => el.querySelector<HTMLElement>(`#acc-${id}`)!;
+    const expanded = (el: HTMLElement) =>
+      Object.fromEntries([...el.querySelectorAll<HTMLButtonElement>('.acc-head')].map((b) => [b.id.replace(/^acc-|-head$/g, ''), b.getAttribute('aria-expanded')]));
+    const headers = (el: HTMLElement) => [...el.querySelectorAll('.acc-head')].map((b) => b.textContent!.replace(/\s+/g, ' ').trim()).join(' | ');
+
+    beforeEach(() => localStorage.removeItem(SECTIONS_KEY));
+    afterEach(() => localStorage.removeItem(SECTIONS_KEY));
+
+    it('sections in order, View open by default, the rest collapsed; header buttons control their regions', async () => {
+      const { el } = await open('/');
+      expect([...el.querySelectorAll('.acc-title')].map((t) => t.textContent)).toEqual(['View', 'Inflation', 'Funds & transfers']);
+      expect(expanded(el)).toEqual({ view: 'true', inflation: 'false', funds: 'false' });
+      expect(head(el, 'view').getAttribute('aria-controls')).toBe('acc-view');
+      expect(body(el, 'view').getAttribute('role')).toBe('region');
+      expect(body(el, 'view').hidden).toBe(false);
+      expect(body(el, 'inflation').hidden).toBe(true);
+      // Category charts add the Categories section.
+      const cats = await open('/?chart=stacked');
+      expect([...cats.el.querySelectorAll('.acc-title')].map((t) => t.textContent)).toContain('Categories');
+    });
+
+    it('toggling opens and closes independently and is remembered; URLs untouched', async () => {
+      const { el } = await open('/');
+      const url = TestBed.inject(Router).url;
+      head(el, 'inflation').click();
+      head(el, 'funds').click();
+      head(el, 'view').click();
+      await harness.fixture.whenStable();
+      expect(expanded(el)).toEqual({ view: 'false', inflation: 'true', funds: 'true' });
+      expect(JSON.parse(localStorage.getItem(SECTIONS_KEY)!)).toEqual(['inflation', 'funds']);
+      expect(TestBed.inject(Router).url).toBe(url);
+      const again = await open('/');
+      expect(expanded(again.el)).toEqual({ view: 'false', inflation: 'true', funds: 'true' });
+    });
+
+    it('without storage: the default, and toggling still works for the page', async () => {
+      const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new Error('blocked');
+      });
+      const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('blocked');
+      });
+      try {
+        const { el } = await open('/');
+        expect(expanded(el)).toEqual({ view: 'true', inflation: 'false', funds: 'false' });
+        head(el, 'funds').click();
+        await harness.fixture.whenStable();
+        expect(body(el, 'funds').hidden).toBe(false);
+      } finally {
+        get.mockRestore();
+        set.mockRestore();
+      }
+    });
+
+    it('a custom fund selection opens Funds, whatever is stored (D-23); closing it holds for that selection', async () => {
+      localStorage.setItem(SECTIONS_KEY, '[]');
+      const { el, store } = await open('/?funds=enterprise,general');
+      expect(expanded(el)['funds']).toBe('true');
+      head(el, 'funds').click();
+      await harness.fixture.whenStable();
+      expect(expanded(el)['funds']).toBe('false');
+      expect(store.settings().funds).toEqual(['enterprise', 'general']);
+      store.update({ funds: ['enterprise', 'special_revenue'] });
+      await harness.fixture.whenStable();
+      expect(expanded(el)['funds']).toBe('true');
+    });
+
+    it('Inflation keeps its disabled controls and hint visible when opened for a nominal measure', async () => {
+      const { el } = await open('/');
+      head(el, 'inflation').click();
+      await harness.fixture.whenStable();
+      const selects = body(el, 'inflation').querySelectorAll('select');
+      expect(selects.length).toBe(2);
+      expect([...selects].every((s) => s.disabled)).toBe(true);
+      expect(body(el, 'inflation').textContent).toContain('Applies to the inflation-adjusted measures.');
+    });
+
+    it('with every section collapsed, the headers state every active setting (P3-14)', async () => {
+      localStorage.setItem(SECTIONS_KEY, '[]');
+      let { el } = await open(
+        '/?measure=real&base=2020&idx=0&cpi=cpi-u-tampa&cpiper=calendar&cust=1&xfer=gross&funds=general&chart=stacked&cats=ad_valorem',
+      );
+      expect(expanded(el)).toEqual({ view: 'false', inflation: 'false', funds: 'false', categories: 'false' });
+      let text = headers(el);
+      for (const setting of [
+        'Hillsborough', // county
+        'Revenues', // flow
+        'Inflation-adjusted', // measure
+        'Base year FY 2019-20',
+        'Index to 100: off',
+        'CPI-U Tampa', // CPI index
+        'Calendar-year average', // CPI period
+        'General Fund', // fund scope
+        'Custodial included',
+        'Transfers: as reported (gross)',
+        'Ad Valorem Taxes', // categories
+      ]) {
+        expect(text, setting).toContain(setting);
+      }
+      ({ el } = await open('/?flow=expenditure&measure=nominal&base=2020&idx=1&xfer=net'));
+      text = headers(el);
+      for (const setting of ['Expenditures', 'Nominal dollars', 'FY 2019-20 = 100', 'Not used', 'All funds as reported by EDR', 'Custodial excluded', 'Transfers: excluded (net)']) {
+        expect(text, setting).toContain(setting);
+      }
+      ({ el } = await open('/?funds=enterprise,general'));
+      expect(headers(el)).toContain('Custom: 2 funds');
+    });
   });
 
   describe('Simple / Advanced fund filter (desktop pane)', () => {

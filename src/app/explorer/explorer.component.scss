@@ -146,7 +146,6 @@ app-view-notes:empty {
 .skel-chip {
   flex: none;
   height: var(--fx-touch-target);
-  border-radius: var(--fx-radius-sm);
 }
 
 .skel-field {
@@ -202,17 +201,20 @@ app-view-notes:empty {
     height: min(var(--fx-figure-height), var(--fx-figure-max-height));
   }
 
+  // No scroll container of its own (one scrollbar, ever): sticky only while all of it fits under
+  // the header (paneSticky, measured); otherwise it scrolls with the page.
   .filters {
     display: block;
-    position: sticky;
-    top: var(--fx-header-height);
-    max-height: calc(100dvh - var(--fx-header-height));
-    overflow-y: auto;
     padding: var(--fx-space-3);
     background: var(--fx-color-tile);
     border-left: var(--fx-border-width) solid var(--fx-color-border);
     // Fill the column so the pane reads as a full-height panel.
     min-height: calc(100dvh - var(--fx-header-height));
+
+    &.sticky {
+      position: sticky;
+      top: var(--fx-header-height);
+    }
   }
 
   .filters-title {

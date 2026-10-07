@@ -105,3 +105,22 @@ describe('fund and category wording', () => {
     expect(fundsIncludedText(['permanent'], ['general'], meta)).toBe('');
   });
 });
+
+describe('while a county is loading (QA-48): no preset name the URL does not say', () => {
+  it('no selection is every fund; an exact preset list keeps its name; anything else is neutral', () => {
+    expect(matchingPreset(null, [], meta)).toBe('all');
+    expect(matchingPreset(['general'], [], meta)).toBe('general');
+    // The Governmental preset lists "permanent", which this selection lacks: can't tell yet.
+    expect(matchingPreset(['capital', 'general', 'special_revenue'], [], meta)).toBeNull();
+    expect(matchingPreset(['enterprise', 'general'], [], meta)).toBeNull();
+  });
+
+  it('wording: never "General Fund" for every fund; "Funds" when it cannot tell', () => {
+    expect(fundScopeText(null, [], meta)).toBe('All funds as reported by EDR');
+    expect(fundScopeText(null, [], meta, 'short')).toBe('All funds');
+    expect(fundScopeText(['general'], [], meta, 'short')).toBe('General Fund');
+    expect(fundScopeText(['enterprise', 'general'], [], meta)).toBe('Funds');
+    expect(fundScopeText(['enterprise', 'general'], [], meta, 'short')).toBe('Funds');
+    expect(fundScopeText(null, [], null, 'short')).toBe('All funds as reported by EDR');
+  });
+});

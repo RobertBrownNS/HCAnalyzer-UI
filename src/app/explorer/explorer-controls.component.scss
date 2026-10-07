@@ -65,3 +65,70 @@
 .mode-toggle {
   align-self: center;
 }
+
+// Desktop pane accordion (P3-14). Headers are full-width buttons: title, then a summary of the
+// section's settings (wraps rather than truncates, so every setting stays readable).
+.acc {
+  border-bottom: var(--fx-border-width) solid var(--fx-color-gridline);
+}
+
+.acc-h {
+  margin: 0;
+  font: inherit;
+}
+
+.acc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fx-space-2);
+  width: 100%;
+  min-height: var(--fx-touch-target);
+  padding: var(--fx-space-2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--fx-color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.acc-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.acc-title {
+  font: var(--fx-type-title-small);
+}
+
+.acc-summary {
+  font: var(--fx-type-body-small);
+  color: var(--fx-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.acc-chevron {
+  flex: none;
+  width: var(--fx-space-5);
+  height: var(--fx-space-5);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.acc.open .acc-chevron {
+  transform: rotate(180deg);
+}
+
+.acc-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fx-space-3);
+  padding-bottom: var(--fx-space-3);
+
+  // display: flex would override the hidden attribute.
+  &[hidden] {
+    display: none;
+  }
+}

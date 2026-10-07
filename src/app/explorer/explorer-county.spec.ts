@@ -250,3 +250,80 @@ describe('Explorer with a county selected', () => {
     });
   });
 });
+
+/** Pinellas loads on demand: 'loading' (no data) until `pinellasReady` is set. */
+class SwitchingDataService {
+  readonly counties = signal(['hillsborough', 'pinellas']);
+  readonly defaultCounty = signal<string | null>('hillsborough');
+  readonly fundsMeta = signal(null);
+  readonly categoriesMeta = signal(null);
+  accountsFor = () => [];
+  readonly countyNames = signal<Record<string, string>>({ hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' });
+  errorFor = () => null;
+  load = () => Promise.resolve();
+  loadCounty = () => Promise.resolve();
+  readonly pinellasReady = signal(false);
+  statusFor = (c: string): DataStatus => (c === 'pinellas' && !this.pinellasReady() ? 'loading' : 'ready');
+  dataFor = (c: string): TransformData | null =>
+    c === 'pinellas' && !this.pinellasReady()
+      ? null
+      : { ...shared, observations: [2020, 2021, 2022, 2023].map((y) => obs(c, y, 100 * (y - 2019))) };
+}
+
+describe('Explorer during a county switch and pane layout', () => {
+  let harness: RouterTestingHarness;
+
+  beforeEach(async () => {
+    TestBed.overrideComponent(SeriesChartComponent, {
+      remove: { imports: [NgxEchartsDirective] },
+      add: { imports: [FakeEchartsDirective] },
+    });
+    TestBed.configureTestingModule({
+      providers: [provideRouter([{ path: '', component: ExplorerComponent }]), { provide: DataService, useClass: SwitchingDataService }],
+    });
+    harness = await RouterTestingHarness.create();
+  });
+
+  const chipLabels = (el: HTMLElement) => [...el.querySelectorAll('.fx-chip')].map((c) => c.textContent?.trim());
+
+  it('chips never name a preset the URL does not say, and keep the range while the next county loads (QA-48)', async () => {
+    const page = await harness.navigateByUrl('/?county=hillsborough', ExplorerComponent);
+    await harness.fixture.whenStable();
+    const el = harness.routeNativeElement as HTMLElement;
+    const range = chipLabels(el).find((c) => c?.startsWith('FY '));
+    expect(range).toBe('FY 2019-20 to FY 2022-23');
+
+    page.store.update({ jurisdiction: 'pinellas' });
+    await harness.fixture.whenStable();
+    expect(page.store.loading()).toBe(true);
+    const during = chipLabels(el);
+    expect(during[0]).toBe('County: Pinellas');
+    expect(during).not.toContain('General Fund');
+    expect(during).toContain('All funds as reported by EDR');
+    expect(during).toContain(range);
+
+    (TestBed.inject(DataService) as unknown as SwitchingDataService).pinellasReady.set(true);
+    await harness.fixture.whenStable();
+    expect(page.store.loading()).toBe(false);
+  });
+
+  it('the Filters pane is sticky only while it fits under the header (one scrollbar, P3-14)', async () => {
+    const page = await harness.navigateByUrl('/?county=hillsborough', ExplorerComponent);
+    await harness.fixture.whenStable();
+    const pane = (harness.routeNativeElement as HTMLElement).querySelector<HTMLElement>('aside.filters')!;
+    const setHeight = (h: number) => Object.defineProperty(pane, 'offsetHeight', { configurable: true, value: h });
+
+    setHeight(window.innerHeight - 100);
+    window.dispatchEvent(new Event('resize'));
+    await harness.fixture.whenStable();
+    expect(page.paneSticky()).toBe(true);
+    expect(pane.classList).toContain('sticky');
+
+    setHeight(window.innerHeight + 400);
+    window.dispatchEvent(new Event('resize'));
+    await harness.fixture.whenStable();
+    expect(page.paneSticky()).toBe(false);
+    expect(pane.classList).not.toContain('sticky');
+  });
+});
+

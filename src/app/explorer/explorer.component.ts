@@ -1,4 +1,15 @@
-import { Component, ViewContainerRef, computed, inject, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  ViewContainerRef,
+  afterNextRender,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 
 import {
@@ -20,6 +31,7 @@ import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
 import { kpiCards, measureCaption, unitPhrase } from './kpi';
+import { categoryCount, paneFits } from './pane-sections';
 
 /** Caption of the 100% share chart: what its values are, whatever the measure. */
 export const SHARE_CAPTION = 'Share of the selected total (%)';
@@ -84,7 +96,43 @@ export class ExplorerComponent {
     { heading: 'sources', lines: ['70%', '95%', '80%', '90%', '65%', '85%'] },
   ];
 
+  /** Desktop Filters pane: sticky only while it fits under the header (P3-14, one scrollbar). */
+  readonly paneSticky = signal(true);
+  private readonly pane = viewChild<ElementRef<HTMLElement>>('pane');
+
+  /** The range the last loaded data confirmed; kept for the chip while another county loads (QA-48). */
+  private readonly lastLoadedRange = linkedSignal<readonly [number, number] | null, readonly [number, number] | null>({
+    source: () => (this.store.loaded() ? this.store.settings().range : null),
+    computation: (range, previous) => range ?? previous?.value ?? null,
+  });
+
   constructor() {
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      const win = typeof window === 'undefined' ? null : window;
+      const el = this.pane()?.nativeElement;
+      if (!win || !el) return;
+      const measure = () => {
+        const header = parseFloat(getComputedStyle(win.document.documentElement).getPropertyValue('--fx-header-height')) || 0;
+        const fits = paneFits(el.offsetHeight, win.innerHeight, header);
+        if (this.paneSticky() && !fits && win.scrollY > 0) {
+          // Opening a section made the pane too tall while the page is scrolled: un-stick it, then
+          // scroll by the distance it moved, so the header just clicked stays where it was.
+          const before = el.getBoundingClientRect().top;
+          el.classList.remove('sticky');
+          win.scrollBy(0, el.getBoundingClientRect().top - before);
+        }
+        this.paneSticky.set(fits);
+      };
+      measure();
+      const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+      ro?.observe(el);
+      win.addEventListener('resize', measure);
+      destroyRef.onDestroy(() => {
+        ro?.disconnect();
+        win.removeEventListener('resize', measure);
+      });
+    });
     // Fetch the ECharts chunk in parallel with the data instead of after it (same module the
     // ngx-echarts provider imports, so it is downloaded once).
     void import('../core/echarts');
@@ -165,6 +213,20 @@ export class ExplorerComponent {
     return `${fundScopeLabel(s, this.store.fundScope())}. ${transferLabel(s)}.`;
   });
 
+  /**
+   * The range chip: the range once data confirms it. Before the first load, nothing is stated
+   * (QA-27); while another county loads, the previous label stays if the URL range is unchanged,
+   * else the neutral "Fiscal years" (QA-48).
+   */
+  private readonly rangeChipLabel = computed(() => {
+    const r = this.store.settings().range;
+    const label = `${fiscalYearLabel(r[0])} to ${fiscalYearLabel(r[1])}`;
+    // Read on every evaluation: a linkedSignal only remembers values it was asked for.
+    const last = this.lastLoadedRange();
+    if (this.store.loaded()) return label;
+    return last && last[0] === r[0] && last[1] === r[1] ? label : 'Fiscal years';
+  });
+
   readonly chips = computed<SettingChip[]>(() => {
     const s = this.store.settings();
     const chips: SettingChip[] = [
@@ -184,13 +246,13 @@ export class ExplorerComponent {
       group: 'range',
       // Until data has loaded successfully the range isn't checked against the years that exist:
       // don't state it (also after a failed load, QA-27).
-      label: !this.store.loaded() ? 'Fiscal years' : `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
+      label: this.rangeChipLabel(),
       aria: 'Fiscal years',
     });
     chips.push({ group: 'funds', label: this.store.fundScopeShort(), aria: 'Funds' });
     if (isCategoryChart(this.store.view().chart)) {
       const n = s.categories?.length;
-      chips.push({ group: 'categories', label: n ? `${n} categories` : 'All categories', aria: 'Categories' });
+      chips.push({ group: 'categories', label: n ? categoryCount(n) : 'All categories', aria: 'Categories' });
     }
     chips.push({
       group: 'funds',

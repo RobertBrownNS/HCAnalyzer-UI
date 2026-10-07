@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 import {
@@ -17,6 +18,7 @@ import { categoryLabel, fundGroups, fundsIncludedText, matchingPreset } from '..
 import { isCategoryChart } from '../core/view-state';
 import { CpiIndex, CpiPeriod, Measure, TransferMode, fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
+import { PaneSection, SECTION_TITLES, readOpenSections, sectionSummaries, writeOpenSections } from './pane-sections';
 import { MAPPING_ID } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
 
@@ -54,7 +56,7 @@ function entries<K extends string>(labels: Record<K, string>): { value: K; label
  */
 @Component({
   selector: 'app-explorer-controls',
-  imports: [RangeControlComponent],
+  imports: [NgTemplateOutlet, RangeControlComponent],
   templateUrl: './explorer-controls.component.html',
   styleUrl: './explorer-controls.component.scss',
 })
@@ -129,6 +131,49 @@ export class ExplorerControlsComponent {
       this.fundsMode() === 'advanced' ||
       (this.customSelection() && this.simpleFor() !== this.selectionKey()),
   );
+  // --- Pane accordion (P3-14) ---
+  /** Sections the viewer opened (localStorage, read before first render so nothing moves). */
+  private readonly openSections = signal<Set<PaneSection>>(readOpenSections());
+  /** The custom selection the viewer closed Funds for; another one opens it again (D-23). */
+  private readonly fundsClosedFor = signal<string | null>(null);
+
+  isOpen(id: PaneSection): boolean {
+    if (this.openSections().has(id)) return true;
+    // A custom fund selection (link, Back/Forward) is never hidden in a closed section.
+    return id === 'funds' && this.customSelection() && this.fundsClosedFor() !== this.selectionKey();
+  }
+
+  toggleSection(id: PaneSection): void {
+    const open = new Set(this.openSections());
+    if (this.isOpen(id)) {
+      open.delete(id);
+      if (id === 'funds' && this.customSelection()) this.fundsClosedFor.set(this.selectionKey());
+    } else {
+      open.add(id);
+      if (id === 'funds') this.fundsClosedFor.set(null);
+    }
+    this.openSections.set(open);
+    writeOpenSections(open);
+  }
+
+  /** Fund scope for the summary: preset name, "Custom: n funds", or neutral while loading (QA-48). */
+  private readonly fundsSummary = computed(() =>
+    this.customSelection() ? `Custom: ${this.settings().funds?.length ?? 0} funds` : this.store.fundScope(),
+  );
+
+  /** The sections in order; Categories only on the category charts, where it applies. */
+  readonly sections = computed(() => {
+    const summary = sectionSummaries({
+      s: this.settings(),
+      countyName: this.store.countyShortName(),
+      funds: this.fundsSummary(),
+      categoryLabels: this.store.categoryLabels(),
+    });
+    const ids: PaneSection[] = ['view', 'inflation', 'funds'];
+    if (isCategoryChart(this.store.view().chart)) ids.push('categories');
+    return ids.map((id) => ({ id, title: SECTION_TITLES[id], summary: summary[id] }));
+  });
+
   /** The mode toggle appears in the pane only. */
   readonly showFundsToggle = computed(() => this.only() === null);
 

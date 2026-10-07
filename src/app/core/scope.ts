@@ -51,7 +51,16 @@ export function matchingPreset(
   selection: readonly string[] | null,
   available: readonly string[],
   meta: FundsFile | null,
-): string | 'custom' {
+): string | 'custom' | null {
+  // No fund list yet (a county is loading, QA-48): only what the URL itself says can be named.
+  // No selection is every fund; a selection names a preset only if it is that preset's exact list.
+  if (!available.length) {
+    if (selection === null) return meta?.presets.some((p) => p.id === 'all') ? 'all' : null;
+    const exact = meta?.presets.find(
+      (p) => p.funds.length === selection.length && p.funds.every((id) => selection.includes(id)),
+    );
+    return exact?.id ?? null;
+  }
   const selected = new Set(selection ?? available);
   for (const p of meta?.presets ?? []) {
     const members = p.funds.filter((id) => available.includes(id));
@@ -84,6 +93,8 @@ export function fundScopeText(
   if (form === 'full' && isAllFundsScope(selection, available, meta)) return ALL_FUNDS_NAME;
   if (p) return p.label;
   if (selection === null) return ALL_FUNDS_NAME;
+  // Can't tell yet which funds this county reports: a neutral word, never a guessed preset.
+  if (preset === null) return 'Funds';
   const names = inMetaOrder(selection, meta).map((id) => fundLabel(id, meta));
   return names.length <= 3 ? `Funds: ${names.join(', ')}` : `Funds: ${names.length} of ${available.length} selected`;
 }
