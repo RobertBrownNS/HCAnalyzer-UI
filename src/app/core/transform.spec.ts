@@ -1188,7 +1188,12 @@ describe('golden: src/assets/data', () => {
     expect(labels({ flow: 'expenditure' }).some((l) => l.startsWith('2023 Transfers out (581)'))).toBe(true);
     expect(labels({}).some((l) => l.includes('Transfers out (581)'))).toBe(false);
     // Per-resident rows appear only with a per-resident measure.
-    expect(labels({ measure: 'per_capita' }).filter((l) => l.includes('Population source changes'))).toHaveLength(2);
+    const perResident = data.annotations.filter((a) => a.measures?.includes('per_capita')).length;
+    expect(perResident).toBeGreaterThan(0);
+    expect(annotationsInRange(data, full({ measure: 'per_capita' })).filter((a) => a.measures !== undefined)).toHaveLength(
+      perResident,
+    );
+    expect(annotationsInRange(data, full()).filter((a) => a.measures !== undefined)).toHaveLength(0);
     // Every row is reachable by some view, and no view shows a row for another jurisdiction.
     const seen = new Set<AnnotationRecord>();
     for (const flow of ['revenue', 'expenditure'] as const)
