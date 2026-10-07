@@ -57,9 +57,9 @@ import { CountyContext } from './core/county';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  readonly title = 'Florida County Finance Explorer';
+  readonly title = 'FL Finance Transparency';
   /** Phones only, so the bar fits at 360px. */
-  readonly shortTitle = 'County Finance Explorer';
+  readonly shortTitle = 'FL Finance Transparency';
 
   private readonly doc = inject(DOCUMENT);
   readonly colorScheme = inject(ColorSchemeService);

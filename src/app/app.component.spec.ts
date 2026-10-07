@@ -20,7 +20,7 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('header')?.textContent).toContain(
-      'Florida County Finance Explorer',
+      'FL Finance Transparency',
     );
   });
 
@@ -64,8 +64,8 @@ describe('AppComponent header actions', () => {
     const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.brand')?.getAttribute('aria-label')).toBe('Florida County Finance Explorer');
-    expect(el.querySelector('.title-short')?.textContent).toBe('County Finance Explorer');
+    expect(el.querySelector('.brand')?.getAttribute('aria-label')).toBe('FL Finance Transparency');
+    expect(el.querySelector('.title-short')?.textContent).toBe('FL Finance Transparency');
     expect(el.querySelector('.theme')?.getAttribute('aria-label')).toBe('Color theme: Auto. Change');
     expect(el.querySelector('.share .label-full')?.textContent).toBe('Share view');
     expect(el.querySelector('.share .label-short')?.getAttribute('aria-hidden')).toBe('true');

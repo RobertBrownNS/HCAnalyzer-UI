@@ -2,7 +2,7 @@
   "name": "fl-county-finance-pipeline",
   "version": "0.1.0",
   "private": true,
-  "description": "Build-time data pipeline: official EDR/BLS sources -> normalized JSON for the Florida County Finance Explorer",
+  "description": "Build-time data pipeline: official EDR/BLS sources -> normalized JSON for FL Finance Transparency",
   "type": "module",
   "scripts": {
     "fetch": "tsx src/fetch.ts",

@@ -1,4 +1,4 @@
-# Florida County Finance Explorer
+# FL Finance Transparency
 
 Mobile-first Angular site for researching Florida county finances over time, built in the context of Florida's 2026 Amendment 3 (homestead property tax exemption, on the Nov 3, 2026 ballot). Starting jurisdiction: **Hillsborough County**.
 
