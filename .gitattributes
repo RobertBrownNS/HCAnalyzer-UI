@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# Checksummed data: never alter bytes
+data/raw/** -text
+src/assets/data/** -text
+*.xlsx binary
+*.ico binary
