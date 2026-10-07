@@ -9,9 +9,11 @@ export const EDR_COUNTY_FISCAL_PAGE_FILE = path.join(RAW_DIR, 'edr', 'cntyfiscal
 export const EDR_POPULATION_URL = 'https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx';
 export const EDR_POPULATION_PAGE = 'https://edr.state.fl.us/Content/population-demographics/data/index-floridaproducts.cfm';
 
-/** One entry of data/raw/retrieval.json. */
+/** One entry of data/raw/manifest.json. */
 export interface RetrievalRecord {
   url: string;
+  publisher: string;
+  bytes: number;
   method: string;
   /** ISO date the current bytes were first downloaded. */
   retrieved: string;
@@ -39,7 +41,7 @@ export interface Source {
   accessUrl?: string;
 }
 
-const EDR = 'Florida Legislature, Office of Economic and Demographic Research (EDR)';
+export const EDR = 'Florida Legislature, Office of Economic and Demographic Research (EDR)';
 
 /** EDR's data-use notice, quoted verbatim from the county fiscal page. */
 export const EDR_CUSTODIAL_NOTICE =

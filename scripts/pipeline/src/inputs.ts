@@ -8,7 +8,7 @@ import { blsPath, edrAfrPath, POPULATION_FILE, rel, RETRIEVAL_FILE } from './lib
 import { readWorkbook } from './lib/xlsx.js';
 import { EDR_COUNTY_FISCAL_PAGE_FILE, type RetrievalLog, type RetrievalRecord } from './sources.js';
 
-/** Everything parsed from data/raw/, after checking each file against data/raw/retrieval.json. */
+/** Everything parsed from data/raw/, after checking each file against data/raw/manifest.json. */
 export interface Inputs {
   retrieval: RetrievalLog;
   counties: Array<{
@@ -33,7 +33,7 @@ function verified(log: RetrievalLog, file: string): string {
   const expected = retrievalFor(log, file).sha256;
   const actual = sha256File(file);
   if (actual !== expected) {
-    throw new Error(`${rel(file)} sha256 ${actual} does not match retrieval.json (${expected}). Re-run npm run fetch to record a new download.`);
+    throw new Error(`${rel(file)} sha256 ${actual} does not match data/raw/manifest.json (${expected}). Re-run npm run fetch to record a new download.`);
   }
   return file;
 }

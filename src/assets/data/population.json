@@ -281,7 +281,7 @@
         "value": 1575637
       }
     },
-    "fiscalYearAlignment": "EDR per-capita figures for fiscal year N (Oct 1, N-1 to Sep 30, N) use the April 1, N value.",
+    "fiscalYearAlignment": "Fiscal year N (Oct 1, N-1 to Sep 30, N) uses the April 1, N value: the same population EDR used for the Per Capita column of each AFR sheet (docs/decisions.md O-05; verified for every sheet in data/validation.md). Basis is the BEBR estimate published for that April 1, except 2010 (census count) and 2020 (revised BEBR estimate).",
     "reference": "April 1 of the year shown",
     "sourceId": "edr-population-flcopops"
   }

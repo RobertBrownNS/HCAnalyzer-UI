@@ -1,5 +1,6 @@
 {
   "national": {
+    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Calendar-year BLS annual averages are kept as an alternative. A year with any missing month is null, never a partial average; no values from another series are spliced in.",
     "area": "U.S. city average",
     "basePeriod": "1982-84=100",
     "calendarYear": {
@@ -28,13 +29,17 @@
       "2022": 292.655,
       "2023": 304.702,
       "2024": 313.689,
-      "2025": 321.943
+      "2025": 321.943,
+      "2026": null
     },
     "calendarYearBasis": "BLS-published annual average (period M13)",
     "calendarYearUnavailable": {
       "2026": "BLS annual average not published; missing 2026-09 (not in source), 2026-10 (not in source), 2026-11 (not in source), 2026-12 (not in source)"
     },
+    "defaultAlignment": "fiscalYear",
+    "endPeriod": "2026-08",
     "fiscalYear": {
+      "2000": null,
       "2001": 176.258,
       "2002": 178.9,
       "2003": 183.1,
@@ -59,12 +64,13 @@
       "2022": 287.723,
       "2023": 302.289,
       "2024": 311.581,
-      "2025": 319.997
+      "2025": 319.997,
+      "2026": null
     },
     "fiscalYearBasis": "Mean of the 12 monthly BLS values from October of the prior year through September, rounded to 3 decimals (computed by this pipeline).",
     "fiscalYearUnavailable": {
-      "2000": "missing 1999-10 (not in source), 1999-11 (not in source), 1999-12 (not in source)",
-      "2026": "missing 2025-10 (Data unavailable due to the 2025 lapse in appropriations), 2026-09 (not in source)"
+      "2000": "incomplete fiscal year, not averaged: missing 1999-10 (not in source), 1999-11 (not in source), 1999-12 (not in source)",
+      "2026": "incomplete fiscal year, not averaged: missing 2025-10 (Data unavailable due to the 2025 lapse in appropriations), 2026-09 (not in source)"
     },
     "frequency": "monthly",
     "missingMonths": {
@@ -394,12 +400,27 @@
     "semiannual": {},
     "seriesId": "CUUR0000SA0",
     "sourceId": "bls-cpi-CUUR0000SA0",
+    "startPeriod": "2000-01",
     "title": "All items in U.S. city average, all urban consumers, not seasonally adjusted"
   },
   "tampa": {
+    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Calendar-year BLS annual averages are kept as an alternative. A year with any missing month is null, never a partial average; no values from another series are spliced in.",
     "area": "Tampa-St. Petersburg-Clearwater, FL",
     "basePeriod": "1987=100",
     "calendarYear": {
+      "2005": null,
+      "2006": null,
+      "2007": null,
+      "2008": null,
+      "2009": null,
+      "2010": null,
+      "2011": null,
+      "2012": null,
+      "2013": null,
+      "2014": null,
+      "2015": null,
+      "2016": null,
+      "2017": null,
       "2018": 224.263,
       "2019": 228.134,
       "2020": 233.844,
@@ -407,14 +428,42 @@
       "2022": 273.597,
       "2023": 292.258,
       "2024": 299.315,
-      "2025": 307.516
+      "2025": 307.516,
+      "2026": null
     },
     "calendarYearBasis": "BLS-published annual average (period M13)",
     "calendarYearUnavailable": {
+      "2005": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2006": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2007": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2008": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2009": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2010": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2011": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2012": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2013": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2014": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2015": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2016": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
       "2017": "BLS annual average not published; missing 2017-01 (not in source), 2017-03 (not in source), 2017-05 (not in source), 2017-07 (not in source), 2017-09 (not in source)",
       "2026": "BLS annual average not published; missing 2026-09 (not in source), 2026-11 (not in source)"
     },
+    "defaultAlignment": "fiscalYear",
+    "endPeriod": "2026-07",
     "fiscalYear": {
+      "2005": null,
+      "2006": null,
+      "2007": null,
+      "2008": null,
+      "2009": null,
+      "2010": null,
+      "2011": null,
+      "2012": null,
+      "2013": null,
+      "2014": null,
+      "2015": null,
+      "2016": null,
+      "2017": null,
       "2018": 223.26,
       "2019": 227.087,
       "2020": 232.317,
@@ -422,11 +471,25 @@
       "2022": 268.83,
       "2023": 289.395,
       "2024": 298.165,
-      "2025": 305.761
+      "2025": 305.761,
+      "2026": null
     },
     "fiscalYearBasis": "Mean of the 6 published bimonthly BLS values (Nov, Jan, Mar, May, Jul, Sep) in the fiscal year, rounded to 3 decimals (computed by this pipeline). The same method applied to calendar years does not reproduce the BLS-published annual averages for this area (it runs 0.06-0.29% lower in 2018-2025; see data/validation.md).",
     "fiscalYearUnavailable": {
-      "2026": "missing 2026-09 (not in source)"
+      "2005": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2006": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2007": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2008": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2009": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2010": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2011": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2012": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2013": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2014": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2015": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2016": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2017": "no data: BLS data for this series in the raw file run from 2017-11 to 2026-07",
+      "2026": "incomplete fiscal year, not averaged: missing 2026-09 (not in source)"
     },
     "frequency": "bimonthly",
     "missingMonths": {},
@@ -488,9 +551,11 @@
     "semiannual": {},
     "seriesId": "CUURS35DSA0",
     "sourceId": "bls-cpi-CUURS35DSA0",
+    "startPeriod": "2017-11",
     "title": "All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted"
   },
   "tampa_semiannual": {
+    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Calendar-year BLS annual averages are kept as an alternative. A year with any missing month is null, never a partial average; no values from another series are spliced in.",
     "area": "Tampa-St. Petersburg-Clearwater, FL",
     "basePeriod": "1987=100",
     "calendarYear": {
@@ -519,15 +584,74 @@
       "2022": 273.597,
       "2023": 292.258,
       "2024": 299.315,
-      "2025": 307.516
+      "2025": 307.516,
+      "2026": null
     },
     "calendarYearBasis": "BLS-published annual average (period S03)",
     "calendarYearUnavailable": {
       "2026": "BLS annual average not published"
     },
-    "fiscalYear": {},
+    "defaultAlignment": "fiscalYear",
+    "endPeriod": "2026-H1",
+    "fiscalYear": {
+      "2000": null,
+      "2001": null,
+      "2002": null,
+      "2003": null,
+      "2004": null,
+      "2005": null,
+      "2006": null,
+      "2007": null,
+      "2008": null,
+      "2009": null,
+      "2010": null,
+      "2011": null,
+      "2012": null,
+      "2013": null,
+      "2014": null,
+      "2015": null,
+      "2016": null,
+      "2017": null,
+      "2018": null,
+      "2019": null,
+      "2020": null,
+      "2021": null,
+      "2022": null,
+      "2023": null,
+      "2024": null,
+      "2025": null,
+      "2026": null
+    },
     "fiscalYearBasis": "Not available: semiannual periods (Jan-Jun, Jul-Dec) do not align with the Oct-Sep fiscal year.",
-    "fiscalYearUnavailable": {},
+    "fiscalYearUnavailable": {
+      "2000": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2001": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2002": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2003": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2004": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2005": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2006": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2007": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2008": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2009": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2010": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2011": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2012": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2013": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2014": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2015": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2016": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2017": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2018": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2019": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2020": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2021": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2022": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2023": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2024": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2025": "semiannual series: periods do not align with the Oct-Sep fiscal year",
+      "2026": "semiannual series: periods do not align with the Oct-Sep fiscal year"
+    },
     "frequency": "semiannual",
     "missingMonths": {},
     "monthly": {},
@@ -588,6 +712,7 @@
     },
     "seriesId": "CUUSS35DSA0",
     "sourceId": "bls-cpi-CUUSS35DSA0",
+    "startPeriod": "2000-H1",
     "title": "All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted (semiannual averages)"
   }
 }

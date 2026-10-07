@@ -1,6 +1,6 @@
 /**
  * Downloads raw inputs into data/raw/ and records url / retrieval date / sha256 in
- * data/raw/retrieval.json. This is the only non-deterministic step; `npm run build` works
+ * data/raw/manifest.json. This is the only non-deterministic step; `npm run build` works
  * offline from the committed raw files.
  *
  *   npm run fetch
@@ -11,7 +11,7 @@ import { COUNTIES } from '../config/counties.js';
 import { CPI_SERIES, type BlsResponse } from './bls/cpi.js';
 import { sha256, stableStringify } from './lib/hash.js';
 import { blsPath, edrAfrPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE } from './lib/paths.js';
-import { EDR_AFR_BASE, EDR_COUNTY_FISCAL_PAGE, EDR_COUNTY_FISCAL_PAGE_FILE, EDR_POPULATION_URL, type RetrievalRecord, type RetrievalLog } from './sources.js';
+import { EDR, EDR_AFR_BASE, EDR_COUNTY_FISCAL_PAGE, EDR_COUNTY_FISCAL_PAGE_FILE, EDR_POPULATION_URL, type RetrievalRecord, type RetrievalLog } from './sources.js';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; fl-county-finance-explorer data pipeline)';
 const BLS_API = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
@@ -28,13 +28,13 @@ function loadLog(): RetrievalLog {
   return existsSync(RETRIEVAL_FILE) ? (JSON.parse(readFileSync(RETRIEVAL_FILE, 'utf8')) as RetrievalLog) : { files: {} };
 }
 
-function record(log: RetrievalLog, file: string, bytes: Buffer, entry: Omit<RetrievalRecord, 'sha256' | 'retrieved' | 'lastVerified'>) {
+function record(log: RetrievalLog, file: string, bytes: Buffer, entry: Omit<RetrievalRecord, 'sha256' | 'retrieved' | 'lastVerified' | 'bytes'>) {
   const key = rel(file);
   const hash = sha256(bytes);
   const prev = log.files[key];
   const date = today();
   const unchanged = prev && prev.sha256 === hash;
-  log.files[key] = { ...entry, sha256: hash, retrieved: unchanged ? prev.retrieved : date, lastVerified: date };
+  log.files[key] = { ...entry, sha256: hash, bytes: bytes.length, retrieved: unchanged ? prev.retrieved : date, lastVerified: date };
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, bytes);
   console.log(`${unchanged ? 'unchanged' : 'UPDATED  '} ${key} ${hash.slice(0, 12)}`);
@@ -65,12 +65,13 @@ async function main() {
   for (const county of COUNTIES) {
     for (const flow of ['revenues', 'expenditures'] as const) {
       const url = `${EDR_AFR_BASE}${county.edrFileStem}${flow}.xlsx`;
-      record(log, edrAfrPath(county.edrFileStem, flow), await download(url), { url, method: 'HTTP GET' });
+      record(log, edrAfrPath(county.edrFileStem, flow), await download(url), { url, publisher: EDR, method: 'HTTP GET' });
     }
   }
-  record(log, POPULATION_FILE, await download(EDR_POPULATION_URL), { url: EDR_POPULATION_URL, method: 'HTTP GET' });
+  record(log, POPULATION_FILE, await download(EDR_POPULATION_URL), { url: EDR_POPULATION_URL, publisher: EDR, method: 'HTTP GET' });
   record(log, EDR_COUNTY_FISCAL_PAGE_FILE, await download(EDR_COUNTY_FISCAL_PAGE), {
     url: EDR_COUNTY_FISCAL_PAGE,
+    publisher: EDR,
     method: 'HTTP GET (HTML page saved for its data-use notice)',
   });
 
@@ -85,6 +86,7 @@ async function main() {
     for (const r of requests) delete (r.response as { responseTime?: unknown }).responseTime;
     record(log, blsPath(series.id), Buffer.from(stableStringify({ seriesId: series.id, requests }, 1)), {
       url: BLS_API,
+      publisher: 'U.S. Bureau of Labor Statistics (BLS)',
       method: `BLS Public Data API v2 (no registration key), POST {seriesid:["${series.id}"], annualaverage:true}, ${CPI_START_YEAR}-${endYear} in ${BLS_YEARS_PER_REQUEST}-year requests; responses stored as JSON without the responseTime field`,
     });
   }

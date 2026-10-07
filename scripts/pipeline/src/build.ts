@@ -1,7 +1,7 @@
 /**
  * Builds the normalized JSON in src/assets/data/ from the raw files in data/raw/.
  * Deterministic: same raw bytes -> same output bytes (no timestamps; retrieval dates come
- * from data/raw/retrieval.json).
+ * from data/raw/manifest.json).
  *
  *   npm run build
  */
@@ -49,7 +49,16 @@ function workbookTotals(sheets: AfrSheet[]) {
     .sort((a, b) => a.fiscalYear - b.fiscalYear);
 }
 
-function cpiEntry(config: CpiSeriesConfig, parsed: ParsedCpi): { entry: Record<string, unknown>; caveats: string[] } {
+/**
+ * Year-keyed CPI for one series. Every year in `coverYears` (the finance years) and every year
+ * with data gets a key; years without a complete value are null, with the reason in
+ * *Unavailable. Partial years are never averaged.
+ */
+function cpiEntry(
+  config: CpiSeriesConfig,
+  parsed: ParsedCpi,
+  coverYears: [number, number],
+): { entry: Record<string, unknown>; caveats: string[] } {
   const months = [...parsed.monthly.keys()].sort();
   const halves = [...parsed.semiannual.keys()].sort();
   const periods = months.length ? months : halves;
@@ -57,29 +66,47 @@ function cpiEntry(config: CpiSeriesConfig, parsed: ParsedCpi): { entry: Record<s
   const last = periods.at(-1)!;
   const firstYear = Number(first.slice(0, 4));
   const lastYear = Number(last.slice(0, 4));
+  const fromYear = Math.min(firstYear, coverYears[0]);
+  const coverage = `BLS data for this series in the raw file run from ${first} to ${last}`;
 
   // Fiscal-year averages need sub-annual values that line up with Oct-Sep; only the monthly and
   // bimonthly series have them.
-  const fiscalYear: Record<string, number> = {};
+  const fiscalYear: Record<string, number | null> = {};
   const fiscalYearUnavailable: Record<string, string> = {};
-  if (months.length) {
-    for (let fy = firstYear; fy <= lastYear + 1; fy++) {
-      if (!fiscalYearMonths(fy).some((ym) => parsed.monthly.has(ym) || parsed.missing.has(ym))) continue;
+  for (let fy = fromYear; fy <= Math.max(lastYear, coverYears[1]); fy++) {
+    const key = String(fy);
+    const touches = fiscalYearMonths(fy).some((ym) => parsed.monthly.has(ym) || parsed.missing.has(ym));
+    if (!months.length) {
+      fiscalYear[key] = null;
+      fiscalYearUnavailable[key] = 'semiannual series: periods do not align with the Oct-Sep fiscal year';
+    } else if (!touches) {
+      if (fy < coverYears[0] || fy > coverYears[1]) continue;
+      fiscalYear[key] = null;
+      fiscalYearUnavailable[key] = `no data: ${coverage}`;
+    } else {
       const r = fiscalYearAverage(parsed, config, fy);
-      if (r.ok) fiscalYear[String(fy)] = r.value;
-      else fiscalYearUnavailable[String(fy)] = r.reason;
+      fiscalYear[key] = r.ok ? r.value : null;
+      if (!r.ok) fiscalYearUnavailable[key] = `incomplete fiscal year, not averaged: ${r.reason}`;
     }
   }
 
-  const calendarYear: Record<string, number> = {};
+  const calendarYear: Record<string, number | null> = {};
   const calendarYearUnavailable: Record<string, string> = {};
-  for (let y = firstYear; y <= lastYear; y++) {
+  for (let y = fromYear; y <= Math.max(lastYear, coverYears[1]); y++) {
+    const key = String(y);
     const published = parsed.annual.get(y);
-    if (published !== undefined) calendarYear[String(y)] = published;
+    if (published !== undefined) {
+      calendarYear[key] = published;
+      continue;
+    }
+    const hasData = y >= firstYear && y <= lastYear;
+    if (!hasData && (y < coverYears[0] || y > coverYears[1])) continue;
+    calendarYear[key] = null;
+    if (!hasData) calendarYearUnavailable[key] = `no data: ${coverage}`;
     else if (months.length) {
       const r = averageOf(parsed, config, calendarYearMonths(y));
-      calendarYearUnavailable[String(y)] = r.ok ? 'BLS annual average not published' : `BLS annual average not published; ${r.reason}`;
-    } else calendarYearUnavailable[String(y)] = 'BLS annual average not published';
+      calendarYearUnavailable[key] = r.ok ? 'BLS annual average not published' : `BLS annual average not published; ${r.reason}`;
+    } else calendarYearUnavailable[key] = 'BLS annual average not published';
   }
 
   const caveats = [`Series data in this file run from ${first} to ${last}.`];
@@ -97,6 +124,11 @@ function cpiEntry(config: CpiSeriesConfig, parsed: ParsedCpi): { entry: Record<s
     entry: {
       seriesId: config.id,
       title: config.title,
+      startPeriod: first,
+      endPeriod: last,
+      defaultAlignment: 'fiscalYear',
+      alignmentRule:
+        'Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Calendar-year BLS annual averages are kept as an alternative. A year with any missing month is null, never a partial average; no values from another series are spliced in.',
       area: config.area,
       basePeriod: config.basePeriod,
       frequency: config.frequency,
@@ -141,7 +173,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       sourceId: sourceIds.population,
       reference: 'April 1 of the year shown',
       fiscalYearAlignment:
-        'EDR per-capita figures for fiscal year N (Oct 1, N-1 to Sep 30, N) use the April 1, N value.',
+        'Fiscal year N (Oct 1, N-1 to Sep 30, N) uses the April 1, N value: the same population EDR used for the Per Capita column of each AFR sheet (docs/decisions.md O-05; verified for every sheet in data/validation.md). Basis is the BEBR estimate published for that April 1, except 2010 (census count) and 2020 (revised BEBR estimate).',
       byYear: Object.fromEntries(
         [...selected].map(([year, v]) => [String(year), { value: v.value, basis: v.basis, sheet: v.sheet }]),
       ),
@@ -159,9 +191,11 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     countyFiscalPageSource(rel(inputs.countyFiscalPageFile), retrievalFor(inputs.retrieval, inputs.countyFiscalPageFile)),
   );
 
+  const allFy = inputs.counties.flatMap((c) => [...c.revenues.sheets, ...c.expenditures.sheets].map((s) => s.fiscalYear));
+  const financeYears: [number, number] = [Math.min(...allFy), Math.max(...allFy)];
   const cpi: Record<string, unknown> = {};
   for (const { config, file, parsed } of inputs.cpi) {
-    const { entry, caveats } = cpiEntry(config, parsed);
+    const { entry, caveats } = cpiEntry(config, parsed, financeYears);
     cpi[config.key] = entry;
     sources.push(cpiSource(config, rel(file), retrievalFor(inputs.retrieval, file), caveats));
   }
@@ -169,7 +203,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   const annotations: Annotation[] = [
     {
       fiscalYear: 2021,
-      label: 'Custodial fund reporting begins (GASB 84)',
+      label: 'Custodial fund reporting begins (GASB 84).',
       kind: 'methodology',
       sourceId: sourceIds.countyFiscalPage,
     },

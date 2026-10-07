@@ -5,7 +5,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 export const REPO_ROOT = path.resolve(here, '../../../..');
 export const RAW_DIR = path.join(REPO_ROOT, 'data', 'raw');
-export const RETRIEVAL_FILE = path.join(RAW_DIR, 'retrieval.json');
+/** Raw-file manifest: URL, publisher, retrieval date, sha256 and size of every file in data/raw/. */
+export const RETRIEVAL_FILE = path.join(RAW_DIR, 'manifest.json');
 export const OUT_DIR = path.join(REPO_ROOT, 'src', 'assets', 'data');
 export const VALIDATION_REPORT = path.join(REPO_ROOT, 'data', 'validation.md');
 

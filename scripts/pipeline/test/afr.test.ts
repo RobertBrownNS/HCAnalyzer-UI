@@ -58,6 +58,13 @@ describe('parseAfrSheet (FY 2020-21+ layout with Custodial)', async () => {
     expect(sheet.grandTotal.cachedTotal).toBe(132);
   });
 
+  it('keeps section subtotals and the grand total out of the account rows (no double counting)', () => {
+    expect(sheet.sections.map((x) => x.label)).toEqual(['General Government Taxes']);
+    expect(sheet.accounts.every((a) => /^\d/.test(a.account))).toBe(true);
+    const obs = toObservations('test', [sheet], 'src');
+    expect(obs.some((o) => o.ref.endsWith('5') || o.ref.endsWith('8'))).toBe(false); // section row 5, total row 8
+  });
+
   it('finds population and footnote', () => {
     expect(sheet.population.value).toBe(1000);
     expect(sheet.footnotes).toHaveLength(1);

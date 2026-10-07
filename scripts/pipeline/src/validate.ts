@@ -8,7 +8,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { averageOf, calendarYearMonths, round3 } from './bls/cpi.js';
 import { classifyAccount, normalizeHeading, SECTION_HEADINGS } from './edr/accounts.js';
-import type { AfrSheet } from './edr/afr.js';
+import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
 import { buildOutputs } from './build.js';
 import { fiscalYearLabel } from './lib/fiscal.js';
@@ -37,6 +37,28 @@ const KNOWN_SECTION_PLACEMENTS: Record<string, string> = {
 const KNOWN_CPI_DIFFERENCES: Record<string, string> = {
   'CUUSS35DSA0|2025': 'BLS published no October 2025 index values (footnote: data unavailable due to the 2025 lapse in appropriations). For 2025 the published S01 and S02 averages do not average to the published S03 annual value; S03 is used as published.',
 };
+
+interface CpiJson {
+  fiscalYear: Record<string, number | null>;
+  calendarYear: Record<string, number | null>;
+  fiscalYearUnavailable: Record<string, string>;
+  calendarYearUnavailable: Record<string, string>;
+}
+
+const tag2 = (slug: string, s: string) => `${slug}: ${s}`;
+
+/** [2006, 2007, 2008, 2011] -> "2006-2008, 2011" */
+function ranges(years: number[]): string {
+  const ys = [...new Set(years)].sort((a, b) => a - b);
+  const out: string[] = [];
+  for (let i = 0; i < ys.length; i++) {
+    let j = i;
+    while (j + 1 < ys.length && ys[j + 1] === ys[j] + 1) j++;
+    out.push(i === j ? String(ys[i]) : `${ys[i]}-${ys[j]}`);
+    i = j;
+  }
+  return out.join(', ');
+}
 
 const usd = (n: number) => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 const decimals = (n: number) => (String(n).split('.')[1] ?? '').length;
@@ -224,7 +246,7 @@ async function main() {
       add(flowTag('Excluding custodial: observations = EDR recalculation (Total Account minus Custodial column = sum of remaining fund columns)'), !custodialFails.length,
         custodialFails.length ? custodialFails.join('; ') : 'all years match exactly; custodial column present exactly for FY 2020-21 onward');
       add(flowTag('Workbook population = population.json (selected April 1 value)'), !popFails.length, popFails.length ? popFails.join('; ') : 'all years match');
-      add(flowTag('Workbook per-capita total = Total Account / population'), !perCapitaFails.length, perCapitaFails.length ? perCapitaFails.join('; ') : 'all years within 1e-6');
+      add(flowTag('Workbook per-capita total = Total Account / population (tolerance 1e-6 $/person)'), !perCapitaFails.length, perCapitaFails.length ? perCapitaFails.join('; ') : 'all years within 1e-6');
 
       tables.push(
         `### ${county.name} - ${label}s\n\n` +
@@ -298,26 +320,99 @@ async function main() {
       bad.length ? `differ in ${bad.join(', ')}` : `${overlap.length} overlapping years (${Math.min(...overlap)}-${Math.max(...overlap)}) identical`);
   }
 
-  const cpiJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'cpi.json'), 'utf8')) as Record<
-    string,
-    { fiscalYear: Record<string, number>; calendarYear: Record<string, number> }
-  >;
+  const cpiJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'cpi.json'), 'utf8')) as Record<string, CpiJson>;
   const finYears = inputs.counties.flatMap((c) => [...c.revenues.sheets, ...c.expenditures.sheets].map((s) => s.fiscalYear));
   const [minFy, maxFy] = [Math.min(...finYears), Math.max(...finYears)];
-  const gapsIn = (series: Record<string, number> | undefined) => {
+  const gapsIn = (series: Record<string, number | null> | undefined) => {
     const out: number[] = [];
-    for (let y = minFy; y <= maxFy; y++) if (series?.[String(y)] === undefined) out.push(y);
+    for (let y = minFy; y <= maxFy; y++) if (series?.[String(y)] == null) out.push(y);
     return out;
   };
+  for (const [key, entry] of Object.entries(cpiJson)) {
+    const unexplained: string[] = [];
+    for (const kind of ['fiscalYear', 'calendarYear'] as const) {
+      const reasons = entry[`${kind}Unavailable`];
+      for (let y = minFy; y <= maxFy; y++) if (!(String(y) in entry[kind])) unexplained.push(`${kind} ${y} has no key`);
+      for (const [y, v] of Object.entries(entry[kind])) if (v === null && !reasons[y]) unexplained.push(`${kind} ${y} null without reason`);
+      for (const y of Object.keys(reasons)) if (entry[kind][y] !== null) unexplained.push(`${kind} ${y} has a reason but a value`);
+    }
+    add(`CPI ${key}: every finance year has a key; null years carry a reason (no partial averages, no splicing)`, !unexplained.length,
+      unexplained.length ? unexplained.join('; ') : `FY ${minFy}-${maxFy} keyed`);
+  }
   const natFy = gapsIn(cpiJson['national']?.fiscalYear);
-  add(`CPI national: fiscal-year average for every finance year (FY ${minFy}-${maxFy})`, !natFy.length, natFy.length ? `missing ${natFy.join(', ')}` : 'complete');
+  add(`CPI national: fiscal-year average for every finance year (FY ${minFy}-${maxFy})`, !natFy.length, natFy.length ? `null for ${natFy.join(', ')}` : 'complete');
   const natCy = gapsIn(cpiJson['national']?.calendarYear);
-  add(`CPI national: calendar-year average for every finance year (${minFy}-${maxFy})`, !natCy.length, natCy.length ? `missing ${natCy.join(', ')}` : 'complete');
+  add(`CPI national: calendar-year average for every finance year (${minFy}-${maxFy})`, !natCy.length, natCy.length ? `null for ${natCy.join(', ')}` : 'complete');
   const tampaCy = gapsIn(cpiJson['tampa_semiannual']?.calendarYear);
-  add(`CPI Tampa: calendar-year average (semiannual series) for every finance year (${minFy}-${maxFy})`, !tampaCy.length, tampaCy.length ? `missing ${tampaCy.join(', ')}` : 'complete');
-  const tampaFyYears = Object.keys(cpiJson['tampa']?.fiscalYear ?? {}).map(Number);
+  add(`CPI Tampa: calendar-year average (semiannual series) for every finance year (${minFy}-${maxFy})`, !tampaCy.length, tampaCy.length ? `null for ${tampaCy.join(', ')}` : 'complete');
+  const tampaFy = Object.entries(cpiJson['tampa']?.fiscalYear ?? {}).filter(([, v]) => v !== null).map(([y]) => Number(y));
   add('CPI Tampa: fiscal-year coverage', true,
-    `fiscal-year values exist for FY ${Math.min(...tampaFyYears)}-${Math.max(...tampaFyYears)} only: the bimonthly series starts Nov 2017, and before that BLS published only semiannual averages, which do not align with Oct-Sep`, true);
+    `fiscal-year values exist for FY ${Math.min(...tampaFy)}-${Math.max(...tampaFy)} only; earlier finance years are null with a reason. The bimonthly series starts Nov 2017; before that BLS published only semiannual averages, which do not align with Oct-Sep`, true);
+
+  // --- Account codes appearing / disappearing, fund usage changes ------------------------
+  const accountSections: string[] = [];
+  for (const { county, revenues, expenditures } of inputs.counties) {
+    for (const [label, sheets] of [['revenue', revenues.sheets], ['expenditure', expenditures.sheets]] as const) {
+      const years = sheets.map((s) => s.fiscalYear).sort((a, b) => a - b);
+      const presence = new Map<string, { name: string; years: number[]; funds: Map<string, number[]> }>();
+      for (const s of [...sheets].sort((a, b) => a.fiscalYear - b.fiscalYear)) {
+        for (const a of s.accounts) {
+          const e = presence.get(a.account) ?? { name: a.name, years: [] as number[], funds: new Map<string, number[]>() };
+          e.name = a.name;
+          e.years.push(s.fiscalYear);
+          for (const v of a.values) if (v.amount !== 0) e.funds.set(v.fundType, [...(e.funds.get(v.fundType) ?? []), s.fiscalYear]);
+          presence.set(a.account, e);
+        }
+      }
+      const partial = [...presence].filter(([, e]) => e.years.length !== years.length).sort((x, y) => Number(x[0]) - Number(y[0]));
+      const always = presence.size - partial.length;
+      add(tag2(county.slug, `${label}s: account codes present in some years only`), true,
+        `${presence.size} distinct codes; ${always} in every year (${fiscalYearLabel(years[0])} to ${fiscalYearLabel(years.at(-1)!)}); ${partial.length} appear, disappear or have gaps (listed under "Account codes by year")`, true);
+      const fundChanges = [...presence].filter(([, e]) => e.funds.size > 1).sort((x, y) => Number(x[0]) - Number(y[0]));
+      accountSections.push(
+        `### ${county.name} - ${label} account codes not present in every year\n\n` +
+          `${partial.length} of ${presence.size} codes. A gap can mean the county reported nothing under that code that year, a code added or retired in the Uniform Accounting System, or a change in how the county coded the item; the data do not say which.\n\n` +
+          '| Account | Latest name | Fiscal years present (year ending) |\n|---|---|---|\n' +
+          partial.map(([code, e]) => `| ${code} | ${e.name.replace(/\|/g, '\\|')} | ${ranges(e.years)} |`).join('\n') +
+          `\n\n<details><summary>${label} accounts reported in more than one fund type (${fundChanges.length}), with the years each fund was non-zero</summary>\n\n` +
+          '| Account | Latest name | Fund: years non-zero |\n|---|---|---|\n' +
+          fundChanges.map(([code, e]) => `| ${code} | ${e.name.replace(/\|/g, '\\|')} | ${[...e.funds].map(([f, ys]) => `${f}: ${ranges(ys)}`).join('; ')} |`).join('\n') +
+          '\n\n</details>\n',
+      );
+    }
+  }
+
+  // --- Cells to re-derive by hand ----------------------------------------------------------
+  const handRows: string[] = [];
+  for (const { county, revenues, expenditures } of inputs.counties) {
+    for (const [file, sheets] of [[revenues.file, revenues.sheets], [expenditures.file, expenditures.sheets]] as const) {
+      const latest = sheets.reduce((x, y) => (y.fiscalYear > x.fiscalYear ? y : x));
+      const pre = sheets.find((s) => s.fiscalYear === 2020) ?? sheets[0];
+      for (const s of [pre, latest]) {
+        const first = s.accounts[0];
+        const gen = first.values.find((v) => v.fundType === 'general')!;
+        handRows.push(`| ${county.slug} | \`${path.basename(file)}\` | ${fiscalYearLabel(s.fiscalYear)} | account ${first.account} (${first.name}), General | \`${s.sheetName}!${gen.address}\` | ${usd(gen.amount)} |`);
+        handRows.push(`| ${county.slug} | \`${path.basename(file)}\` | ${fiscalYearLabel(s.fiscalYear)} | Total - All Account Codes, Total column (formula, cached value) | \`${s.sheetName}!${colLetter(s.totalCol)}${s.grandTotal.row}\` | ${usd(s.grandTotal.cachedTotal ?? NaN)} |`);
+        const cust = s.fundColumns.find((f) => f.fundType === 'custodial');
+        if (cust) {
+          const c = s.grandTotal.cached['custodial'] ?? 0;
+          handRows.push(`| ${county.slug} | \`${path.basename(file)}\` | ${fiscalYearLabel(s.fiscalYear)} | Total - All Account Codes, Custodial column | \`${s.sheetName}!${colLetter(cust.col)}${s.grandTotal.row}\` | ${usd(c)} (total excl. custodial ${usd((s.grandTotal.cachedTotal ?? NaN) - c)}) |`);
+        }
+        handRows.push(`| ${county.slug} | \`${path.basename(file)}\` | ${fiscalYearLabel(s.fiscalYear)} | Countywide population | \`${s.sheetName}!${colLetter(s.perCapitaCol)}${s.population.row}\` | ${s.population.value.toLocaleString('en-US')} |`);
+      }
+    }
+  }
+
+  // --- Counts -------------------------------------------------------------------------------
+  const countRows: string[] = [];
+  for (const { county, revenues, expenditures } of inputs.counties) {
+    const obs = JSON.parse(readFileSync(path.join(OUT_DIR, `${county.slug}.observations.json`), 'utf8')) as Observation[];
+    for (const [label, sheets] of [['revenue', revenues.sheets], ['expenditure', expenditures.sheets]] as const) {
+      const o = obs.filter((x) => x.flow === label);
+      const funds = new Set(sheets.flatMap((s) => s.fundColumns.map((f) => f.fundType)));
+      countRows.push(`| ${county.slug} | ${label}s | ${sheets.length} | ${new Set(sheets.flatMap((s) => s.accounts.map((a) => a.account))).size} | ${sumBy(sheets, (s) => s.accounts.length).toLocaleString('en-US')} | ${funds.size} (${[...funds].join(', ')}) | ${new Set(o.map((x) => x.fundType)).size} | ${o.length.toLocaleString('en-US')} |`);
+    }
+  }
 
   // --- Report ---------------------------------------------------------------------------
   const failed = checks.filter((c) => c.status === 'FAIL');
@@ -328,7 +423,7 @@ async function main() {
     '',
     `**Result: ${failed.length ? `FAIL (${failed.length} failing checks)` : 'PASS'}** - ${checks.filter((c) => c.status === 'PASS').length} passed, ${failed.length} failed, ${checks.filter((c) => c.status === 'NOTE').length} notes.`,
     '',
-    'Inputs (sha256 verified against `data/raw/retrieval.json`):',
+    'Inputs (sha256 verified against `data/raw/manifest.json`):',
     '',
     ...Object.entries(inputs.retrieval.files).sort().map(([p, r]) => `- \`${p}\` - ${r.sha256} (retrieved ${r.retrieved})`),
     '',
@@ -337,6 +432,22 @@ async function main() {
     '| Status | Check | Detail |',
     '|---|---|---|',
     ...checks.map((c) => `| ${c.status} | ${c.name} | ${c.detail.replace(/\|/g, '\\|')} |`),
+    '',
+    '## Counts',
+    '',
+    '| Jurisdiction | Flow | Fiscal years | Distinct account codes | Account rows | Fund columns in workbook | Fund types with non-zero amounts | Observations (non-zero cells) |',
+    '|---|---|---:|---:|---:|---|---:|---:|',
+    ...countRows,
+    '',
+    'Tolerances: all dollar comparisons are exact (amounts are whole dollars, and the sums are exact in double precision). Per-capita: |workbook per-capita - Total / population| <= 1e-6 dollars per person. CPI method check: equal at the published BLS precision (semiannual halves: within one unit in the last published decimal).',
+    '',
+    '## Cells to re-derive by hand',
+    '',
+    'Open the raw workbook, go to the cell, and compare. Total and per-capita cells are formulas; the value shown is the result Excel cached in the file, which validation recomputes from the account rows.',
+    '',
+    '| Jurisdiction | Workbook | Fiscal year | What | Cell | Value |',
+    '|---|---|---|---|---|---|',
+    ...handRows,
     '',
     '## Totals by fiscal year',
     '',
@@ -351,6 +462,9 @@ async function main() {
     '|---|---:|---:|---:|---:|---|',
     ...cpiRows,
     '',
+    '## Account codes by year',
+    '',
+    ...accountSections,
   ].join('\n');
   writeFileSync(VALIDATION_REPORT, md);
 

@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { classifyAccount, formatAccountCode, normalizeHeading, SECTION_HEADINGS } from '../src/edr/accounts.js';
 import { cleanCountyName, selectPopulation, type PopulationValue } from '../src/edr/population.js';
-import { fiscalYearLabel, fiscalYearMonths, parseFiscalYearTitle } from '../src/lib/fiscal.js';
+import { fiscalYearLabel, fiscalYearMonths, parseFiscalYearLabel, parseFiscalYearTitle } from '../src/lib/fiscal.js';
 import { stableStringify } from '../src/lib/hash.js';
 
 describe('fiscal year helpers', () => {
   it('labels FY by ending year', () => {
     expect(fiscalYearLabel(2021)).toBe('FY 2020-21');
     expect(fiscalYearLabel(2000)).toBe('FY 1999-00');
+  });
+
+  it('parses FY labels to the ending year', () => {
+    expect(parseFiscalYearLabel('2020-21')).toBe(2021);
+    expect(parseFiscalYearLabel('FY 1999-00')).toBe(2000);
+    expect(parseFiscalYearLabel(fiscalYearLabel(2025))).toBe(2025);
+    expect(() => parseFiscalYearLabel('2020-22')).toThrow();
+    expect(() => parseFiscalYearLabel('2021')).toThrow();
   });
 
   it('lists Oct-Sep months', () => {

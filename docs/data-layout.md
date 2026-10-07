@@ -8,11 +8,11 @@ What the raw files look like, how the pipeline reads them, and what it writes. E
 cd scripts/pipeline
 npm install
 npm run pipeline          # unit tests, then build src/assets/data/ from data/raw/, then validate
-npm run fetch             # re-download data/raw/ and update data/raw/retrieval.json (network)
+npm run fetch             # re-download data/raw/ and update data/raw/manifest.json (network)
 npm run pipeline:refresh  # fetch + pipeline
 ```
 
-- `build` works offline and is deterministic: the same raw bytes give the same output bytes. It refuses to run if a raw file's sha256 differs from `data/raw/retrieval.json`.
+- `build` works offline and is deterministic: the same raw bytes give the same output bytes. It refuses to run if a raw file's sha256 differs from `data/raw/manifest.json`.
 - `validate` rebuilds in memory, requires the files on disk to match byte for byte, re-checks every total against the workbooks, writes `data/validation.md`, and exits 1 on any failure.
 - Counties are configured in `scripts/pipeline/config/counties.ts`. Only Hillsborough is listed.
 
@@ -27,7 +27,7 @@ npm run pipeline:refresh  # fetch + pipeline
 | `bls/CUUR0000SA0.json` | BLS | API v2 | CPI-U, U.S. city average, monthly, 2000-01 to 2026-08, plus annual averages |
 | `bls/CUURS35DSA0.json` | BLS | API v2 | CPI-U, Tampa-St. Petersburg-Clearwater, bimonthly, 2017-11 to 2026-07, plus annual averages |
 | `bls/CUUSS35DSA0.json` | BLS | API v2 | CPI-U, Tampa-St. Petersburg-Clearwater, semiannual and annual averages, 2000 to 2026-H1 |
-| `retrieval.json` | (pipeline) | | URL, method, retrieval date, last-verified date, and sha256 for each file above |
+| `manifest.json` | (pipeline) | | Raw-file manifest (P1-02): source URL, publisher, method, retrieved date (ISO), last-verified date, sha256 and byte size for each file above. Written by `npm run fetch` |
 
 Both EDR AFR workbooks were already in the repo (`finance_data/`, moved with `git mv`). A fresh download on 2026-10-06 was byte-identical (same sha256), so their retrieval date is 2026-10-06.
 
@@ -83,9 +83,22 @@ Groups in row 3: Governmental = General, Special Revenue, Debt Service, Capital 
 
 **The workbook's Total column adds up every fund column, including fiduciary funds and Component Units.** Component Units are legally separate entities. In Hillsborough they are $3.5M to $12.5M a year in revenue.
 
-### Formula cells
+### Formula cells vs values (P1-01)
 
-Totals, subtotals and per-capita cells are formulas, and the parser uses the values Excel cached in the file. exceljs's `cell.value` drops a cached result of `0`, so `scripts/pipeline/src/lib/xlsx.ts` reads `cell.result` instead. This was checked against the raw XML, where cached zeros are stored as `<v>0</v>`.
+What the downloaded files contain, checked in the raw sheet XML (`xl/worksheets/sheet1.xml` of the revenue workbook) and with exceljs for every sheet:
+
+| Cells | In the downloaded file |
+|---|---|
+| Account-row fund cells (General through Component Units) | **Values** (constants). No account row in either workbook has a formula or a blank fund cell |
+| Account-row Total Account / Account Total | **Formula** `=SUM(D{r}:O{r})` (FY 2021+) or `=SUM(D{r}:M{r})` (before), with a cached value |
+| Account-row Per Capita | **Formula** `=(P{r}/Q$pop)` (FY 2021+) or `=(N{r}/O$pop)`, with a cached value |
+| Section heading rows | **Formulas** `=SUM(...)` over the section's account rows, per fund column, plus the Total and Per Capita formulas |
+| `Total - All Account Codes` row | **Formulas** summing the section rows (e.g. `=SUM(D5,D14,D26,D68,D107,D116,D127)` in revenue sheet 2025), plus Total and Per Capita |
+| Population cell | **Value** |
+
+Many formula cells are Excel "shared formulas" (only the first cell of a block stores the formula text). Every formula cell has a cached result. The pipeline never evaluates formulas: it reads account-row values, and validation compares them against the cached formula results (row totals, section subtotals, total row, per capita).
+
+The parser uses the values Excel cached in the file. exceljs's `cell.value` drops a cached result of `0`, so `scripts/pipeline/src/lib/xlsx.ts` reads `cell.result` instead. This was checked against the raw XML, where cached zeros are stored as `<v>0</v>`.
 
 ### Section headings
 
@@ -115,16 +128,39 @@ Headings changed wording over the years. All of them are mapped in `SECTION_HEAD
 
 The one place where the printed section disagrees with the code: revenue account 367 (Licenses) is printed under "Permits, Fees, and Special Assessments" in FY 2009-10 to FY 2018-19 and under Miscellaneous Revenues in other years. The pipeline classifies by code, so 367 is always `miscellaneous`. Validation lists this as a documented exception and fails on any other disagreement.
 
+### Account codes that appear or disappear
+
+Only 67 of 202 revenue codes and 50 of 103 expenditure codes appear in every fiscal year. The others start, stop, or have gaps. The full list, with the years each code is present and the fund types each account used by year, is generated into `data/validation.md` ("Account codes by year").
+
+The data alone can't say whether a gap is a Uniform Accounting System code change, a reclassification by the county, or simply no activity that year. One clear case: revenue 312.1 (Local Option Taxes) runs FY 2005-06 to FY 2019-20, and 312.13 (Tourist Development Taxes) starts in FY 2020-21. Both classify as `other_taxes`, so category totals are not affected. Account-level series across such a change need a caveat.
+
 ### Account names
 
 Account names changed wording over the years: 64 revenue codes and 47 expenditure codes have more than one printed name. Examples: "Hospital Services" became "Hospitals", and "General Gov't (Not Court-Related) - Recording Fees" became "General Government - Recording Fees". `hillsborough.accounts.json` keeps every printed name with the years it was used. Its `name` field is the most recent one.
+
+### Cells to re-derive by hand (P1-01 / P1-09)
+
+`data/validation.md` ("Cells to re-derive by hand") lists generated cell references for each workbook, pre- and post-FY 2020-21. Examples from the current files:
+
+| Workbook | FY | What | Cell | Value |
+|---|---|---|---|---|
+| revenues | FY 2019-20 | 311 Ad Valorem Taxes, General | `2020!D6` | $833,934,111 |
+| revenues | FY 2019-20 | Total - All Account Codes, Account Total | `2020!N134` | $3,861,555,795 |
+| revenues | FY 2024-25 | 311 Ad Valorem Taxes, General | `2025!D6` | $1,336,984,429 |
+| revenues | FY 2024-25 | Total - All Account Codes, Total Account | `2025!P134` | $9,597,307,134 |
+| revenues | FY 2024-25 | Total - All Account Codes, Custodial | `2025!K134` | $4,128,975,000 (total excl. custodial $5,468,332,134) |
+| revenues | FY 2024-25 | Countywide population | `2025!Q136` | 1,575,637 |
+| expenditures | FY 2019-20 | 511 Legislative, General | `2020!D6` | $3,124,072 |
+| expenditures | FY 2019-20 | Total - All Account Codes, Account Total | `2020!N79` | $3,674,588,853 |
+| expenditures | FY 2024-25 | Total - All Account Codes, Total Account | `2025!P78` | $9,035,938,484 |
+| expenditures | FY 2024-25 | Total - All Account Codes, Custodial | `2025!K78` | $4,114,554,470 (total excl. custodial $4,921,384,014) |
 
 ## FLcopops.xlsx (population)
 
 - One sheet per April 1 reference year, named `YYYY BEBR`, `YYYY Revised BEBR` or `YYYY Census` (1972-2025). 2020 has both `2020 Revised BEBR` (Hillsborough 1,478,759) and `2020 Census` (1,459,762). 2010 and 2000 have only a census sheet.
 - Row 2 B = "Countywide", row 3 B = "Population", county rows start at row 4, and column A is the county name. Revised counties carry a trailing ` *` (the 2020 revised sheet has "Hillsborough *").
 - Selection rule: revised estimate, then estimate, then census. This reproduces the per-capita denominator EDR used in every AFR sheet. Validation checks this for all 41 sheets.
-- **Fiscal-year alignment:** FY N uses the April 1, N value (FY 2024-25 → April 1, 2025 = 1,575,637).
+- **Fiscal-year alignment (decisions.md O-05, option c = EDR's own choice):** FY N uses the April 1, N value, which is exactly the population in each AFR sheet's population cell and Per Capita denominator (FY 2024-25 → April 1, 2025 = 1,575,637). This is option (b) of O-05, the April 1 of the year the FY ends. Vintage: the BEBR estimate first published for that April 1 ("Florida Estimates of Population: April 1, YYYY", BEBR, University of Florida), not later revisions. The exceptions are 2010 (census count) and 2020 (the revised BEBR estimate, "2020 Revised BEBR" sheet). Validation checks all 41 sheets.
 - These are point-in-time estimates, not an intercensal-revised series. Around census years the series can jump (2009 estimate 1,196,892, then 2010 census 1,229,226). 2008 (1,200,541) is higher than 2009.
 
 ## BLS CPI
@@ -135,6 +171,7 @@ Account names changed wording over the years: 64 revenue codes and 47 expenditur
 | CUURS35DSA0 | Tampa-St. Petersburg-Clearwater | 1987=100 | **Bimonthly, odd months** (Jan, Mar, May, Jul, Sep, Nov) | **2017-11** to 2026-07; annual average 2018-2025 |
 | CUUSS35DSA0 | Tampa-St. Petersburg-Clearwater | 1987=100 | **Semiannual** (S01 Jan-Jun, S02 Jul-Dec) + annual (S03) | 2000-H1 to 2026-H1; annual 2000-2025 |
 
+- **Correction to the plan:** the Tampa index base is **1987=100**, not Dec 2017=100. The bimonthly series simply starts publishing in November 2017.
 - The series ID CUURS35DSA0 for Tampa was verified on data.bls.gov ("All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted", base 1987=100). Annual averages in CUURS35DSA0 (M13) and CUUSS35DSA0 (S03) are identical for 2018-2025.
 - **October 2025 national CPI is missing.** BLS footnote: "Data unavailable due to the 2025 lapse in appropriations." BLS still published a 2025 annual average (321.943), which is used as published. FY 2025-26 national has no fiscal-year average (`fiscalYearUnavailable`). It isn't needed for FY 2024-25 or earlier.
 - National values before 2007 have 1 decimal. Values from 2007 on have 3.
@@ -151,7 +188,7 @@ Account names changed wording over the years: 64 revenue codes and 47 expenditur
 | `hillsborough.accounts.json` | One row per (flow, account): `section`, `category`, latest `name`, and every printed name with its years |
 | `hillsborough.workbook-totals.json` | The workbook's own cached `Total - All Account Codes` row per FY and flow (per fund, total, per capita, population). Reference values for transform tests and QA |
 | `population.json` | `{ [county]: { byYear: { "2025": { value, basis, sheet } }, alternates, sourceId, ... } }` |
-| `cpi.json` | `{ national, tampa, tampa_semiannual }`, each with `monthly`, `missingMonths`, `semiannual`, `calendarYear`, `fiscalYear`, `*Unavailable` maps with reasons, and basis strings |
+| `cpi.json` | `{ national, tampa, tampa_semiannual }`, each with `startPeriod`/`endPeriod`, `defaultAlignment: "fiscalYear"`, `alignmentRule` (decisions.md O-03), `monthly`, `missingMonths`, `semiannual`, `calendarYear`, `fiscalYear`, and `*Unavailable` reason maps. Every finance year (FY 2005-2025) has a key in `fiscalYear` and `calendarYear`; a year with no complete value is `null` and its reason is in `fiscalYearUnavailable` / `calendarYearUnavailable`. Partial years are never averaged and no series is spliced into another |
 | `annotations.json` | FY 2021 "Custodial fund reporting begins (GASB 84)", `kind: methodology`, source = EDR index page notice |
 | `sources.json` | `Source` (CLAUDE.md) for every input, plus `rawFile` and `accessUrl` (the endpoint actually downloaded when `url` is a human-readable page) |
 | `manifest.json` | `schemaVersion`, `dataVersion` (hash of the output hashes), input sha256s, output sha256 and byte counts. No timestamps |
