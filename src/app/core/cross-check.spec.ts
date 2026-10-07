@@ -203,6 +203,26 @@ describe('crossCheckInScope (QA-40 and addendum)', () => {
     });
   });
 
+  it("uses the annotation's amount when the data gives one", () => {
+    const withAmount = { ...hb, amount: 1_000_000 };
+    expect(crossCheckInScope(mismatch, 2015, [withAmount], observations, hbScope(['internal_service']))!.selectionDifference).toBe(1_000_000);
+  });
+
+  it('never says "matches" for a not-checked year (before FY 2012-13), in any scope, in either county', () => {
+    const notChecked: CrossCheckRange = { fromFiscalYear: 2005, toFiscalYear: 2012, status: 'not-checked' };
+    const early = [2006, 2008, 2010, 2012].flatMap((fy) => [
+      { ...hb, fiscalYear: fy },
+      { ...pn, fiscalYear: fy },
+    ]);
+    for (const fy of [2006, 2008, 2010, 2012]) {
+      for (const scope of [hbScope(), hbScope(['general']), hbScope(['internal_service']), pnScope(), pnScope(['general']), pnScope(undefined, 'ad_valorem')]) {
+        const r = crossCheckInScope(notChecked, fy, early, observations, scope)!;
+        expect(r.status).toBe('not-checked');
+        for (const form of ['long', 'short'] as const) expect(crossCheckYearText(r, form)).not.toMatch(/match/i);
+      }
+    }
+  });
+
   it('never claims a match the annotations do not explain', () => {
     const twoDiffs = { ...mismatch, classificationDifferences: 2 };
     expect(crossCheckInScope(twoDiffs, 2015, notes, observations, hbScope(['general']))).toBe(twoDiffs);
@@ -219,5 +239,36 @@ describe('crossCheckInScope (QA-40 and addendum)', () => {
     const byYear = crossCheckByYearInScope(new Map([[2015, mismatch], [2016, full]]), notes, observations, hbScope(['general']))!;
     expect(byYear.get(2015)!.status).toBe('full');
     expect(byYear.get(2016)).toBe(full);
+  });
+});
+
+describe('published data: no "matches" before FY 2012-13 (DR-45, DR-54)', () => {
+  interface Fs {
+    readFileSync(path: string, encoding: string): string;
+  }
+  const read = async (file: string) => {
+    const fs: Fs = await import(/* @vite-ignore */ ['node', 'fs'].join(':'));
+    return JSON.parse(fs.readFileSync(`src/assets/data/${file}`, 'utf-8'));
+  };
+
+  it('in every fund scope, both counties and flows', async () => {
+    const sources: SourceRecord[] = await read('sources.json');
+    const annotations: AnnotationRecord[] = await read('annotations.json');
+    for (const county of ['hillsborough', 'pinellas']) {
+      const file = await read(`${county}.observations.json`);
+      const observations: AfrObservation[] = Array.isArray(file) ? file : file.observations;
+      for (const flow of ['revenue', 'expenditure'] as const) {
+        const coverage = coverageFor(sources, observations, county, flow);
+        expect(coverage, `${county} ${flow} coverage`).not.toBeNull();
+        const years = Array.from({ length: 21 }, (_, i) => 2005 + i);
+        for (const funds of [undefined, ['general'], ['internal_service'], ['component_unit'], ['special_revenue']]) {
+          const byYear = crossCheckByYearInScope(crossCheckByYear(years, coverage), annotations, observations, { jurisdiction: county, flow, funds })!;
+          for (const fy of years.filter((y) => y < 2013)) {
+            const r = byYear.get(fy);
+            if (r) expect(crossCheckYearText(r), `${county} ${flow} ${fy} ${funds}`).not.toMatch(/match/i);
+          }
+        }
+      }
+    }
   });
 });

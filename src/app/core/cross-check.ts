@@ -115,11 +115,13 @@ export interface CrossCheckScope {
  * difference is a reclassification recorded as a `reconciliation-difference` annotation: `cells`
  * (account + fund) name the EDR amount, `funds` (optional) the pair of funds it moves between.
  * - The fund selection holds one side of `funds`, and the amount's category is in view: the
- *   selection's total differs from the county filing by the amount (`selectionDifference`).
+ *   selection's total differs from the county filing by the amount (`selectionDifference`): the
+ *   annotation's `amount`, else the sum of the cells' EDR amounts.
  * - Otherwise, when no reclassified cell is in view (another fund or category), every difference
  *   the source counted is outside the view, so the view matches the filing: status `full`.
  * - Otherwise (the amount is in view with both sides selected) the year is unchanged: "Total
  *   matches; 1 amount classified differently".
+ * Only mismatch years change: a not-checked year never reads "matches" (DR-45, DR-54).
  * The view only counts as matching when the annotations account for every counted difference
  * (classification differences only, one annotation each); anything else is left as the source says.
  */
@@ -159,7 +161,8 @@ export function crossCheckInScope(
     if (scope.category && !amounts.some((o) => o.category === scope.category)) continue;
     const sides = a.funds ? a.funds.filter(fundInView).length : 0;
     if (a.funds && sides > 0 && sides < a.funds.length) {
-      difference += Math.abs(amounts.reduce((sum, o) => sum + o.amount, 0));
+      // The reconciled amount from the data (DR-50); the cells' EDR amounts only if it is missing.
+      difference += a.amount ?? Math.abs(amounts.reduce((sum, o) => sum + o.amount, 0));
     } else if (amounts.some((o) => fundInView(o.fundType))) {
       inView++;
     }
