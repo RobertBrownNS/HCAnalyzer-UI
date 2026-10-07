@@ -54,3 +54,14 @@
   font: var(--fx-type-body-small);
   text-decoration: underline;
 }
+
+.group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fx-space-2);
+}
+
+.mode-toggle {
+  align-self: center;
+}

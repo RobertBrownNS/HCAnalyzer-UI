@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 import {
@@ -19,6 +19,27 @@ import { CpiIndex, CpiPeriod, Measure, TransferMode, fiscalYearLabel } from '../
 import { ExplorerStore } from './explorer-store';
 import { MAPPING_ID } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
+
+export type FundsMode = 'simple' | 'advanced';
+/** localStorage key for the desktop fund filter mode. */
+export const FUNDS_MODE_KEY = 'fx.fundsMode';
+
+/** The stored mode; Simple when storage is empty, blocked or unavailable. */
+export function readFundsMode(): FundsMode {
+  try {
+    return globalThis.localStorage?.getItem(FUNDS_MODE_KEY) === 'advanced' ? 'advanced' : 'simple';
+  } catch {
+    return 'simple';
+  }
+}
+
+export function writeFundsMode(mode: FundsMode): void {
+  try {
+    globalThis.localStorage?.setItem(FUNDS_MODE_KEY, mode);
+  } catch {
+    // Storage blocked (private mode, policy): the mode lasts for this page only.
+  }
+}
 
 export type ControlGroup = 'county' | 'flow' | 'measure' | 'range' | 'funds' | 'categories' | 'inflation';
 
@@ -90,6 +111,38 @@ export class ExplorerControlsComponent {
     return p ? fundsIncludedText(p.funds, this.store.fundsAvailable(), this.fundsMeta()) : '';
   });
   readonly netAllowed = this.store.netAllowed;
+
+  // --- Funds: Simple / Advanced (desktop pane only; the phone sheet always shows everything) ---
+  /** The viewer's chosen mode, kept in localStorage (a UI preference, never in the URL). */
+  private readonly fundsMode = signal<FundsMode>(readFundsMode());
+  /** The custom selection the viewer chose Simple for; another selection opens Advanced again. */
+  private readonly simpleFor = signal<string | null>(null);
+  private readonly selectionKey = computed(() => (this.settings().funds ?? []).join(','));
+  readonly customSelection = computed(() => this.matchedPreset() === 'custom');
+  /**
+   * Per-fund checkboxes shown: always in the phone sheet; in the pane in Advanced mode, and for any
+   * custom selection (a link or Back/Forward), unless the viewer chose Simple for that selection.
+   */
+  readonly fundsAdvanced = computed(
+    () =>
+      this.only() !== null ||
+      this.fundsMode() === 'advanced' ||
+      (this.customSelection() && this.simpleFor() !== this.selectionKey()),
+  );
+  /** The mode toggle appears in the pane only. */
+  readonly showFundsToggle = computed(() => this.only() === null);
+
+  toggleFundsMode(): void {
+    if (this.fundsAdvanced()) {
+      this.fundsMode.set('simple');
+      // Keep a custom selection; Simple just hides its checkboxes (the hint says it is custom).
+      this.simpleFor.set(this.customSelection() ? this.selectionKey() : null);
+    } else {
+      this.fundsMode.set('advanced');
+      this.simpleFor.set(null);
+    }
+    writeFundsMode(this.fundsMode());
+  }
   private readonly selectedFunds = computed(() => this.settings().funds ?? this.store.fundsAvailable());
   readonly selectedFundCount = computed(() => this.selectedFunds().length);
 

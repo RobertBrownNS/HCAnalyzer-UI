@@ -70,7 +70,20 @@
 
 @if (show('funds')) {
   <div class="divider" role="group" aria-labelledby="funds-label">
-    <span id="funds-label" class="group-label">Funds</span>
+    <div class="group-head">
+      <span id="funds-label" class="group-label">Funds</span>
+      @if (showFundsToggle()) {
+        <button
+          type="button"
+          class="link mode-toggle"
+          [attr.aria-expanded]="fundsAdvanced()"
+          aria-controls="fund-checkboxes"
+          (click)="toggleFundsMode()"
+        >
+          {{ fundsAdvanced() ? 'Simple' : 'Advanced' }}
+        </button>
+      }
+    </div>
     @if (presets().length) {
       <div class="presets" role="group" aria-label="Fund presets">
         @for (p of presets(); track p.id) {
@@ -91,22 +104,24 @@
       }
       {{ scopeDescription() }}
     </span>
-    @for (g of fundGroups(); track g.id) {
-      <fieldset class="fund-group">
-        <legend class="group-label">{{ g.label }}</legend>
-        @for (f of g.funds; track f.id) {
-          <label class="fx-check">
-            <input
-              type="checkbox"
-              [checked]="isFundSelected(f.id)"
-              [disabled]="isFundSelected(f.id) && selectedFundCount() === 1"
-              (change)="toggleFund(f.id, checked($event))"
-            />
-            {{ f.label }}
-          </label>
-        }
-      </fieldset>
-    }
+    <div id="fund-checkboxes" [hidden]="!fundsAdvanced()">
+      @for (g of fundGroups(); track g.id) {
+        <fieldset class="fund-group">
+          <legend class="group-label">{{ g.label }}</legend>
+          @for (f of g.funds; track f.id) {
+            <label class="fx-check">
+              <input
+                type="checkbox"
+                [checked]="isFundSelected(f.id)"
+                [disabled]="isFundSelected(f.id) && selectedFundCount() === 1"
+                (change)="toggleFund(f.id, checked($event))"
+              />
+              {{ f.label }}
+            </label>
+          }
+        </fieldset>
+      }
+    </div>
     <label class="fx-check">
       <input
         type="checkbox"

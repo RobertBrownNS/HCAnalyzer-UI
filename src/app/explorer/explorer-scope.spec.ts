@@ -10,7 +10,7 @@ import { DataService, DataStatus } from '../core/data.service';
 import { formatValue } from '../core/format';
 import { AccountRecord, AfrObservation, CategoriesFile, CpiFile, FundsFile, PopulationFile } from '../core/models';
 import { TransformData, settingsWithDefaults } from '../core/transform';
-import { ExplorerControlsComponent } from './explorer-controls.component';
+import { ExplorerControlsComponent, FUNDS_MODE_KEY } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
 import { kpiCards, measureCaption, unitPhrase } from './kpi';
 import { MethodologyComponent, categoryMappingRows } from './methodology.component';
@@ -454,6 +454,95 @@ describe('Funds and categories controls', () => {
     [...el.querySelectorAll<HTMLButtonElement>('.presets button')].find((b) => b.textContent?.includes('Governmental'))!.click();
     await harness.fixture.whenStable();
     expect(store.settings().funds).toEqual(['general', 'special_revenue']);
+  });
+
+  describe('Simple / Advanced fund filter (desktop pane)', () => {
+    const toggle = (el: HTMLElement) => el.querySelector<HTMLButtonElement>('.mode-toggle')!;
+    const checkboxes = (el: HTMLElement) => el.querySelector<HTMLElement>('#fund-checkboxes')!;
+    const url = () => TestBed.inject(Router).url;
+
+    beforeEach(() => localStorage.removeItem(FUNDS_MODE_KEY));
+    afterEach(() => localStorage.removeItem(FUNDS_MODE_KEY));
+
+    it('defaults to Simple: presets and the Includes line, no per-fund checkboxes', async () => {
+      const { el } = await open('/');
+      expect(toggle(el).textContent?.trim()).toBe('Advanced');
+      expect(toggle(el).getAttribute('aria-expanded')).toBe('false');
+      expect(toggle(el).getAttribute('aria-controls')).toBe('fund-checkboxes');
+      expect(checkboxes(el).hidden).toBe(true);
+      expect(el.querySelectorAll('.presets button').length).toBe(3);
+      expect(el.textContent).toContain('Includes General, Special Revenue and Enterprise.');
+    });
+
+    it('toggles to Advanced and back, storing the choice, never in the URL', async () => {
+      const { el } = await open('/');
+      const before = url();
+      toggle(el).click();
+      await harness.fixture.whenStable();
+      expect(checkboxes(el).hidden).toBe(false);
+      expect(toggle(el).getAttribute('aria-expanded')).toBe('true');
+      expect(toggle(el).textContent?.trim()).toBe('Simple');
+      expect(localStorage.getItem(FUNDS_MODE_KEY)).toBe('advanced');
+      toggle(el).click();
+      await harness.fixture.whenStable();
+      expect(checkboxes(el).hidden).toBe(true);
+      expect(localStorage.getItem(FUNDS_MODE_KEY)).toBe('simple');
+      expect(url()).toBe(before);
+      expect(url()).not.toMatch(/mode|advanced|simple/i);
+    });
+
+    it('opens in the stored mode', async () => {
+      localStorage.setItem(FUNDS_MODE_KEY, 'advanced');
+      const { el } = await open('/');
+      expect(checkboxes(el).hidden).toBe(false);
+    });
+
+    it('without storage (blocked): Simple, and the toggle still works for the page', async () => {
+      const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new Error('blocked');
+      });
+      const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('blocked');
+      });
+      try {
+        const { el } = await open('/');
+        expect(checkboxes(el).hidden).toBe(true);
+        toggle(el).click();
+        await harness.fixture.whenStable();
+        expect(checkboxes(el).hidden).toBe(false);
+      } finally {
+        spy.mockRestore();
+        set.mockRestore();
+      }
+    });
+
+    it('a custom selection (link or Back/Forward) shows Advanced, whatever is stored', async () => {
+      localStorage.setItem(FUNDS_MODE_KEY, 'simple');
+      const { el } = await open('/?funds=enterprise,general');
+      expect(checkboxes(el).hidden).toBe(false);
+      expect(el.textContent).toContain('Custom selection.');
+    });
+
+    it('Simple with a custom selection keeps it and says so; another custom selection opens Advanced again', async () => {
+      const { el, store } = await open('/?funds=enterprise,general');
+      toggle(el).click();
+      await harness.fixture.whenStable();
+      expect(checkboxes(el).hidden).toBe(true);
+      expect(store.settings().funds).toEqual(['enterprise', 'general']);
+      expect(el.textContent).toContain('Custom selection.');
+      expect(el.querySelectorAll('.presets button').length).toBe(3);
+      store.update({ funds: ['enterprise', 'special_revenue'] });
+      await harness.fixture.whenStable();
+      expect(checkboxes(el).hidden).toBe(false);
+    });
+
+    it('picking a preset in Simple applies it (checkboxes stay hidden)', async () => {
+      const { el, store } = await open('/');
+      [...el.querySelectorAll<HTMLButtonElement>('.presets button')].find((b) => b.textContent?.includes('General Fund'))!.click();
+      await harness.fixture.whenStable();
+      expect(store.settings().funds).toEqual(['general']);
+      expect(checkboxes(el).hidden).toBe(true);
+    });
   });
 
   it('category charts show the category picker and a link to the mapping table', async () => {
