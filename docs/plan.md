@@ -268,7 +268,7 @@ Branch: `feature/pinellas`. Scope comes from decisions D-13 and D-14:
 - **D-13:** one county at a time, no overlay.
 - **D-14:** the annotation rule, plus a reviewed list for transfer-imbalance annotations.
 
-Cross-check (D-15, closes O-12): Pinellas gets the same cross-check against the county's DFS-form AFR as Hillsborough (P4a-07). Until it is done, the Pinellas EDR source carries the DR-42 caveat. Hillsborough's cross-check is a **spot check**: 14 hand-read values, FY 2021-22 to FY 2024-25, from the Clerk's PDF copies of the DFS-form AFR (DR-22). It is not full coverage and not LOGERX.
+Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX where available (P4a-07). Until that is done, each county's EDR source carries the DR-42 caveat. Hillsborough's cross-check is a **spot check**: 14 hand-read values, FY 2021-22 to FY 2024-25, from the Clerk's PDF copies of the DFS-form AFR (DR-22). It is not full coverage and not LOGERX.
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
@@ -278,7 +278,7 @@ Cross-check (D-15, closes O-12): Pinellas gets the same cross-check against the 
 | P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | todo |
 | P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | todo |
 | P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | todo |
-| P4a-07 | Pinellas cross-check against its DFS-form AFR (D-15) | DE | P4a-01 | todo |
+| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | todo |
 
 ### Acceptance criteria
 
@@ -344,12 +344,18 @@ Cross-check (D-15, closes O-12): Pinellas gets the same cross-check against the 
 - [ ] Hillsborough outputs are confirmed unchanged (checksums).
 - [ ] Findings are logged in the findings log.
 
-**P4a-07 Pinellas cross-check (DE)**
-- [ ] DE reports whether LOGERX (or another official DFS or Clerk copy) can supply the Pinellas DFS-form AFRs for FY 2021-22 to FY 2024-25. The report names the source URL, retrieval date and sha256. If they can't be obtained, DE says so and the DR-42 caveat stays.
-- [ ] If they can be obtained, DE does a spot check of the same scope as Hillsborough: about 14 hand-read values over FY 2021-22 to FY 2024-25, covering both flows and pre- and post-custodial. Each value is recorded with its PDF page/line and the matching EDR cell ref.
-- [ ] Mismatches are recorded as caveats or annotations under the D-14 rule. EDR values are never changed.
-- [ ] Once the check is done, the Pinellas source caveat replaces DR-42 with a statement of what was checked: years, number of values, document. It says "spot check", not "verified".
-- [ ] QA re-reads at least 3 of the cross-checked values independently (under P4a-05).
+**P4a-07 LOGERX cross-reference, both counties (DE; D-15, D-16)**
+- [ ] **Availability report first:** for Hillsborough and Pinellas, DE reports which fiscal years LOGERX covers and in what form. The forms are: machine-readable (CSV/XLSX/API), PDF only, or manual export only. The report gives URLs, retrieval dates and sha256 for each file, and is recorded in `docs/data-layout.md`. Raw files go in `data/raw/` with the manifest entries. If LOGERX can't be reached or has nothing usable, DE says so and the DR-42 caveat stays.
+- [ ] **If machine-readable:** a full automated reconciliation, run in `npm run pipeline` and reported in `data/validation.md`.
+  - It compares every account × fund × fiscal year that both sources cover, for both counties and both flows.
+  - It lists every mismatch with the amounts, the EDR cell ref and the LOGERX record ref, plus summary counts (compared, matched, mismatched, LOGERX-only, EDR-only).
+  - Account-code or fund mapping differences between LOGERX and EDR are documented, never silently forced to match.
+  - Mismatches never alter EDR values. They become caveats or annotations under D-14, and the user reviews the material ones.
+  - The build is deterministic and works offline from `data/raw/`.
+- [ ] **If PDF only:** an extended spot check for both counties, wider than the Hillsborough 14-value check. The sample size and selection rule are agreed with the PM before starting. It covers every available year, both flows, totals and selected accounts, and custodial before and after FY 2020-21. Each value is recorded with document, page/line and the EDR cell ref.
+- [ ] **If manual export only:** step-by-step instructions for the user in `docs/` (what to click, which filings, file naming, where to save in `data/raw/`). The pipeline then runs the machine-readable path on the exported files.
+- [ ] **Site wording matches exactly what was checked, county by county.** Each county's EDR `Source` caveat states the method (automated reconciliation / spot check), the years and number of values, the document source, and the result (counts of matches and mismatches). Don't use "verified" for a spot check. The DR-42 caveat stays for any county or year range not checked. QA confirms the wording against `data/validation.md`.
+- [ ] QA independently re-derives a sample from the LOGERX raw files, with no code shared with the pipeline: at least 10 values per county, including at least one reported mismatch if any exist. This runs under P4a-05.
 
 **P4a-06 QA: county-switch UI review**
 - [ ] The `qa/phase2/` scripts are re-run with `county=pinellas` and with the default county. They cover:
@@ -364,8 +370,8 @@ Cross-check (D-15, closes O-12): Pinellas gets the same cross-check against the 
 - [ ] P4a-01 to P4a-06 are `done`, and there are no open blocker or major findings.
 - [ ] Pinellas validation all passes. Hillsborough outputs and golden tests are unchanged.
 - [ ] `ng build` and `ng test` are green. The pipeline is deterministic.
-- [ ] Every Pinellas number traces to a Source. The Pinellas sources show either the P4a-07 cross-check result or the DR-42 caveat, never both and never neither.
-- [ ] P4a-07 is done, or the user knowingly accepts shipping with the DR-42 caveat. No doc or UI text describes either county's cross-check as full coverage.
+- [ ] Every Pinellas number traces to a Source. For each county and year range, the sources show either the P4a-07 cross-check result or the DR-42 caveat, never both and never neither.
+- [ ] P4a-07 is done for both counties, or the user knowingly accepts shipping with the DR-42 caveat for the counties or years not covered. No doc or UI text describes either county's cross-check as full coverage.
 
 ---
 
