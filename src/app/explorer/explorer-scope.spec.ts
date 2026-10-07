@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
+import { ANALYTICS_TOKEN } from '../core/analytics';
 import { DataService, DataStatus } from '../core/data.service';
 import { formatValue } from '../core/format';
 import { AccountRecord, AfrObservation, CategoriesFile, CpiFile, FundsFile, PopulationFile } from '../core/models';
@@ -508,5 +509,34 @@ describe('categoryMappingRows (D-19)', () => {
     ]);
     expect(rows[2].sources.map((s) => s.id)).toEqual(['uas-2019', 'uas-2011']);
     expect(categoryMappingRows(cats, 'expenditure', []).map((r) => r.category)).toEqual(['Public Safety']);
+  });
+});
+
+describe('Privacy line (Cloudflare Web Analytics)', () => {
+  async function render(token: string | null): Promise<HTMLElement> {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([{ path: '', component: ControlsHostComponent }]),
+        provideLocationMocks(),
+        { provide: DataService, useClass: FakeDataService },
+        ...(token === null ? [] : [{ provide: ANALYTICS_TOKEN, useValue: token }]),
+      ],
+    });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/', ControlsHostComponent);
+    await harness.fixture.whenStable();
+    return harness.routeNativeElement as HTMLElement;
+  }
+
+  it('is absent in a build without a token (the default)', async () => {
+    const el = await render(null);
+    expect(el.textContent).not.toContain('Cloudflare Web Analytics');
+  });
+
+  it('states the analytics plainly when the build has a token', async () => {
+    const el = await render('0123456789abcdef0123456789abcdef');
+    expect(el.querySelector('.privacy')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'This site counts page views with Cloudflare Web Analytics. It sets no cookies and collects no personal information. Do Not Track and Global Privacy Control are respected.',
+    );
   });
 });

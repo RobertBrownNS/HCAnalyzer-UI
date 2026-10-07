@@ -1,6 +1,6 @@
 # Deploying the site
 
-The site is fully static: HTML, JS, CSS, fonts and the versioned JSON in `assets/data/`. No server code, no database, no third-party requests at runtime. Any static host works. This page covers the two planned hosts: an IIS server and GitHub Pages.
+The site is fully static: HTML, JS, CSS, fonts and the versioned JSON in `assets/data/`. No server code, no database. The only possible third-party request is the optional, cookieless Cloudflare Web Analytics beacon, which is off unless a token is set at build time (see [Analytics](#analytics-optional)). Any static host works. This page covers the two planned hosts: an IIS server and GitHub Pages.
 
 ## What a build contains
 
@@ -122,6 +122,34 @@ Notes:
 - GitHub Pages answers unknown paths with `404.html` and HTTP status 404. The app still loads and redirects to its route, but the first response for a mistyped path has status 404. Normal links (`…/<repo-name>/?flow=…`) return 200.
 - GitHub Pages sets its own cache headers (about 10 minutes for everything). Data files are still versioned by `?v=<dataVersion>`, so a new data build is never mixed with old data.
 - No GitHub Actions workflow is included. Publishing is a deliberate manual step.
+
+## Analytics (optional)
+
+The site can count page views with **Cloudflare Web Analytics**: no cookies, no personal data, no cross-site tracking. It is **off by default**: with no token nothing is loaded, and `ng test` and `npm start` use the empty default.
+
+How it works (`src/app/core/analytics.ts`):
+
+- The token is a build-time constant, `CF_ANALYTICS_TOKEN`. `angular.json` defines it as `''` (empty = off).
+- With a token, after the first render the app adds one script to the page: `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"…","spa":false}'>`. `spa: false` counts page loads only, not settings changes.
+- It is skipped entirely when the browser sends Do Not Track (`navigator.doNotTrack === '1'`) or Global Privacy Control (`navigator.globalPrivacyControl === true`).
+- If the beacon is blocked or fails, nothing happens: no error state, no layout change.
+- "Settings and sources" shows a Privacy line only in builds with a token.
+
+Get the token: Cloudflare dashboard → Analytics & Logs → Web Analytics → Add a site → enter the site's host name (one site per host: GitHub Pages and IIS are separate sites with separate tokens) → choose the JavaScript snippet option and copy the `token` value from the snippet. The token is not secret; it appears in the published page.
+
+Set it when building. The same commands work in PowerShell and Git Bash; the token is in single quotes inside double quotes:
+
+| Build | Command |
+|---|---|
+| IIS, site root | `npm run build -- --define "CF_ANALYTICS_TOKEN='<token>'"` |
+| IIS, sub-path | `npm run build -- --base-href /county-finance/ --define "CF_ANALYTICS_TOKEN='<token>'"` |
+| GitHub Pages | `npx ng build --configuration production,github-pages --define "CF_ANALYTICS_TOKEN='<token>'"` then `node tools/postbuild.mjs` |
+
+(`npm run build:pages` can't take the flag: its arguments go to `postbuild`, so run its two steps as shown.) A build without `--define` has analytics off.
+
+Check a token build: open the site, then dev tools → Network: one request to `static.cloudflareinsights.com/beacon.min.js`, and the Privacy line under "Settings and sources". With Do Not Track or GPC on, there is no request.
+
+**web.config needs no change.** It sets no Content-Security-Policy, so the beacon script and its report request to `cloudflareinsights.com` are allowed. If a CSP is added later, it must allow `script-src https://static.cloudflareinsights.com` and `connect-src https://cloudflareinsights.com`.
 
 ## Checklist for every release
 

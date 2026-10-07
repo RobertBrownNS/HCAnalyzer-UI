@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 
 import { FLOW_LABELS, MEASURE_LABELS, fundScopeLabel, isPerCapita, isReal, transferLabel } from '../core/labels';
+import { ANALYTICS_TOKEN, analyticsConfigured } from '../core/analytics';
 import { CategoryDef, CpiSeriesFile, Flow, SourceRecord } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
 import { DataService } from '../core/data.service';
@@ -78,6 +79,8 @@ export class MethodologyComponent {
   private readonly store = inject(ExplorerStore);
   private readonly dataService = inject(DataService);
   readonly mappingId = MAPPING_ID;
+  /** Shown only when this build counts page views (a Cloudflare token was set at build time). */
+  readonly analytics = analyticsConfigured(inject(ANALYTICS_TOKEN));
 
   /** D-19: how account codes map to categories, for the selected flow. */
   readonly mapping = computed(() => {

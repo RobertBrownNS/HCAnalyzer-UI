@@ -521,6 +521,10 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 - [ ] Every new load path uses the P2-15 skeletons with CLS ≈ 0. Error states take precedence.
 
 **P3-11 Cookieless analytics hook (FE; D-21)**
+> **Status (2026-10-07): token configured for GitHub Pages (`robertbrownns.github.io`, github-pages build configuration only); IIS pending.** The IIS/root build stays off until the user adds that host. The token value lives only in the build config; it is not repeated in docs.
+>
+> **QA:** the GitHub Pages build loads analytics, unless DNT or GPC is set. The IIS/root build makes no Cloudflare requests.
+
 - [ ] It is **off by default.** With no token configured, the build loads no analytics script and makes no request to any Cloudflare host (checked in the network tab and by a test).
 - [ ] With a token configured (a build-time setting, documented in `docs/deploy.md` for both hosts), it loads only Cloudflare Web Analytics from `static.cloudflareinsights.com`, and beacons only to `cloudflareinsights.com`. **There are no other third-party requests**, and fonts stay self-hosted.
 - [ ] It is skipped when `navigator.doNotTrack === "1"` or `navigator.globalPrivacyControl === true`: no script and no beacon. Tests cover both, plus the token-absent case.
