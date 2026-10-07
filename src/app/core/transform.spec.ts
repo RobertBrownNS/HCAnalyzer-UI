@@ -1,4 +1,12 @@
-import type { AfrObservation, Annotation, CpiFile, CpiSeriesFile, PopulationFile, WorkbookTotal } from './models';
+import type {
+  AfrObservation,
+  Annotation,
+  AnnotationRecord,
+  CpiFile,
+  CpiSeriesFile,
+  PopulationFile,
+  WorkbookTotal,
+} from './models';
 import {
   annotationsInRange,
   availableYears,
@@ -6,6 +14,10 @@ import {
   DEFAULT_SETTINGS,
   defaultSettingsFor,
   fiscalYearLabel,
+  formatUsd,
+  isTransferAccount,
+  TRANSFER_ACCOUNTS,
+  TRANSFER_IMBALANCE_NOTE_SHARE,
   selectCpi,
   type SeriesPoint,
   type TransformData,
@@ -179,6 +191,7 @@ describe('DEFAULT_SETTINGS', () => {
       includeCustodial: false,
       cpiIndex: 'cpi-u-us',
       cpiPeriod: 'fiscal',
+      transfers: 'gross',
     });
   });
 
@@ -735,6 +748,263 @@ describe('buildSeries: purity', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Interfund transfers
+// ---------------------------------------------------------------------------
+
+function tobs(
+  fiscalYear: number,
+  flow: 'revenue' | 'expenditure',
+  account: string,
+  fundType: string,
+  amount: number,
+): AfrObservation {
+  return { ...obs(fiscalYear, fundType, amount, flow), account };
+}
+
+/** 2019: balanced transfers. 2020: 581 > 381. 2021: revenue only. 2018: expenditure only. */
+function transferFixture(): TransformData {
+  return {
+    ...fixture(),
+    observations: [
+      obs(2018, 'general', 70, 'expenditure'),
+      tobs(2018, 'expenditure', '581', 'general', 30),
+      obs(2019, 'general', 1000),
+      tobs(2019, 'revenue', '381', 'general', 200),
+      tobs(2019, 'revenue', '381', 'special_revenue', 50),
+      obs(2019, 'general', 900, 'expenditure'),
+      tobs(2019, 'expenditure', '581', 'general', 250),
+      obs(2020, 'general', 1000),
+      tobs(2020, 'revenue', '381', 'general', 100),
+      tobs(2020, 'revenue', '381.1', 'enterprise', 20),
+      obs(2020, 'general', 800, 'expenditure'),
+      tobs(2020, 'expenditure', '581', 'general', 600),
+      tobs(2020, 'expenditure', '581', 'custodial', 7),
+      tobs(2020, 'revenue', '381', 'custodial', 3),
+      obs(2021, 'general', 500),
+      tobs(2021, 'revenue', '381', 'general', 40),
+      // An unknown flow is ignored, not counted anywhere.
+      { ...obs(2021, 'general', 5), sourceId: 'ignored', flow: 'bogus' as AfrObservation['flow'] },
+    ],
+  };
+}
+
+describe('isTransferAccount / TRANSFER_ACCOUNTS', () => {
+  it('matches 381 for revenue and 581 for expenditure, including sub-accounts', () => {
+    expect(TRANSFER_ACCOUNTS).toEqual({ revenue: 381, expenditure: 581 });
+    expect(isTransferAccount('381', 'revenue')).toBe(true);
+    expect(isTransferAccount('381.1', 'revenue')).toBe(true);
+    expect(isTransferAccount('581', 'expenditure')).toBe(true);
+    expect(isTransferAccount('581', 'revenue')).toBe(false);
+    expect(isTransferAccount('381', 'expenditure')).toBe(false);
+    expect(isTransferAccount('382', 'revenue')).toBe(false);
+    expect(isTransferAccount('38.1', 'revenue')).toBe(false);
+    expect(isTransferAccount('', 'revenue')).toBe(false);
+    expect(isTransferAccount('abc', 'revenue')).toBe(false);
+  });
+});
+
+describe('formatUsd', () => {
+  it.each([
+    [0, '$0'],
+    [999, '$999'],
+    [1000, '$1,000'],
+    [624603841, '$624,603,841'],
+    [-790, '-$790'],
+    [-1234567, '-$1,234,567'],
+    [5.5, '$5.50'],
+    [1234.567, '$1,234.57'],
+  ])('%s -> %s', (n, text) => {
+    expect(formatUsd(n)).toBe(text);
+  });
+});
+
+describe('buildSeries: transfers', () => {
+  it('gross (default and explicit) keeps 381 in revenue and reports the amount', () => {
+    const d = transferFixture();
+    const implicit = buildSeries(d, settings());
+    const explicit = buildSeries(d, settings({ transfers: 'gross' }));
+    expect(implicit).toEqual(explicit);
+    expect(values(implicit)).toEqual([1250, 1120, 540]);
+    expect(implicit.map((p) => p.transfersNominal)).toEqual([250, 120, 40]);
+  });
+
+  it('net drops 381 (and sub-accounts) from revenue; transfersNominal is unchanged', () => {
+    const pts = buildSeries(transferFixture(), settings({ transfers: 'net' }));
+    expect(values(pts)).toEqual([1000, 1000, 500]);
+    expect(pts.map((p) => p.nominal)).toEqual([1000, 1000, 500]);
+    expect(pts.map((p) => p.transfersNominal)).toEqual([250, 120, 40]);
+    expect(byYear(pts, 2019).notes).toEqual(['Interfund transfers (account 381, $250) are excluded.']);
+  });
+
+  it('net drops 581 from expenditure', () => {
+    const d = transferFixture();
+    expect(values(buildSeries(d, settings({ flow: 'expenditure' })))).toEqual([100, 1150, 1400]);
+    const pts = buildSeries(d, settings({ flow: 'expenditure', transfers: 'net' }));
+    expect(values(pts)).toEqual([70, 900, 800]);
+    expect(pts.map((p) => p.transfersNominal)).toEqual([30, 250, 600]);
+    expect(byYear(pts, 2018).notes).toEqual(['Interfund transfers (account 581, $30) are excluded.']);
+  });
+
+  it('gross and net reconcile: gross nominal = net nominal + transfersNominal', () => {
+    const d = transferFixture();
+    for (const flow of ['revenue', 'expenditure'] as const)
+      for (const includeCustodial of [false, true]) {
+        const g = buildSeries(d, settings({ flow, includeCustodial }));
+        const n = buildSeries(d, settings({ flow, includeCustodial, transfers: 'net' }));
+        expect(g.map((p) => p.fiscalYear)).toEqual(n.map((p) => p.fiscalYear));
+        g.forEach((p, i) => expect(p.nominal).toBe(n[i].nominal + n[i].transfersNominal));
+      }
+  });
+
+  it('transfers in excluded custodial funds are not counted; included ones are', () => {
+    const d = transferFixture();
+    const excl = byYear(buildSeries(d, settings({ transfers: 'net' })), 2020);
+    const incl = byYear(buildSeries(d, settings({ transfers: 'net', includeCustodial: true })), 2020);
+    expect(excl.transfersNominal).toBe(120);
+    expect(incl.transfersNominal).toBe(123);
+    expect(excl.value).toBe(1000);
+    expect(incl.value).toBe(1000);
+    expect(incl.custodialNominal).toBe(3);
+  });
+
+  it('no transfers-excluded note in gross mode or when the year has no transfers', () => {
+    for (const p of buildSeries(transferFixture(), settings())) {
+      expect(p.notes.some((t) => t.startsWith('Interfund transfers'))).toBe(false);
+    }
+    const plain = byYear(buildSeries(fixture(), settings({ transfers: 'net' })), 2019);
+    expect(plain.notes).toEqual([]);
+    expect(plain.transfersNominal).toBe(0);
+  });
+
+  it('transferImbalance = 581 - 381, only for years with both flows', () => {
+    const d = transferFixture();
+    const rev = buildSeries(d, settings());
+    expect(byYear(rev, 2019).transferImbalance).toBe(0);
+    expect(byYear(rev, 2020).transferImbalance).toBe(480);
+    expect(byYear(rev, 2021).transferImbalance).toBeUndefined();
+    const exp = buildSeries(d, settings({ flow: 'expenditure' }));
+    expect(byYear(exp, 2018).transferImbalance).toBeUndefined();
+    expect(byYear(exp, 2020).transferImbalance).toBe(480);
+    // Custodial included: (600 + 7) - (120 + 3).
+    expect(byYear(buildSeries(d, settings({ includeCustodial: true })), 2020).transferImbalance).toBe(484);
+  });
+
+  it("a material imbalance is noted on both flows in both modes, citing the other flow's source", () => {
+    const d = transferFixture();
+    const gross = 'Transfers out (581) and transfers in (381) differ in FY 2019-20: $600 out, $120 in (difference $480).';
+    const net = gross + ' Removing transfers reduces revenue and expenditure by different amounts.';
+    const rg = byYear(buildSeries(d, settings()), 2020);
+    const cust = 'Custodial fund amounts (GASB 84) are excluded.';
+    expect(rg.notes).toEqual([cust, gross]);
+    expect(rg.sourceIds).toEqual([REV, EXP]);
+    const rn = byYear(buildSeries(d, settings({ transfers: 'net' })), 2020);
+    expect(rn.notes).toEqual([cust, 'Interfund transfers (account 381, $120) are excluded.', net]);
+    const en = byYear(buildSeries(d, settings({ flow: 'expenditure', transfers: 'net' })), 2020);
+    expect(en.notes).toEqual([cust, 'Interfund transfers (account 581, $600) are excluded.', net]);
+    expect(en.sourceIds).toEqual([EXP, REV]);
+  });
+
+  it('a balanced year has no imbalance note and no extra source', () => {
+    const p = byYear(buildSeries(transferFixture(), settings()), 2019);
+    expect(p.notes).toEqual([]);
+    expect(p.sourceIds).toEqual([REV]);
+  });
+
+  it('an imbalance at or below the threshold share is not noted; above it is', () => {
+    const at = 1000 * TRANSFER_IMBALANCE_NOTE_SHARE;
+    const mk = (out: number): TransformData => ({
+      ...fixture(),
+      observations: [tobs(2019, 'revenue', '381', 'general', 1000), tobs(2019, 'expenditure', '581', 'general', out)],
+    });
+    expect(buildSeries(mk(1000 - at), settings())[0].notes).toEqual([]);
+    expect(buildSeries(mk(1000 - at), settings())[0].transferImbalance).toBe(-at);
+    expect(buildSeries(mk(1000 - 2 * at), settings())[0].notes).toHaveLength(1);
+    expect(buildSeries(mk(1000 + 2 * at), settings())[0].notes).toHaveLength(1);
+  });
+
+  it('a negative imbalance (381 > 581) is noted too', () => {
+    const d: TransformData = {
+      ...fixture(),
+      observations: [tobs(2019, 'revenue', '381', 'general', 500), tobs(2019, 'expenditure', '581', 'general', 100)],
+    };
+    expect(buildSeries(d, settings())[0].notes).toEqual([
+      'Transfers out (581) and transfers in (381) differ in FY 2018-19: $100 out, $500 in (difference -$400).',
+    ]);
+  });
+
+  it('ignores observations with an unknown flow', () => {
+    const pts = buildSeries(transferFixture(), settings());
+    expect(pts.flatMap((p) => p.sourceIds)).not.toContain('ignored');
+    expect(byYear(pts, 2021).value).toBe(540);
+  });
+
+  it('net composes with per capita, real and indexTo100', () => {
+    const d = transferFixture();
+    expect(values(buildSeries(d, settings({ transfers: 'net', measure: 'per_capita' })))).toEqual([100, 1000 / 12, 500 / 15]);
+    expect(values(buildSeries(d, settings({ transfers: 'net', measure: 'real', baseYear: 2020 })))).toEqual([
+      (1000 * 110) / 100,
+      1000,
+      (500 * 110) / 120,
+    ]);
+    expect(values(buildSeries(d, settings({ transfers: 'net', indexTo100: true, baseYear: 2019 })))).toEqual([100, 100, 50]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Annotation conditions
+// ---------------------------------------------------------------------------
+
+describe('annotationsInRange: conditions', () => {
+  const ann = (label: string, extra: Partial<AnnotationRecord> = {}): AnnotationRecord => ({
+    fiscalYear: 2022,
+    label,
+    kind: 'methodology',
+    sourceId: 's',
+    ...extra,
+  });
+  const data = (): TransformData => ({
+    ...fixture(),
+    annotations: [
+      ann('always'),
+      ann('rev', { flow: 'revenue' }),
+      ann('exp', { flow: 'expenditure' }),
+      ann('cust-in', { custodial: 'included' }),
+      ann('cust-out', { custodial: 'excluded' }),
+      ann('per-res', { measures: ['per_capita', 'real_per_capita'] }),
+      ann('never', { measures: [] }),
+      ann('exp+cust-in', { flow: 'expenditure', custodial: 'included' }),
+    ],
+  });
+  const labels = (s: Partial<TransformSettings>) => annotationsInRange(data(), settings(s)).map((a) => a.label);
+
+  it('defaults: revenue, custodial excluded, nominal', () => {
+    expect(labels({})).toEqual(['always', 'cust-out', 'rev']);
+  });
+
+  it('filters on flow', () => {
+    expect(labels({ flow: 'expenditure' })).toEqual(['always', 'cust-out', 'exp']);
+  });
+
+  it('filters on the custodial toggle', () => {
+    expect(labels({ includeCustodial: true })).toEqual(['always', 'cust-in', 'rev']);
+    expect(labels({ includeCustodial: true, flow: 'expenditure' })).toEqual(['always', 'cust-in', 'exp', 'exp+cust-in']);
+  });
+
+  it('filters on measure', () => {
+    expect(labels({ measure: 'per_capita' })).toEqual(['always', 'cust-out', 'per-res', 'rev']);
+    expect(labels({ measure: 'real_per_capita' })).toEqual(['always', 'cust-out', 'per-res', 'rev']);
+    expect(labels({ measure: 'real' })).toEqual(['always', 'cust-out', 'rev']);
+  });
+
+  it('plain CLAUDE.md Annotations (no conditions) always apply', () => {
+    const plain: Annotation = { fiscalYear: 2022, label: 'plain', kind: 'event', sourceId: 's' };
+    for (const s of [settings(), settings({ flow: 'expenditure', includeCustodial: true, measure: 'real' })]) {
+      expect(annotationsInRange({ ...fixture(), annotations: [plain] }, s)).toEqual([plain]);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Golden tests against the real pipeline output
 // ---------------------------------------------------------------------------
 
@@ -755,6 +1025,41 @@ describe('golden: src/assets/data', () => {
     expect(byYear(incl, 2025).value).toBe(9_597_307_134);
     expect(byYear(excl, 2025).value).toBe(5_468_332_134);
     expect(byYear(excl, 2022).value).toBe(3_583_795_000);
+  });
+
+  it('transfers: FY 2021-22 revenue excl. custodial, gross -22.9% vs net -6.4% (QA-02)', () => {
+    const g = buildSeries(data, full());
+    const n = buildSeries(data, full({ transfers: 'net' }));
+    expect(byYear(n, 2022).value).toBe(3_583_795_000 - 381_557_000);
+    expect(byYear(n, 2021).value).toBe(4_646_108_000 - 1_223_354_000);
+    const change = (p: SeriesPoint[]) => byYear(p, 2022).value! / byYear(p, 2021).value! - 1;
+    expect(change(g)).toBeCloseTo(-0.229, 3);
+    expect(change(n)).toBeCloseTo(-0.064, 3);
+  });
+
+  it('transfers: net mode keeps the FY 2022-23 / FY 2023-24 381-vs-581 imbalance visible (QA-01)', () => {
+    for (const flow of ['revenue', 'expenditure'] as const)
+      for (const transfers of ['gross', 'net'] as const) {
+        const pts = buildSeries(data, full({ flow, transfers }));
+        expect(byYear(pts, 2023).transferImbalance).toBe(624_603_841);
+        expect(byYear(pts, 2024).transferImbalance).toBe(535_878_141);
+        expect(byYear(pts, 2023).notes.some((t) => t.includes('difference $624,603,841'))).toBe(true);
+        expect(byYear(pts, 2024).notes.some((t) => t.includes('difference $535,878,141'))).toBe(true);
+        // Years where 381 and 581 agree within a few hundred dollars carry no imbalance note.
+        for (const fy of [2021, 2022, 2025]) {
+          expect(Math.abs(byYear(pts, fy).transferImbalance!)).toBeLessThanOrEqual(2000);
+          expect(byYear(pts, fy).notes.some((t) => t.startsWith('Transfers out'))).toBe(false);
+        }
+      }
+    // Including custodial adds FY 2023-24 custodial 581 transfers ($1,722,657).
+    expect(byYear(buildSeries(data, full({ includeCustodial: true })), 2024).transferImbalance).toBe(537_600_798);
+  });
+
+  it('transfers: only FY 2022-23 and FY 2023-24 carry an imbalance note', () => {
+    const noted = buildSeries(data, full({ flow: 'expenditure' }))
+      .filter((p) => p.notes.some((t) => t.startsWith('Transfers out')))
+      .map((p) => p.fiscalYear);
+    expect(noted).toEqual([2023, 2024]);
   });
 
   it('available years: revenue FY 2005-06..2024-25, expenditure FY 2004-05..2024-25, no gaps', () => {

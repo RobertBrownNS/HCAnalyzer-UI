@@ -10,10 +10,11 @@
  */
 import type {
   AfrObservation,
-  Annotation,
+  AnnotationRecord,
   CpiFile,
   CpiSeriesFile,
   Flow,
+  Measure,
   PopulationEntry,
   PopulationFile,
   SourceRecord,
@@ -22,10 +23,16 @@ import { fiscalYearLabel } from './fiscal-year';
 
 export { fiscalYearLabel } from './fiscal-year';
 
-export type Measure = 'nominal' | 'per_capita' | 'real' | 'real_per_capita';
+export type { Measure } from './models';
 export type CpiIndex = 'cpi-u-us' | 'cpi-u-tampa';
 /** 'fiscal' = Oct-Sep mean for the fiscal year; 'calendar' = BLS annual average. */
 export type CpiPeriod = 'fiscal' | 'calendar';
+/**
+ * 'gross' = as reported (matches EDR totals). 'net' = interfund transfers
+ * removed: account 381 (transfers in) from revenue, 581 (transfers out) from
+ * expenditure. See docs/plan.md QA-02. The default is an open user decision.
+ */
+export type TransferMode = 'gross' | 'net';
 
 export interface TransformSettings {
   flow: Flow;
@@ -40,6 +47,8 @@ export interface TransformSettings {
   includeCustodial: boolean;
   cpiIndex: CpiIndex;
   cpiPeriod: CpiPeriod;
+  /** Interfund transfers. Missing = 'gross'. */
+  transfers?: TransferMode;
   /** Key into observations and population.json. Defaults to DEFAULT_JURISDICTION. */
   jurisdiction?: string;
 }
@@ -54,6 +63,17 @@ export interface SeriesPoint {
   nominal: number;
   /** Custodial fund amount for this year, whether or not it is included. */
   custodialNominal: number;
+  /**
+   * Interfund transfers on this flow (381 for revenue, 581 for expenditure) in
+   * the included funds, whether transfers are gross or net. Gross nominal =
+   * net nominal + transfersNominal.
+   */
+  transfersNominal: number;
+  /**
+   * Transfers out (581) minus transfers in (381) for this year, in the
+   * included funds. Absent when the year has no data for one of the flows.
+   */
+  transferImbalance?: number;
   population?: number;
   /** CPI level for this year (selected index and period). */
   cpi?: number;
@@ -68,7 +88,7 @@ export interface TransformData {
   observations: readonly AfrObservation[];
   population: PopulationFile;
   cpi: CpiFile;
-  annotations: readonly Annotation[];
+  annotations: readonly AnnotationRecord[];
   sources: readonly SourceRecord[];
 }
 
@@ -89,6 +109,7 @@ export const DEFAULT_SETTINGS: TransformSettings = Object.freeze({
   includeCustodial: false,
   cpiIndex: 'cpi-u-us',
   cpiPeriod: 'fiscal',
+  transfers: 'gross',
 }) as TransformSettings;
 
 /** DEFAULT_SETTINGS with range = full available years and baseYear = latest. */
@@ -119,11 +140,23 @@ export function availableYears(
   return [...years].sort((a, b) => a - b);
 }
 
-/** Annotations whose fiscalYear falls inside the settings range, by year. */
-export function annotationsInRange(data: TransformData, s: TransformSettings): Annotation[] {
+/**
+ * Annotations that apply to the current view, by year: fiscalYear inside the
+ * range, and each optional condition (flow, custodial, measures) satisfied.
+ * A condition that is absent applies to every view.
+ */
+export function annotationsInRange(data: TransformData, s: TransformSettings): AnnotationRecord[] {
   const [lo, hi] = normalizeRange(s.range);
+  const custodial = s.includeCustodial ? 'included' : 'excluded';
   return data.annotations
-    .filter((a) => a.fiscalYear >= lo && a.fiscalYear <= hi)
+    .filter(
+      (a) =>
+        a.fiscalYear >= lo &&
+        a.fiscalYear <= hi &&
+        (a.flow === undefined || a.flow === s.flow) &&
+        (a.custodial === undefined || a.custodial === custodial) &&
+        (a.measures === undefined || a.measures.includes(s.measure)),
+    )
     .sort((a, b) => a.fiscalYear - b.fiscalYear || a.label.localeCompare(b.label));
 }
 
@@ -190,9 +223,28 @@ export function selectCpi(cpi: CpiFile, index: CpiIndex, period: CpiPeriod): Cpi
 // Series
 // ---------------------------------------------------------------------------
 
+/** UAS interfund transfer accounts: 381 transfers in, 581 transfers out. */
+export const TRANSFER_ACCOUNTS: Readonly<Record<Flow, number>> = Object.freeze({ revenue: 381, expenditure: 581 });
+
+/**
+ * A transfer imbalance is noted when |581 - 381| exceeds this share of the
+ * larger side. Hillsborough's 381 and 581 agree within $601 (< 0.0001%) in
+ * 19 of 21 years; FY 2022-23 and FY 2023-24 differ by more than 40%
+ * (docs/plan.md QA-01). The exact amount is always in transferImbalance.
+ */
+export const TRANSFER_IMBALANCE_NOTE_SHARE = 0.001;
+
+/** True for 381 / 581 and any sub-account (e.g. "381.1"). */
+export function isTransferAccount(account: string, flow: Flow): boolean {
+  return Math.trunc(Number(account)) === TRANSFER_ACCOUNTS[flow];
+}
+
 interface YearSum {
+  /** Included funds, after transfers are removed when net. */
   nominal: number;
   custodial: number;
+  /** Transfers in the included funds. */
+  transfers: number;
   sourceIds: Set<string>;
 }
 
@@ -208,7 +260,9 @@ interface Measured {
 export function buildSeries(data: TransformData, s: TransformSettings): SeriesPoint[] {
   const jurisdiction = s.jurisdiction ?? DEFAULT_JURISDICTION;
   const [lo, hi] = normalizeRange(s.range);
-  const sums = sumByYear(data.observations, s.flow, jurisdiction, s.includeCustodial);
+  const net = s.transfers === 'net';
+  const allSums = sumByYear(data.observations, jurisdiction, s.includeCustodial, net);
+  const sums = allSums[s.flow];
   const cpi = selectCpi(data.cpi, s.cpiIndex, s.cpiPeriod);
   const population = data.population[jurisdiction];
 
@@ -239,7 +293,20 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
       } else if (value !== null) {
         value = (value / base.value) * 100;
       }
-      for (const id of base.sourceIds) if (!sourceIds.includes(id)) sourceIds.push(id);
+      addUnique(sourceIds, base.sourceIds);
+    }
+
+    const tIn = allSums.revenue.get(fy);
+    const tOut = allSums.expenditure.get(fy);
+    const imbalance = tIn && tOut ? tOut.transfers - tIn.transfers : undefined;
+    if (imbalance !== undefined && Math.abs(imbalance) > TRANSFER_IMBALANCE_NOTE_SHARE * Math.max(tIn!.transfers, tOut!.transfers)) {
+      notes.push(
+        `Transfers out (${TRANSFER_ACCOUNTS.expenditure}) and transfers in (${TRANSFER_ACCOUNTS.revenue}) differ in ${fiscalYearLabel(fy)}: ` +
+          `${formatUsd(tOut!.transfers)} out, ${formatUsd(tIn!.transfers)} in (difference ${formatUsd(imbalance)}).` +
+          (net ? ' Removing transfers reduces revenue and expenditure by different amounts.' : ''),
+      );
+      const other = s.flow === 'revenue' ? tOut! : tIn!;
+      addUnique(sourceIds, [...other.sourceIds].sort());
     }
 
     const point: SeriesPoint = {
@@ -248,18 +315,20 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
       value,
       nominal: sum.nominal,
       custodialNominal: sum.custodial,
+      transfersNominal: sum.transfers,
       sourceIds,
       notes,
     };
     if (m.population !== undefined) point.population = m.population;
     if (m.cpi !== undefined) point.cpi = m.cpi;
     if (m.cpiBase !== undefined) point.cpiBase = m.cpiBase;
+    if (imbalance !== undefined) point.transferImbalance = imbalance;
     return point;
   });
 }
 
 /**
- * Sums observations per fiscal year for one flow and jurisdiction.
+ * Sums observations per flow and fiscal year for one jurisdiction.
  *
  * Fund scope (Phase 2): all funds the workbook reports, except custodial when
  * excluded. That includes pension, trust, private purpose and component units,
@@ -267,21 +336,27 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
  * and with it excluded it equals EDR's recalculated total. The fund-scope
  * control is Phase 3; see docs/decisions.md O-07.
  *
+ * Transfers (381 revenue, 581 expenditure) are counted in the included funds
+ * and, when `net`, left out of nominal. Both flows are summed so a point can
+ * report the 381/581 imbalance for its year.
+ *
  * Zero cells are omitted from observations.json, so a year with no matching
- * rows sums to 0. Every year present for the flow gets an entry.
+ * rows sums to 0. Every year present for a flow gets an entry.
  */
 function sumByYear(
   observations: readonly AfrObservation[],
-  flow: Flow,
   jurisdiction: string,
   includeCustodial: boolean,
-): Map<number, YearSum> {
-  const sums = new Map<number, YearSum>();
+  net: boolean,
+): Record<Flow, Map<number, YearSum>> {
+  const out: Record<Flow, Map<number, YearSum>> = { revenue: new Map(), expenditure: new Map() };
   for (const o of observations) {
-    if (o.flow !== flow || o.jurisdiction !== jurisdiction) continue;
+    if (o.jurisdiction !== jurisdiction) continue;
+    const sums = out[o.flow];
+    if (!sums) continue;
     let sum = sums.get(o.fiscalYear);
     if (!sum) {
-      sum = { nominal: 0, custodial: 0, sourceIds: new Set() };
+      sum = { nominal: 0, custodial: 0, transfers: 0, sourceIds: new Set() };
       sums.set(o.fiscalYear, sum);
     }
     // The AFR is the source of the year's total even when some cells are excluded.
@@ -290,9 +365,13 @@ function sumByYear(
       sum.custodial += o.amount;
       if (!includeCustodial) continue;
     }
+    if (isTransferAccount(o.account, o.flow)) {
+      sum.transfers += o.amount;
+      if (net) continue;
+    }
     sum.nominal += o.amount;
   }
-  return sums;
+  return out;
 }
 
 function measureYear(
@@ -313,6 +392,11 @@ function measureYear(
       s.includeCustodial
         ? 'Includes custodial fund amounts (GASB 84): money the county holds or collects for others.'
         : 'Custodial fund amounts (GASB 84) are excluded.',
+    );
+  }
+  if (sum && sum.transfers !== 0 && s.transfers === 'net') {
+    notes.push(
+      `Interfund transfers (account ${TRANSFER_ACCOUNTS[s.flow]}, ${formatUsd(sum.transfers)}) are excluded.`,
     );
   }
 
@@ -349,6 +433,18 @@ function measureYear(
 
   out.value = value;
   return out;
+}
+
+/** Deterministic, locale-independent: 1234567 -> "$1,234,567"; -5.5 -> "-$5.50". */
+export function formatUsd(n: number): string {
+  const abs = Math.abs(n);
+  const [whole, cents] = (Number.isInteger(abs) ? String(abs) : abs.toFixed(2)).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${n < 0 ? '-' : ''}$${grouped}${cents ? '.' + cents : ''}`;
+}
+
+function addUnique(target: string[], items: Iterable<string>): void {
+  for (const x of items) if (!target.includes(x)) target.push(x);
 }
 
 function normalizeRange([a, b]: readonly [number, number]): [number, number] {

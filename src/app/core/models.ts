@@ -49,6 +49,20 @@ export interface CpiSeries {
 
 export type Flow = 'revenue' | 'expenditure';
 
+export type Measure = 'nominal' | 'per_capita' | 'real' | 'real_per_capita';
+
+/**
+ * annotations.json rows: CLAUDE.md Annotation plus optional conditions on
+ * when it applies. An absent condition applies to every view.
+ */
+export interface AnnotationRecord extends Annotation {
+  flow?: Flow;
+  /** Show only when the custodial toggle matches. */
+  custodial?: 'included' | 'excluded';
+  /** Show only for these measures. */
+  measures?: readonly Measure[];
+}
+
 /** One non-zero fund cell of one account row. Zero cells are omitted (= $0). */
 export interface AfrObservation extends Observation {
   flow: Flow;
