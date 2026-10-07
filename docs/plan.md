@@ -1,4 +1,4 @@
-# Task Board: Phases 1–2
+# Task Board
 
 Branch: `feature/phase-1-2`. Scope this round: Phase 1 (data pipeline) and Phase 2 (MVP explorer). Then stop for user review.
 Related: [decisions.md](decisions.md) · [risks.md](risks.md) · [data-layout.md](data-layout.md) (data engineer owns it)
@@ -410,6 +410,143 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 
 ---
 
+## Phase 3: Breakdowns (fund scope, categories, chart types, source drawer)
+
+Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four decisions:
+- **D-18:** fund scope is a per-fund multi-select, plus presets.
+- **D-19:** categories use the UAS groupings, with Ad Valorem (311) split out.
+- **D-20:** all four chart types.
+- **O-11 interim:** "net of transfers" works only when every non-custodial fund is selected.
+
+**Constraints that carry over:**
+- **Tab bar:** leave it as is (user, 2026-10-07).
+- **Theme, skeletons, neutrality:** theme D tokens (D-07); P2-15 skeletons for every new load; neutral KPI cards; no editorial copy.
+- **Default view:** custodial excluded by default (GASB 84). Old URLs keep their meaning (DR-32).
+- **Annotations:** the D-14 annotation rule and the approval list (DR-38, DR-41).
+- **Cross-check wording:** "a cross-check that EDR matches the county's DFS filing; not an audit" (QA-30).
+- **Both counties:** every criterion applies to Hillsborough and Pinellas.
+
+**Must close in Phase 3:**
+- **DR-47:** annotate the 2 LOGERX reclassifications.
+- **QA-07 / O-07:** show what "all funds" includes.
+
+| ID | Task | Owner | Depends on | Status |
+|---|---|---|---|---|
+| P3-01 | UAS category mapping: source and published table | DE | none | todo |
+| P3-02 | Fund metadata (fund types, groups for presets, what "all funds" includes) | DE | none | todo |
+| P3-03 | DR-47 reclassification annotations, scoped to fund and category views | DE | P3-01, P3-02 | todo |
+| P3-04 | Transform: fund and category filters, category series, net-transfer rule, golden tests | TE | P3-01, P3-02 | todo |
+| P3-05 | Fund multi-select, presets, and category picker | FE | P3-02, P3-04 | todo |
+| P3-06 | Chart-type switch: stacked area, 100% share, bars, category overlay | FE | P3-04 | todo |
+| P3-07 | Source drawer on point tap | FE | P3-03, P3-04 | todo |
+| P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | todo |
+| P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | todo |
+| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer) | QA | P3-05..P3-08, P3-09 | todo |
+
+### Acceptance criteria
+
+**P3-01 UAS category mapping (DE)**
+- [ ] The mapping comes from the DFS Uniform Accounting System chart of accounts. The UAS manual edition(s) are stored in `data/raw/` with sha256, URL and retrieval date. Each mapping row cites the edition and section.
+- [ ] Every revenue and expenditure account code that appears in either county, in any year, maps to exactly one category. Unmapped codes fail the build.
+- [ ] Ad Valorem (311) is its own category, separate from Other Taxes (D-19).
+- [ ] Changes in UAS codes over the years (R-08) are handled with year-ranged mapping rows, each with a source. The validation report lists every code that appears or disappears across years.
+- [ ] The mapping table is emitted as JSON for the site (code, name, category, years, source). It agrees with the existing prefix-based `category` field (DR-04, DR-36); any difference is listed and resolved, not silently overridden.
+- [ ] The validation report shows that, for every county, FY and flow, the category sums equal the EDR total, to the dollar.
+
+**P3-02 Fund metadata (DE)**
+- [ ] Each fund type has a display name, a governmental/proprietary/fiduciary/component-unit group, and its source (the AFR column header).
+- [ ] The preset membership is defined in data, not UI code, with its source:
+  - "General Fund";
+  - "Governmental funds" (General, Special Revenue, Debt Service, Capital Projects, Permanent);
+  - "All funds as reported by EDR".
+- [ ] **QA-07 / O-07:** the metadata states that "All funds as reported by EDR" includes enterprise, internal service, component units and pension/trust/private-purpose funds, and excludes custodial unless it is toggled on. This text is shown on the site wherever that preset or the default scope appears.
+- [ ] For every county and FY, the sum of the fund-type totals equals the EDR total, to the dollar.
+
+**P3-03 DR-47 annotations (DE)**
+- [ ] The two LOGERX reclassifications are added to the approval list and emitted as annotations:
+  - Hillsborough FY 2014-15, expenditure account 559, $1,164,281: Internal Service in EDR, Component Units in LOGERX (`expenditures:2015!J41`).
+  - Pinellas FY 2013-14, revenue, Special Revenue, $2,309,587: 335.8 in EDR, 335.9 in LOGERX (`revenues:2014!E48`).
+- [ ] Each annotation is **scoped**. It shows only in views where the difference changes what is on screen: the fund scope includes an affected fund, or the category view includes the affected account or category. It never shows on total-only views.
+- [ ] The wording is neutral and uses "cross-check … not an audit" language (QA-30). It cites both cell refs and the LOGERX record.
+- [ ] **DR-47 is marked closed** in decisions.md when this task is done.
+
+**P3-04 Transform (TE)**
+- [ ] `transform.ts` stays pure and at 100% coverage. Fund selection and category selection are inputs.
+- [ ] It produces a category series for every chart type. The shapes are:
+  - per-category values for stacked area and bars;
+  - per-category share of the selected total for 100% share;
+  - per-category lines for the overlay.
+
+  Each value works with every measure (nominal, per resident, real, both) and with index-to-100 where it applies.
+- [ ] **Sums equal totals:** for every county, FY, flow, fund selection and measure, the category values sum to the selected-scope total within float tolerance (stated). Shares sum to 100% within tolerance. Both are property tests over all combinations, not samples.
+- [ ] **Net-transfer rule (O-11 interim, R-19):** net is allowed only when every non-custodial fund is selected. Otherwise the transform rejects it with a reason code the UI shows. A test covers every preset and a partial selection.
+- [ ] Custodial stays a separate toggle, independent of the fund multi-select, and is excluded by default.
+- [ ] Gaps (missing population or CPI) are still null with a reason, per category. Nothing is estimated.
+- [ ] **Golden tests per county:** a fixed set of fund selection × category × chart type × measure combinations gives snapshot outputs, each with at least 3 values hand-checked against `data/validation.md`. The existing Phase 2 / 4a golden outputs are unchanged under default settings.
+
+**P3-05 Fund multi-select and category picker (FE)**
+- [ ] A per-fund multi-select with preset shortcuts: General Fund, Governmental funds, and All funds as reported by EDR. The default is all non-custodial funds. It is a chip with a bottom sheet on phone, and sits in the right filters pane on desktop.
+- [ ] Choosing a preset sets the selection. Editing the selection afterwards shows "Custom", never a preset name that no longer applies.
+- [ ] The QA-07 "what this includes" text appears with the "All funds" preset and the default scope.
+- [ ] The category picker lists the UAS categories for the current flow, with Ad Valorem separate. A link opens the published mapping table.
+- [ ] When net isn't allowed, the net option is disabled with a plain, visible explanation, for example "Net of transfers needs all funds selected". It is not hidden and not tooltip-only.
+- [ ] Both controls meet the 44 px target size, are keyboard-operable with visible focus, and work in light and dark.
+
+**P3-06 Chart types (FE)**
+- [ ] A chart-type switch: line (current), stacked area by category, 100% share by category, bars per year, and category lines overlaid on the line chart (D-20).
+- [ ] Every type shows the GASB 84 marker and the applicable annotations, uses `FY 2020-21` style labels, and keeps the gap behaviour (no splicing).
+- [ ] The palette is colorblind-safe for the maximum number of categories, with tokens only. A series beyond the palette size is grouped or labelled, never shown in a duplicate color.
+- [ ] The share chart labels its axis as a share of the **selected** scope. The stacked chart's total matches the total line exactly.
+- [ ] KPI cards stay neutral (D-07): no ranking or "largest category" commentary, and no sign-based coloring.
+- [ ] Pinch-zoom and range behave as in Phase 2 (QA-11 rules).
+
+**P3-07 Source drawer (FE)**
+- [ ] Tapping or clicking a point (or table row) opens a drawer with:
+  - county, flow, FY label, fund scope and category;
+  - the value and its unit;
+  - the account codes behind it, with names and amounts;
+  - the sources (publisher, title, URL, retrieval date);
+  - caveats, applicable annotations, and the workbook cell refs (DR-24);
+  - the cross-check status for that FY range (DR-45).
+- [ ] The drawer's numbers equal the chart and table values (same formatter), and its account amounts sum to the point's nominal value.
+- [ ] It is reachable by keyboard and screen reader (a focus trap, Escape to close, focus returns to the point or row). It is a bottom sheet on phone. It meets the 44 px rule.
+
+**P3-08 URL state and multi-series table (FE)**
+- [ ] Fund selection, category selection, chart type and drawer-independent settings are all in the URL (DR-32: every setting written; unknown params preserved).
+- [ ] Old links with no new params open the Phase 2 / 4a default view, with identical values.
+- [ ] Back/forward works for every new control.
+- [ ] Invalid params (an unknown fund or category, net with a partial scope) fall back to a valid state without crashing.
+- [ ] The multi-series table view has one row per FY and one column per series, plus a total column for stacked and share charts. It has a caption, `th scope` and units. Its values equal the chart values.
+- [ ] Every new load path uses the P2-15 skeletons with CLS ≈ 0. Error states take precedence.
+
+**P3-09 QA: independent sums (QA)**
+- [ ] QA uses its own stdlib reader (no shared code) and its own reading of the UAS mapping source. For both counties and every FY and flow, it re-derives:
+  - category sums;
+  - fund-type sums;
+  - each preset's sum.
+
+  All must match the pipeline and `transform.ts` outputs to the dollar.
+- [ ] It confirms that category sums equal EDR totals and that shares sum to 100%.
+- [ ] It confirms the DR-47 annotations show only in the scoped views, with the correct cell refs.
+- [ ] It confirms the QA-07 wording and the mapping table's sources.
+
+**P3-10 QA: UI review (QA)**
+- [ ] Neutrality sweep across all chart types, presets, the drawer and the mapping page: no editorial or ranking copy, no advocacy sources, and cross-check wording per QA-30.
+- [ ] Accessibility: keyboard and screen-reader paths for the multi-select, category picker, chart switch and drawer; 44 px targets; contrast in light and dark; colorblind-safe series.
+- [ ] CLS ≈ 0 on the throttled profile for each new load path. Results go in `docs/performance.md`.
+- [ ] URL round-trip and Back/forward for every new control. Old links are unchanged.
+- [ ] Spot-check 3 values per chart type per county against the raw xlsx.
+
+### Phase 3 Definition of Done
+- [ ] P3-01 to P3-10 are `done`, with no open blocker or major findings.
+- [ ] Category and fund sums equal EDR totals for every county, FY and flow, confirmed independently by QA.
+- [ ] **DR-47 is closed**, with both reclassifications annotated in scoped views. **QA-07 / O-07 are closed**, with "All funds" wording shown on site.
+- [ ] The net-of-transfers rule is enforced and explained (O-11 interim).
+- [ ] Old links reproduce their Phase 2 / 4a views exactly. The tab bar is unchanged.
+- [ ] `ng build` / `ng test` / `npm run pipeline` are green and deterministic. `transform.ts` is at 100% coverage.
+
+---
+
 ## Later phases: priority notes
 
 - **Phase 5, high priority (decisions D-12, public site):** the methodology page and the "how to reproduce" page come first in Phase 5, ahead of claim presets and CSV/PNG export. They must cover:
@@ -424,7 +561,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - **Phase 5 export (D-17):** CSV/PNG export and its header Export button ship together, in the same change. No placeholder or disabled Export control is shown before then. The button gets the usual criteria: 44 px, keyboard focus, light/dark, and a visible error if export fails.
 - Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
-- **Phase 3, required annotations (DR-47):** when the fund-scope or category views ship, annotate the 2 LOGERX reclassifications through the approval list. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. Phase 3 is not done until they are annotated and QA has checked them.
+- **Phase 3, required annotations (DR-47), now task P3-03:** when the fund-scope or category views ship, annotate the 2 LOGERX reclassifications through the approval list. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. Phase 3 is not done until they are annotated and QA has checked them.
 - **Phase 3:** any new long-running operation (category breakdowns, a second dataset such as expenditures alongside revenues) reuses the P2-15 skeleton components and follows the same rules: delay, no layout shift, a11y, reduced motion, errors take precedence. No new loader styles.
 - Phase 4 comparison overlays are still on hold (D-11). Only the Pinellas county switch is in scope, as Phase 4a (D-13).
 
