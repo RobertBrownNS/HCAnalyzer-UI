@@ -21,14 +21,14 @@ $app-colors: (
   axis-line: (#b9c0cb, #4a5160),       // dark: derived
   text: (#1b2230, #e6e9ef),
   text-muted: (#5b6474, #9aa3b2),
-  text-faint: (#8c96a5, #7d8696),      // axis labels
+  text-faint: (#6b7585, #8f98a8),      // axis labels; darker/lighter than mockup (#8c96a5/#7d8696) for WCAG AA 4.5:1
   header-bg: (#1f2a44, #1f2a44),
   header-text: (#ffffff, #ffffff),
   header-text-muted: (#a9b4cc, #a9b4cc),
   header-border: (#3d4a68, #3d4a68),
   logo-accent: (#f2b544, #f2b544),
   selected-bg: (#e6eef9, #23324a),     // active nav item; dark: derived
-  kpi-neutral: (#8c96a5, #7d8696),     // top border of non-series KPI cards
+  kpi-neutral: (#7d8696, #7d8696),     // top border of non-series KPI cards (3:1 non-text contrast)
   link: (#1f5fad, #5b9be6),
   link-hover: (#164682, #8bbcf0),      // dark: derived
   primary-hover: (#164682, #7fb1ec),   // dark: derived
@@ -132,9 +132,9 @@ $series: (
 
 // Annotation lines by Annotation.kind: muted grey, dashed.
 $annotation: (
-  methodology: (#8c96a5, #7d8696),
-  policy: (#8c96a5, #7d8696),
-  event: (#8c96a5, #7d8696),
+  methodology: (#7d8696, #7d8696),   // >= 3:1 against tiles (non-text contrast)
+  policy: (#7d8696, #7d8696),
+  event: (#7d8696, #7d8696),
 );
 
 // --- Typography ---------------------------------------------------------------------------------

@@ -65,9 +65,22 @@ export interface AnnotationRecord extends Annotation {
   measures?: readonly Measure[];
   /** Longer factual text for the source drawer. */
   detail?: string;
-  /** Workbook cells or file locations, e.g. "2023!D16". */
+  /** Workbook-qualified cells, "workbook:sheet!cell", e.g. "expenditures:2023!D16". */
   refs?: readonly string[];
+  /** Machine-readable kind (pipeline: ANNOTATION_TOPICS in scripts/pipeline/src/edr/anomalies.ts). */
+  topic?: AnnotationTopic;
 }
+
+export type AnnotationTopic =
+  | 'gasb84'
+  | 'transfer-imbalance'
+  | 'proprietary-fund-gap'
+  | 'fund-gap'
+  | 'rounding'
+  | 'source-anomaly'
+  | 'custodial-accounts'
+  | 'custodial-zero'
+  | 'population-source';
 
 /** One non-zero fund cell of one account row. Zero cells are omitted (= $0). */
 export interface AfrObservation extends Observation {

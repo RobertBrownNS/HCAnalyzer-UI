@@ -19,10 +19,15 @@ import { groupPointNotes } from './view-notes';
                 @for (t of a.text; track $index) {
                   <p>{{ t }}</p>
                 }
-                @if (a.refs.length) {
-                  <p class="meta">Workbook cells: {{ a.refs.join(', ') }}</p>
+                @for (c of a.citations; track $index) {
+                  <p class="meta">
+                    Cells <span class="num">{{ c.cells.join(', ') }}</span>
+                    @if (c.source; as src) {
+                      in <a [href]="src.url" target="_blank" rel="noopener">{{ src.title }}</a>
+                    }
+                  </p>
                 }
-                @if (a.source; as src) {
+                @if (!a.citations.length && a.source; as src) {
                   <p class="meta">
                     Source: <a [href]="src.url" target="_blank" rel="noopener">{{ src.title }}</a>
                   </p>

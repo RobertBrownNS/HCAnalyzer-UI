@@ -5,6 +5,7 @@ import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
+  DEFAULT_JURISDICTION,
   DEFAULT_SETTINGS,
   TransformSettings,
   annotationsInRange,
@@ -13,7 +14,7 @@ import {
   defaultSettingsFor,
   selectCpi,
 } from '../core/transform';
-import { annotationNotes } from './view-notes';
+import { Workbook, annotationNotes } from './view-notes';
 import {
   QUERY_KEYS,
   QueryParams,
@@ -73,7 +74,21 @@ export class ExplorerStore {
   });
 
   /** In-range annotations, numbered for the chart and the notes list. */
-  readonly annotationNotes = computed(() => annotationNotes(this.annotations(), this.data()?.sources ?? []));
+  readonly annotationNotes = computed(() =>
+    annotationNotes(this.annotations(), this.data()?.sources ?? [], this.workbookSources()),
+  );
+
+  /** Source id behind each workbook an annotation ref can name ("expenditures:2023!P90"). */
+  private readonly workbookSources = computed<Partial<Record<Workbook, string>>>(() => {
+    const data = this.data();
+    if (!data) return {};
+    const afr = (flow: Flow) => data.observations.find((o) => o.flow === flow)?.sourceId;
+    return {
+      revenues: afr('revenue'),
+      expenditures: afr('expenditure'),
+      population: data.population[DEFAULT_JURISDICTION]?.sourceId,
+    };
+  });
 
   readonly cpiSelection = computed(() => {
     const data = this.data();

@@ -1,4 +1,5 @@
-import { DEFAULT_SETTINGS, SeriesPoint, TransformSettings } from '../core/transform';
+import { AfrObservation, CpiFile, PopulationFile } from '../core/models';
+import { DEFAULT_SETTINGS, SeriesPoint, TransformData, TransformSettings, buildSeries } from '../core/transform';
 import { kpiCards, measureCaption } from './kpi';
 
 const pt = (fiscalYear: number, value: number | null, custodialNominal = 0): SeriesPoint => ({
@@ -65,6 +66,48 @@ describe('kpiCards (neutral summary of the selected range)', () => {
     expect(byId(kpiCards([pt(2020, 1), pt(2025, 2, 9)], s({ includeCustodial: true })))['custodial'].sub).toBe(
       'Nominal; included in totals',
     );
+  });
+
+  it('KPI values equal transform.ts outputs for the current settings', () => {
+    // Revenue 1,000 (FY 2020-21) and 1,500 (FY 2024-25); population 10 and 12; CPI 200 and 250.
+    const obs = (fiscalYear: number, amount: number, fundType = 'general'): AfrObservation => ({
+      account: '311', amount, category: 'ad_valorem', fiscalYear, flow: 'revenue', fundType,
+      jurisdiction: 'hillsborough', ref: `${fiscalYear}!D6`, section: 'taxes', sourceId: 'afr-rev',
+    });
+    const series = (fy: Record<string, number>) => ({
+      sourceId: 'cpi', fiscalYear: fy, calendarYear: fy, fiscalYearUnavailable: {}, calendarYearUnavailable: {},
+    });
+    const data: TransformData = {
+      observations: [obs(2021, 1000), obs(2025, 1500), obs(2025, 400, 'custodial')],
+      population: {
+        hillsborough: { byYear: { 2021: { value: 10, basis: 'x', sheet: 'x' }, 2025: { value: 12, basis: 'x', sheet: 'x' } }, sourceId: 'pop' },
+      } as unknown as PopulationFile,
+      cpi: { national: series({ 2021: 200, 2025: 250 }), tampa: series({}), tampa_semiannual: series({}) } as unknown as CpiFile,
+      annotations: [],
+      sources: [],
+    };
+
+    for (const settings of [
+      s({ range: [2021, 2025], baseYear: 2025 }),
+      s({ range: [2021, 2025], baseYear: 2025, measure: 'real_per_capita' }),
+      s({ range: [2021, 2025], baseYear: 2021, measure: 'per_capita', indexTo100: true }),
+    ]) {
+      const points = buildSeries(data, settings);
+      const cards = byId(kpiCards(points, settings));
+      const first = points[0].value!;
+      const last = points[points.length - 1].value!;
+      expect(cards['end'].raw).toBe(last);
+      expect(cards['start'].raw).toBe(first);
+      expect(cards['change'].raw).toBeCloseTo((last - first) / Math.abs(first), 12);
+      expect(cards['custodial'].raw).toBe(points[points.length - 1].custodialNominal);
+    }
+
+    // Hand-computed, real per resident in FY 2024-25 dollars: 1000/10 * 250/200 = 125; 1500/12 = 125.
+    const real = byId(kpiCards(buildSeries(data, s({ range: [2021, 2025], measure: 'real_per_capita' })), s()));
+    expect(real['start'].raw).toBeCloseTo(125, 10);
+    expect(real['end'].raw).toBeCloseTo(125, 10);
+    expect(real['change'].raw).toBeCloseTo(0, 10);
+    expect(real['custodial'].raw).toBe(400);
   });
 
   it('describes each measure', () => {

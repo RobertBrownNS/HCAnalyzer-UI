@@ -1,13 +1,13 @@
 import { cssLengthToPx } from '../core/chart-palette';
 import { formatAxisValue, formatValue } from '../core/format';
-import { DEFAULT_SETTINGS, SeriesPoint } from '../core/transform';
+import { DEFAULT_SETTINGS, SeriesPoint, isTransferImbalanceNote } from '../core/transform';
 import { AnnotationRecord, SourceRecord } from '../core/models';
 import {
   annotationNotes,
   annotationsForTooltip,
   groupPointNotes,
   isTransferImbalanceAnnotation,
-  isTransferImbalanceNote,
+  parseRef,
   markLineGroups,
 } from './view-notes';
 import { tooltipHtml } from './series-chart.component';
@@ -68,6 +68,7 @@ describe('annotation notes', () => {
   const sources = [
     { id: 'page', publisher: 'EDR', title: 'Index page', url: 'https://example.test', retrieved: '2026-10-06', sha256: 'x', caveats: ['Page caveat.'] },
     { id: 'exp', publisher: 'EDR', title: 'Expenditures', url: 'https://example.test/e', retrieved: '2026-10-06', sha256: 'y', caveats: ['AFR caveat.'] },
+    { id: 'rev', publisher: 'EDR', title: 'Revenues', url: 'https://example.test/r', retrieved: '2026-10-06', sha256: 'z', caveats: [] },
   ] as SourceRecord[];
   const gasb: AnnotationRecord = { fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84).', sourceId: 'page' };
   const longA = {
@@ -77,17 +78,22 @@ describe('annotation notes', () => {
     sourceId: 'exp',
     flow: 'expenditure',
     detail: 'FY 2022-23: expenditure account 581 exceeds revenue account 381.',
-    refs: ['2023!N90'],
+    refs: ['expenditures:2023!N90', 'revenues:2023!P121', 'expenditures:2023!D16'],
   } as AnnotationRecord;
   const sameYear: AnnotationRecord = { fiscalYear: 2023, kind: 'methodology', label: 'Amounts reported rounded to $1,000', sourceId: 'exp', flow: 'expenditure' };
 
   it('numbers annotations by year and uses detail, else the source caveats', () => {
-    const notes = annotationNotes([longA, gasb, sameYear], sources);
+    const notes = annotationNotes([longA, gasb, sameYear], sources, { expenditures: 'exp', revenues: 'rev' });
     expect(notes.map((n) => [n.n, n.fiscalYear])).toEqual([[1, 2021], [2, 2023], [3, 2023]]);
     expect(notes[0].text).toEqual(['Page caveat.']);
     expect(notes[1].text).toEqual(['FY 2022-23: expenditure account 581 exceeds revenue account 381.']);
-    expect(notes[1].refs).toEqual(['2023!N90']);
+    // Cells grouped by the workbook named in each ref, not by the annotation's sourceId.
+    expect(notes[1].citations.map((c) => [c.source?.id, c.cells])).toEqual([
+      ['exp', ['2023!N90', '2023!D16']],
+      ['rev', ['2023!P121']],
+    ]);
     expect(notes[1].source?.id).toBe('exp');
+    expect(notes[0].citations).toEqual([]);
   });
 
   it('spells out view-independent labels on the chart and numbers the rest', () => {
@@ -126,13 +132,14 @@ describe('transfer-imbalance dedupe (annotation vs per-point note)', () => {
     'Transfers out (581) and transfers in (381) differ in FY 2022-23: $1,160,934,246 out, $536,330,405 in (difference $624,603,841).';
   const sources = [] as SourceRecord[];
   const imbalanceAnnotation = {
+    topic: 'transfer-imbalance',
     fiscalYear: 2023,
     kind: 'methodology',
     label: 'Transfers out (581) exceed transfers in (381) by $624.6M; account 521 Law Enforcement $732,874',
     sourceId: 'exp',
     flow: 'expenditure',
   } as AnnotationRecord;
-  const other = { ...imbalanceAnnotation, label: 'Amounts reported rounded to $1,000' } as AnnotationRecord;
+  const other = { ...imbalanceAnnotation, topic: 'rounding', label: 'Amounts reported rounded to $1,000' } as AnnotationRecord;
   const p2023 = point(2023, [NOTE, 'Custodial fund amounts (GASB 84) are excluded.']);
   const p2024 = point(2024, [NOTE.replace('2022-23', '2023-24')]);
 
@@ -140,8 +147,9 @@ describe('transfer-imbalance dedupe (annotation vs per-point note)', () => {
     expect(isTransferImbalanceNote(NOTE)).toBe(true);
     expect(isTransferImbalanceNote('Custodial fund amounts (GASB 84) are excluded.')).toBe(false);
     expect(isTransferImbalanceAnnotation(imbalanceAnnotation)).toBe(true);
-    expect(isTransferImbalanceAnnotation({ label: NOTE })).toBe(false);
     expect(isTransferImbalanceAnnotation(other)).toBe(false);
+    // Matched by topic, not label text.
+    expect(isTransferImbalanceAnnotation({ topic: undefined })).toBe(false);
   });
 
   it('Notes for this view: the annotation wins; the per-point note is dropped for that year only', () => {
@@ -169,5 +177,14 @@ describe('transfer-imbalance dedupe (annotation vs per-point note)', () => {
   it('chart lines still mark the annotation year', () => {
     const groups = markLineGroups(annotationNotes([imbalanceAnnotation], sources));
     expect(groups).toEqual([{ fiscalYear: 2023, kind: 'methodology', label: 'Note 1' }]);
+  });
+});
+
+describe('parseRef', () => {
+  it('parses workbook-qualified cells, including sheet names with spaces', () => {
+    expect(parseRef('revenues:2024!P121')).toEqual({ workbook: 'revenues', cell: '2024!P121' });
+    expect(parseRef('population:2010 Census!B31')).toEqual({ workbook: 'population', cell: '2010 Census!B31' });
+    expect(parseRef('2023!D16')).toBeNull();
+    expect(parseRef('budget:2023!D16')).toBeNull();
   });
 });

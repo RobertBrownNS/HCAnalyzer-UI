@@ -1,5 +1,7 @@
-import { Component, DOCUMENT, inject, signal } from '@angular/core';
+import { Component, DOCUMENT, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+
+import { ColorSchemeService } from './core/color-scheme.service';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +19,14 @@ import { RouterLink, RouterOutlet } from '@angular/router';
         <button type="button" class="bar-button export" disabled title="Export (CSV, PNG) is not available yet">
           Export
         </button>
+        <button
+          type="button"
+          class="bar-button"
+          [attr.aria-label]="'Color theme: ' + themeLabel() + '. Change'"
+          (click)="colorScheme.cycle()"
+        >
+          {{ themeLabel() }}
+        </button>
         <button type="button" class="bar-button" (click)="share()">{{ shareLabel() }}</button>
         <span class="sr-only" aria-live="polite">{{ shareStatus() }}</span>
       </div>
@@ -31,6 +41,8 @@ export class AppComponent {
   readonly title = 'Florida County Finance Explorer';
 
   private readonly doc = inject(DOCUMENT);
+  readonly colorScheme = inject(ColorSchemeService);
+  readonly themeLabel = computed(() => ({ system: 'Auto', light: 'Light', dark: 'Dark' })[this.colorScheme.mode()]);
   readonly shareStatus = signal('');
   readonly shareLabel = signal('Share view');
   private resetTimer?: ReturnType<typeof setTimeout>;

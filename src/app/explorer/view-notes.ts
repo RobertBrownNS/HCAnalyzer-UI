@@ -1,9 +1,28 @@
 // Pairs chart annotations with the "Notes for this view" list. Pure; exported for tests.
-import { AnnotationRecord, SourceRecord } from '../core/models';
-import { SeriesPoint, TRANSFER_ACCOUNTS, fiscalYearLabel } from '../core/transform';
+import { AnnotationRecord, AnnotationTopic, SourceRecord } from '../core/models';
+import { SeriesPoint, fiscalYearLabel, isTransferImbalanceNote } from '../core/transform';
 
-/** Fields the pipeline may add to annotations (detail text and workbook cells). */
-type AnnotationWithDetail = AnnotationRecord & { detail?: string; refs?: readonly string[] };
+/** Workbooks a ref can name: "revenues:2024!P121", "population:2010 Census!B31". */
+export type Workbook = 'revenues' | 'expenditures' | 'population';
+const REF_PATTERN = /^(revenues|expenditures|population):([^!]+)!([A-Z]+\d+)$/;
+
+export interface CellRef {
+  workbook: Workbook;
+  /** "2024!P121" */
+  cell: string;
+}
+
+/** Parses "workbook:sheet!cell"; null when it doesn't match the pipeline's format. */
+export function parseRef(ref: string): CellRef | null {
+  const m = REF_PATTERN.exec(ref);
+  return m ? { workbook: m[1] as Workbook, cell: `${m[2]}!${m[3]}` } : null;
+}
+
+/** Cells grouped by the source they come from. */
+export interface Citation {
+  source?: SourceRecord;
+  cells: string[];
+}
 
 /**
  * Chart labels: an annotation that applies to every view (no flow, custodial or measure
@@ -17,12 +36,15 @@ export interface AnnotationNote {
   fiscalYear: number;
   yearLabel: string;
   kind: AnnotationRecord['kind'];
+  topic?: AnnotationTopic;
   label: string;
   /** True when the annotation has no flow, custodial or measure condition. */
   universal: boolean;
   /** The annotation's detail, or the caveats of its source when it has none. */
   text: string[];
-  refs: readonly string[];
+  /** Cited workbook cells, grouped by the workbook's source (refs may cite both AFR workbooks). */
+  citations: Citation[];
+  /** The annotation's own source. */
   source?: SourceRecord;
 }
 
@@ -37,27 +59,43 @@ export interface PointNote {
   years: string;
 }
 
+/**
+ * @param workbookSources source id for each workbook a ref can name (from the loaded data).
+ */
 export function annotationNotes(
   annotations: readonly AnnotationRecord[],
   sources: readonly SourceRecord[],
+  workbookSources: Partial<Record<Workbook, string>> = {},
 ): AnnotationNote[] {
   const byId = new Map(sources.map((s) => [s.id, s]));
+  const cite = (refs: readonly string[]): Citation[] => {
+    const groups = new Map<string, Citation>();
+    for (const ref of refs) {
+      const parsed = parseRef(ref);
+      const id = parsed ? workbookSources[parsed.workbook] : undefined;
+      const key = id ?? '';
+      const group = groups.get(key) ?? { source: id ? byId.get(id) : undefined, cells: [] };
+      group.cells.push(parsed?.cell ?? ref);
+      groups.set(key, group);
+    }
+    return [...groups.values()];
+  };
   const isUniversal = (a: AnnotationRecord) => a.flow === undefined && a.custodial === undefined && a.measures === undefined;
   return [...annotations]
     // By year; within a year, view-independent annotations (e.g. GASB 84) first.
     .sort((a, b) => a.fiscalYear - b.fiscalYear || Number(isUniversal(b)) - Number(isUniversal(a)))
-    .map((raw, i) => {
-      const a = raw as AnnotationWithDetail;
+    .map((a, i) => {
       const source = byId.get(a.sourceId);
       return {
         n: i + 1,
         fiscalYear: a.fiscalYear,
         yearLabel: fiscalYearLabel(a.fiscalYear),
         kind: a.kind,
+        topic: a.topic,
         label: a.label,
         universal: isUniversal(a),
         text: a.detail ? [a.detail] : (source?.caveats ?? []),
-        refs: a.refs ?? [],
+        citations: cite(a.refs ?? []),
         source,
       };
     });
@@ -79,19 +117,12 @@ export function markLineGroups(notes: readonly AnnotationNote[]): MarkLineGroup[
   });
 }
 
-// The 581/381 transfer imbalance reaches the UI twice: as a data annotation (expenditure only)
-// and as a per-point note from the transform (both flows). Each surface shows it once:
-// chart lines and "Notes for this view" use the annotation; tooltip and table use the note.
-// TODO: switch to a transform export once it owns this matcher (requested).
-const IMBALANCE_NOTE_START = `Transfers out (${TRANSFER_ACCOUNTS.expenditure}) and transfers in (${TRANSFER_ACCOUNTS.revenue}) differ`;
-const IMBALANCE_ANNOTATION_START = `Transfers out (${TRANSFER_ACCOUNTS.expenditure})`;
-
-export function isTransferImbalanceNote(note: string): boolean {
-  return note.startsWith(IMBALANCE_NOTE_START);
-}
-
-export function isTransferImbalanceAnnotation(a: Pick<AnnotationNote, 'label'>): boolean {
-  return a.label.startsWith(IMBALANCE_ANNOTATION_START) && !isTransferImbalanceNote(a.label);
+// The 581/381 transfer imbalance reaches the UI twice: as a data annotation (expenditure only,
+// topic 'transfer-imbalance') and as a per-point note from the transform (both flows). Each
+// surface shows it once: chart lines and "Notes for this view" use the annotation; tooltip and
+// table use the note.
+export function isTransferImbalanceAnnotation(a: Pick<AnnotationNote, 'topic'>): boolean {
+  return a.topic === 'transfer-imbalance';
 }
 
 function hasImbalanceAnnotation(annotations: readonly AnnotationNote[], fiscalYear: number): boolean {

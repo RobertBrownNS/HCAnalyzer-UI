@@ -12,6 +12,8 @@ export interface KpiCard {
   label: string;
   value: string;
   sub: string;
+  /** The unformatted number behind `value` (transform output; change is a ratio). */
+  raw: number | null;
   /** 'series' = colored by the flow's series color; 'neutral' = grey. */
   accent: 'series' | 'neutral';
 }
@@ -35,29 +37,31 @@ export function kpiCards(points: readonly SeriesPoint[], s: TransformSettings): 
   const last = points[points.length - 1];
   if (!first || !last) {
     return [
-      { id: 'end', label: flow, value: EM_DASH, sub: caption, accent: 'series' },
-      { id: 'change', label: 'Change', value: EM_DASH, sub: 'No years in range', accent: 'series' },
+      { id: 'end', label: flow, value: EM_DASH, sub: caption, raw: null, accent: 'series' },
+      { id: 'change', label: 'Change', value: EM_DASH, sub: 'No years in range', raw: null, accent: 'series' },
     ];
   }
 
   const cards: KpiCard[] = [
-    { id: 'end', label: `${flow} · ${last.label}`, value: formatKpiValue(last.value, s), sub: caption, accent: 'series' },
-    { id: 'start', label: `${flow} · ${first.label}`, value: formatKpiValue(first.value, s), sub: caption, accent: 'series' },
+    { id: 'end', label: `${flow} · ${last.label}`, value: formatKpiValue(last.value, s), sub: caption, raw: last.value, accent: 'series' },
+    { id: 'start', label: `${flow} · ${first.label}`, value: formatKpiValue(first.value, s), sub: caption, raw: first.value, accent: 'series' },
   ];
 
   const span = `${first.label} → ${last.label}`;
   const a = first.value;
   const b = last.value;
   if (first === last) {
-    cards.push({ id: 'change', label: 'Change', value: EM_DASH, sub: 'Select more than one year', accent: 'series' });
+    cards.push({ id: 'change', label: 'Change', value: EM_DASH, sub: 'Select more than one year', raw: null, accent: 'series' });
   } else if (a === null || b === null || a === 0) {
-    cards.push({ id: 'change', label: 'Change', value: EM_DASH, sub: `${span}: not computable`, accent: 'series' });
+    cards.push({ id: 'change', label: 'Change', value: EM_DASH, sub: `${span}: not computable`, raw: null, accent: 'series' });
   } else {
+    const ratio = (b - a) / Math.abs(a);
     cards.push({
       id: 'change',
       label: 'Change',
-      value: formatSignedPercent((b - a) / Math.abs(a)),
+      value: formatSignedPercent(ratio),
       sub: `${span} · ${formatSignedDelta(b - a, s)}`,
+      raw: ratio,
       accent: 'series',
     });
   }
@@ -67,6 +71,7 @@ export function kpiCards(points: readonly SeriesPoint[], s: TransformSettings): 
     id: 'custodial',
     label: `Custodial fund · ${last.label}`,
     value: last.fiscalYear < custodialFrom ? EM_DASH : formatUsdCompact(last.custodialNominal),
+    raw: last.fiscalYear < custodialFrom ? null : last.custodialNominal,
     sub:
       last.fiscalYear < custodialFrom
         ? `Not reported before ${fiscalYearLabel(custodialFrom)}`
