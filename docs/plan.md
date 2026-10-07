@@ -94,7 +94,7 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
 | P2-01 | Upgrade Angular 17.3 to latest (stepwise `ng update`), CLI-default test runner | FE | none | done |
-| P2-02 | Add `ngx-echarts` + Angular Material; theme tokens, light/dark | FE | P2-01 | review |
+| P2-02 | Add `ngx-echarts` + Angular Material; theme tokens, light/dark | FE | P2-01 | done |
 | P2-03 | `src/app/core/models.ts` (Observation, Source, Annotation) | TE | P1-01 | done |
 | P2-04 | Pure `transform.ts` + exhaustive tests | TE | P2-03, P1-05 | done |
 | P2-05 | Data loading service (static JSON, checksum check) | FE | P1-06, P2-01 | in-progress |
@@ -105,13 +105,13 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | P2-10 | Mobile-first layout, chip row, bottom sheet | FE | P2-07 | done |
 | P2-11 | Minimal source/provenance display | FE | P2-05 | done |
 | P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13, P2-14 | in-progress |
-| P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | review |
+| P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | done |
 | P2-14 | Deployable static build: GitHub Pages sub-path and IIS (decisions D-12) | FE | P2-05 | todo |
 
 Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - **Conditions to close Phase 2:** QA-11 (chart zoom not in view state, P2-08) and QA-12 (Back/forward, P2-06).
-- **Awaiting QA re-verification:** QA-13 (axis label contrast, fixed in `0c67b47`) and QA-16 (manual theme toggle, `0c67b47`). These hold P2-02 and P2-13 in `review`.
-- **Open minors:** QA-14 (no data-version/checksum check, P2-05), QA-18 (KPI test uses hand-made points, P2-13), QA-19 (user-facing notes expose internal paths), QA-20 (Export/Share messages on touch). QA-22 is a note.
+- **Re-verified by QA (`23ed862`):** QA-13 (axis label contrast), QA-16 (manual theme toggle) and QA-18 (KPI test) are resolved. P2-02 and P2-13 are done.
+- **Open minors:** QA-14 (no data-version/checksum check, P2-05), QA-19 (user-facing notes expose internal paths), QA-20 (Export/Share messages on touch). QA-22 is a note.
 - **Resolved by decision:** QA-17, by DR-32 (URL writes every setting).
 - **Deferred:** QA-15 (tablet side panel) to Phase 6 polish. QA-21 (chart self-description when cropped) to Phase 5, where the PNG export must print the settings. See DR-33.
 
@@ -179,7 +179,7 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - [ ] Light and dark both work, including the chart, KPI cards and table. Text meets WCAG AA contrast in both.
 - [ ] All touch targets are ≥ 44×44 CSS px at phone width.
 - [ ] **KPI neutrality:** every KPI value derives only from the user's current range, base year, measure and index settings. There are no comparison periods we pick, and no green/red or up/down good/bad coloring. Change values use the same neutral color whatever their sign. A test asserts that KPI values equal `transform.ts` outputs for the current settings.
-- [ ] IBM Plex Sans and IBM Plex Mono are self-hosted from `src/assets`. The network tab shows no requests to Google Fonts or any other third-party font host.
+- [ ] IBM Plex Sans and IBM Plex Mono are self-hosted (bundled from `@fontsource`), with no third-party requests. The network tab shows no requests to Google Fonts or any other third-party font host.
 
 **P2-14 Deployable static build**
 - [ ] The base href is configurable at build time (for example `ng build --base-href /<repo>/` for a GitHub Pages sub-path, `/` or a virtual directory for IIS). The app, deep links and query-param URLs work under each.
