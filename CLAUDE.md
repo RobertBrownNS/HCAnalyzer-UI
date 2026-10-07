@@ -40,7 +40,8 @@ Fiscal year convention: Florida county FY runs Oct 1 – Sep 30. Store `fiscalYe
 - Angular (latest), standalone components, signals. Controls are signals; chart data is a `computed`.
 - Apache ECharts via `ngx-echarts` (touch pinch-zoom, dataZoom slider, PNG export).
 - Angular Material (or a light custom set) for bottom sheet, chips, toggles.
-- Static hosting only. No backend, no tracking, no accounts.
+- Static hosting only. No backend, no accounts.
+- Analytics: cookieless Cloudflare Web Analytics only (page views and referrers; no cookies, no personal data, no cross-site tracking). Off unless a token is configured at build time; skipped when the browser sends Do Not Track or Global Privacy Control. No other third-party requests.
 - Data is processed at build time (state sites block browser CORS fetches) into versioned JSON with checksums.
 
 ## Data model
