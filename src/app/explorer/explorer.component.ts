@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ViewContainerRef, computed, inject, signal } from '@angular/core';
+import { Component, ViewContainerRef, computed, inject, signal } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 
 import {
@@ -17,7 +17,6 @@ import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.com
 import { ExplorerStore } from './explorer-store';
 import { kpiCards, measureCaption } from './kpi';
 import { KpiRowComponent } from './kpi-row.component';
-import { SKELETON_DELAY_MS } from './skeleton';
 import { MethodologyComponent } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
 import { SeriesChartComponent } from './series-chart.component';
@@ -56,12 +55,9 @@ export class ExplorerComponent {
   readonly view = signal<'chart' | 'table'>('chart');
 
   /** Data not loaded yet: placeholders hold every box the content will fill. */
-  readonly loading = computed(() => {
-    const status = this.store.status();
-    return status === 'idle' || status === 'loading';
-  });
-  /** Placeholders are laid out at once but shown only after SKELETON_DELAY_MS (no flash). */
-  readonly reveal = signal(false);
+  readonly loading = this.store.loading;
+  /** Placeholders are laid out at once but shown only after SKELETON_DELAY_MS (once per load). */
+  readonly reveal = this.store.revealSkeleton;
   readonly skeletonTiles = [
     { heading: 'notes', lines: ['90%', '75%', '85%', '60%'] },
     { heading: 'sources', lines: ['70%', '95%', '80%', '90%', '65%', '85%'] },
@@ -71,8 +67,6 @@ export class ExplorerComponent {
     // Fetch the ECharts chunk in parallel with the data instead of after it (same module the
     // ngx-echarts provider imports, so it is downloaded once).
     void import('../core/echarts');
-    const t = setTimeout(() => this.reveal.set(true), SKELETON_DELAY_MS);
-    inject(DestroyRef).onDestroy(() => clearTimeout(t));
   }
 
   readonly valueLabel = computed(() => {
@@ -92,7 +86,9 @@ export class ExplorerComponent {
   /** Annotations that apply to every view (e.g. GASB 84), spelled out under the chart on phones. */
   readonly keyAnnotations = computed(() => this.store.annotationNotes().filter((a) => a.universal));
 
-  readonly kpis = computed(() => kpiCards(this.store.points(), this.store.settings()));
+  readonly kpis = computed(() =>
+    kpiCards(this.store.points(), this.store.settings(), this.store.loaded() ? undefined : 'Data not loaded'),
+  );
 
   /** The AFR workbook behind the selected flow, for the line under the chart. */
   readonly afrSource = computed(() => {
@@ -120,8 +116,9 @@ export class ExplorerComponent {
     }
     chips.push({
       group: 'range',
-      // Until the data says which years exist, the range isn't checked yet: don't state it.
-      label: this.loading() ? 'Fiscal years' : `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
+      // Until data has loaded successfully the range isn't checked against the years that exist:
+      // don't state it (also after a failed load, QA-27).
+      label: !this.store.loaded() ? 'Fiscal years' : `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
       aria: 'Fiscal years',
     });
     chips.push({

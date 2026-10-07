@@ -1,9 +1,8 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { MatSliderModule } from '@angular/material/slider';
 
 import { fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
-import { SKELETON_DELAY_MS } from './skeleton';
 
 interface RangePreset {
   label: string;
@@ -52,7 +51,7 @@ const PRESETS: RangePreset[] = [
           <button type="button" class="fx-button" (click)="applyPreset(p)">{{ p.label }}</button>
         }
       </div>
-    } @else {
+    } @else if (loading()) {
       <!-- Years not known yet (data loading): same boxes as above, so nothing moves later. -->
       <div class="pending" aria-hidden="true" [class.fx-skel-pending]="!revealSkeleton()">
         <span class="fx-skel fx-skel-line readout-skel"></span>
@@ -114,13 +113,9 @@ export class RangeControlComponent {
   /** Thumb label: "FY 2020-21" is too wide for the thumb, so show "20-21". */
   readonly shortLabel = (fy: number) => fiscalYearLabel(fy).slice(5);
 
-  /** The placeholder appears only if the years take longer than SKELETON_DELAY_MS. */
-  readonly revealSkeleton = signal(false);
-
-  constructor() {
-    const t = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
-    inject(DestroyRef).onDestroy(() => clearTimeout(t));
-  }
+  /** Placeholder only while the data loads (not after a failed load, QA-27), on the page's reveal flag. */
+  readonly loading = this.store.loading;
+  readonly revealSkeleton = this.store.revealSkeleton;
 
   /** True between a thumb's pointer down and up. */
   private dragging = false;

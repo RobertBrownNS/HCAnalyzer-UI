@@ -9,6 +9,7 @@ import { DataService, DataStatus } from '../core/data.service';
 import { AfrObservation, CpiFile, PopulationFile } from '../core/models';
 import { TransformData } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
+import { SKELETON_DELAY_MS } from './skeleton';
 
 function obs(flow: 'revenue' | 'expenditure', fiscalYear: number, amount: number, fundType = 'general'): AfrObservation {
   return {
@@ -219,6 +220,16 @@ describe('ExplorerStore URL state', () => {
       expect(navigate).not.toHaveBeenCalled();
       expect(location.path()).toContain('measure=nominal');
     });
+  });
+
+  it('reveals loading placeholders once per load, after the delay, and keeps them revealed (QA-26)', async () => {
+    const store = await open('/');
+    expect(store.revealSkeleton()).toBe(false);
+    await new Promise((r) => setTimeout(r, SKELETON_DELAY_MS + 30));
+    expect(store.revealSkeleton()).toBe(true);
+    store.update({ measure: 'per_capita' });
+    await harness.fixture.whenStable();
+    expect(store.revealSkeleton()).toBe(true);
   });
 
   it('computes points and in-range annotations from settings', async () => {

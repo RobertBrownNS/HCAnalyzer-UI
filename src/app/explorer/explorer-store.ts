@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, untracked } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
@@ -15,6 +15,7 @@ import {
   fiscalYearLabel,
   selectCpi,
 } from '../core/transform';
+import { SKELETON_DELAY_MS } from './skeleton';
 import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
   QUERY_KEYS,
@@ -48,6 +49,20 @@ export class ExplorerStore {
   private readonly queryParams = toSignal(this.route.queryParamMap, { requireSync: true });
 
   readonly status = this.dataService.status;
+  /** Data not loaded yet (idle or loading); not true after an error. */
+  readonly loading = computed(() => {
+    const s = this.status();
+    return s === 'idle' || s === 'loading';
+  });
+  /** Data loaded successfully. */
+  readonly loaded = computed(() => this.status() === 'ready');
+  /**
+   * Loading placeholders become visible once, SKELETON_DELAY_MS after the page opens, and stay
+   * revealed for the rest of the load. Every placeholder (page, range control, chart) uses this
+   * one flag, so a placeholder that appears later in the load is shown at once, not after a
+   * second delay (QA-26).
+   */
+  readonly revealSkeleton = signal(false);
   readonly error = this.dataService.error;
   readonly data = this.dataService.data;
 
@@ -109,6 +124,9 @@ export class ExplorerStore {
   });
 
   constructor() {
+    const reveal = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
+    inject(DestroyRef).onDestroy(() => clearTimeout(reveal));
+
     void this.dataService.load();
 
     // Keep the URL canonical: every key present, invalid values replaced.

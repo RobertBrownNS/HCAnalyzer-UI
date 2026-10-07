@@ -72,6 +72,7 @@
                 [settings]="store.settings()"
                 [valueLabel]="valueLabel()"
                 [seriesIndex]="seriesIndex()"
+                [revealSkeleton]="reveal()"
                 (rangeChange)="store.update({ range: $event })"
               />
             } @else {

@@ -9,7 +9,6 @@ import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ZOOM_SETTLE_MS, zoomWindowToRange } from './chart-zoom';
-import { SKELETON_DELAY_MS } from './skeleton';
 import { AnnotationNote, annotationsForTooltip, markLineGroups } from './view-notes';
 
 // ECharts renders the tooltip as HTML in the page, so tokens apply.
@@ -109,8 +108,6 @@ export class SeriesChartComponent {
     }
     inject(DestroyRef).onDestroy(() => clearTimeout(this.zoomTimer));
 
-    const reveal = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
-    inject(DestroyRef).onDestroy(() => clearTimeout(reveal));
 
     // QA-11: ECharts' inside dataZoom cancels every wheel event over the plot, even with
     // wheel zoom/move off, which traps page scrolling. Stop wheel events before they reach
@@ -124,8 +121,8 @@ export class SeriesChartComponent {
 
   /** True once ECharts has drawn its first frame (lazy chunk loaded, options applied). */
   readonly rendered = signal(false);
-  /** The placeholder appears only if init takes longer than SKELETON_DELAY_MS. */
-  readonly revealSkeleton = signal(false);
+  /** Show the placeholder (set by the page's once-per-load reveal flag; QA-26). */
+  readonly revealSkeleton = input(false);
 
   onChartInit(chart: ECharts): void {
     this.chart = chart;

@@ -30,7 +30,11 @@ export function measureCaption(s: TransformSettings): string {
   return s.indexTo100 ? `Index, ${base} = 100 · ${unit}` : unit;
 }
 
-export function kpiCards(points: readonly SeriesPoint[], s: TransformSettings): KpiCard[] {
+/**
+ * @param emptySub sub-line when there are no points: "No years in range" by default; the page
+ *   passes "Data not loaded" after a failed load (QA-27).
+ */
+export function kpiCards(points: readonly SeriesPoint[], s: TransformSettings, emptySub = 'No years in range'): KpiCard[] {
   const flow = FLOW_LABELS[s.flow];
   const caption = measureCaption(s);
   const first = points[0];
@@ -38,7 +42,7 @@ export function kpiCards(points: readonly SeriesPoint[], s: TransformSettings): 
   if (!first || !last) {
     return [
       { id: 'end', label: flow, value: EM_DASH, sub: caption, raw: null, accent: 'series' },
-      { id: 'change', label: 'Change', value: EM_DASH, sub: 'No years in range', raw: null, accent: 'series' },
+      { id: 'change', label: 'Change', value: EM_DASH, sub: emptySub, raw: null, accent: 'series' },
     ];
   }
 

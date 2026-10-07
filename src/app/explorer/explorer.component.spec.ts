@@ -70,6 +70,7 @@ describe('ExplorerComponent', () => {
 
     it('error and Retry replace the skeletons', async () => {
       const el = await open();
+      await new Promise((r) => setTimeout(r, SKELETON_DELAY_MS + 30)); // placeholders revealed first
       const data = TestBed.inject(DataService) as unknown as LoadingDataService;
       data.error.set('The data files use schema version 99, but this version of the site reads schema version 1.');
       data.status.set('error');
@@ -79,6 +80,23 @@ describe('ExplorerComponent', () => {
       expect(el.querySelector('.skel-tile')).toBeNull();
       expect(el.querySelector('[role="alert"]')?.textContent).toContain('schema version 99');
       expect(el.querySelector('.main')?.getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('after a failed load: no skeleton anywhere, no unchecked range, KPIs say the data is not loaded (QA-27)', async () => {
+      const el = await open();
+      await new Promise((r) => setTimeout(r, SKELETON_DELAY_MS + 30));
+      const data = TestBed.inject(DataService) as unknown as LoadingDataService;
+      data.error.set('Http failure response: 404 Not Found');
+      data.status.set('error');
+      await harness.fixture.whenStable();
+      expect(el.querySelectorAll('.fx-skel, app-chart-skeleton, .card.skel, .skel-tile, app-range-control .pending')).toHaveLength(0);
+      const chips = [...el.querySelectorAll('.fx-chip')].map((c) => c.textContent?.trim());
+      expect(chips).toContain('Fiscal years');
+      expect(chips.some((c) => c?.startsWith('FY '))).toBe(false);
+      const kpiText = el.querySelector('.kpis-wide')?.textContent ?? '';
+      expect(kpiText).toContain('Data not loaded');
+      expect(kpiText).not.toContain('No years in range');
+      expect(el.querySelector('[role="alert"] button')?.textContent?.trim()).toBe('Retry');
     });
   });
 
