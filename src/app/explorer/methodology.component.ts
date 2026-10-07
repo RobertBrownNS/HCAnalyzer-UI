@@ -3,7 +3,24 @@ import { Component, computed, inject } from '@angular/core';
 import { FLOW_LABELS, MEASURE_LABELS, fundScopeLabel, isPerCapita, isReal, transferLabel } from '../core/labels';
 import { CpiSeriesFile, SourceRecord } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
+import { countyName } from '../core/county';
 import { ExplorerStore } from './explorer-store';
+
+/** Source caveats that must be visible, not only in the collapsed caveat list. */
+const NOT_CROSS_CHECKED = /^Not cross-checked against the county/i;
+
+/**
+ * The caveat saying a county's EDR figures weren't cross-checked against the county-filed AFR.
+ * Uses a structured flag when the data provides one (requested from the pipeline), else the
+ * caveat's opening words. Exported for tests.
+ */
+export function crossCheckNotice(src: SourceRecord): string | null {
+  const flags = src as SourceRecord & { countyAfrCrossCheck?: string; crossCheckedAgainstCountyAfr?: boolean };
+  const flagged = flags.countyAfrCrossCheck === 'not-checked' || flags.crossCheckedAgainstCountyAfr === false;
+  const text = src.caveats.find((c) => NOT_CROSS_CHECKED.test(c));
+  if (flagged) return text ?? "Not cross-checked against the county's own Annual Financial Report.";
+  return text ?? null;
+}
 
 /** Plain statement of the active settings and every source in view. */
 @Component({
@@ -36,7 +53,8 @@ export class MethodologyComponent {
       .join(', '),
   );
 
-  readonly population = computed(() => this.store.data()?.population['hillsborough'] ?? null);
+  readonly population = computed(() => this.store.data()?.population[this.store.county()] ?? null);
+  readonly countyLabel = computed(() => `${countyName(this.store.county())} County`);
 
   readonly cpi = computed(() => {
     const sel = this.store.cpiSelection();
@@ -49,6 +67,8 @@ export class MethodologyComponent {
     return { label: sel.label, seriesId: file?.seriesId ?? '', basePeriod: file?.basePeriod ?? '', basis };
   });
 
+
+  readonly crossCheckNotice = crossCheckNotice;
 
   readonly sources = computed<SourceRecord[]>(() => {
     const data = this.store.data();

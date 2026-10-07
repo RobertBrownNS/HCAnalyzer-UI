@@ -51,7 +51,10 @@ describe('kpiCards (neutral summary of the selected range)', () => {
     expect(byId(kpiCards([pt(2025, 5)], s()))['change'].sub).toBe('Select more than one year');
   });
 
-  it('shows compact totals with two decimals, even when round', () => {
+  it('shows compact totals and changes with two decimals, even when round', () => {
+    const cards = byId(kpiCards([pt(2020, 1_760_000_000), pt(2025, 2_760_000_000)], s()));
+    expect(cards['end'].value).toBe('$2.76B');
+    expect(cards['change'].sub).toBe('FY 2019-20 → FY 2024-25 · +$1.00B');
     expect(byId(kpiCards([pt(2020, 1), pt(2025, 3_000_000_000)], s()))['end'].value).toBe('$3.00B');
   });
 

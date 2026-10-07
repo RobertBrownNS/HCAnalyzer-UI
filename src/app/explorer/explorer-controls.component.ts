@@ -9,12 +9,13 @@ import {
   fundScopeLabel,
   isReal,
 } from '../core/labels';
+import { countyName } from '../core/county';
 import { Flow } from '../core/models';
 import { CpiIndex, CpiPeriod, Measure, TransferMode, fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
 import { RangeControlComponent } from './range-control.component';
 
-export type ControlGroup = 'flow' | 'measure' | 'range' | 'funds' | 'inflation';
+export type ControlGroup = 'county' | 'flow' | 'measure' | 'range' | 'funds' | 'inflation';
 
 function entries<K extends string>(labels: Record<K, string>): { value: K; label: string }[] {
   return (Object.keys(labels) as K[]).map((value) => ({ value, label: labels[value] }));
@@ -47,6 +48,12 @@ export class ExplorerControlsComponent {
   readonly fyLabel = fiscalYearLabel;
 
   readonly real = computed(() => isReal(this.settings().measure));
+  readonly county = this.store.county;
+  /** Counties the data offers; before the list loads, the current county alone. */
+  readonly counties = computed(() => {
+    const ids = this.store.counties();
+    return (ids.length ? ids : [this.county()]).map((id) => ({ value: id, label: countyName(id) }));
+  });
   readonly scope = computed(() => fundScopeLabel(this.settings()));
 
   value(e: Event): string {
@@ -61,6 +68,9 @@ export class ExplorerControlsComponent {
     return only === null ? group !== 'range' : only === group;
   }
 
+  setCounty(jurisdiction: string): void {
+    this.store.update({ jurisdiction });
+  }
   setFlow(flow: string): void {
     this.store.update({ flow: flow as Flow });
   }

@@ -78,3 +78,9 @@ summary {
 code {
   font-size: var(--fx-code-scale);
 }
+
+.notice {
+  margin: var(--fx-space-1) 0 0;
+  font: var(--fx-type-body-small);
+  color: var(--fx-color-text);
+}

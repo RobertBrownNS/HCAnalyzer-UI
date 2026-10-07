@@ -1,9 +1,17 @@
 // Pure conversion between TransformSettings and URL query params, so links reproduce views.
 // Unknown or malformed params fall back to defaults; nothing here throws.
-import { CpiIndex, CpiPeriod, DEFAULT_SETTINGS, Measure, TransferMode, TransformSettings } from './transform';
+import {
+  CpiIndex,
+  CpiPeriod,
+  DEFAULT_JURISDICTION,
+  DEFAULT_SETTINGS,
+  Measure,
+  TransferMode,
+  TransformSettings,
+} from './transform';
 import { Flow } from './models';
 
-export const QUERY_KEYS = ['flow', 'measure', 'base', 'idx', 'from', 'to', 'cust', 'cpi', 'cpiper', 'xfer'] as const;
+export const QUERY_KEYS = ['flow', 'measure', 'base', 'idx', 'from', 'to', 'cust', 'cpi', 'cpiper', 'xfer', 'county'] as const;
 export type QueryKey = (typeof QUERY_KEYS)[number];
 export type QueryParams = Record<QueryKey, string>;
 
@@ -27,6 +35,11 @@ function year(value: string | null): number | null {
   return Number(value);
 }
 
+/** County ids are lowercase slugs ("hillsborough", "miami-dade"); anything else is not a county. */
+function county(value: string | null): string | null {
+  return value !== null && /^[a-z]+(-[a-z]+)*$/.test(value) ? value : null;
+}
+
 function flag(value: string | null, fallback: boolean): boolean {
   if (value === '1') return true;
   if (value === '0') return false;
@@ -47,6 +60,7 @@ export function parseSettings(params: ParamSource, defaults: TransformSettings =
     cpiIndex: oneOf(params.get('cpi'), CPI_INDEXES, defaults.cpiIndex),
     cpiPeriod: oneOf(params.get('cpiper'), CPI_PERIODS, defaults.cpiPeriod),
     transfers: oneOf(params.get('xfer'), TRANSFER_MODES, defaults.transfers ?? 'gross'),
+    jurisdiction: county(params.get('county')) ?? defaults.jurisdiction ?? DEFAULT_JURISDICTION,
   };
 }
 
@@ -63,13 +77,29 @@ export function serializeSettings(s: TransformSettings): QueryParams {
     cpi: s.cpiIndex,
     cpiper: s.cpiPeriod,
     xfer: s.transfers ?? 'gross',
+    county: s.jurisdiction ?? DEFAULT_JURISDICTION,
   };
 }
 
 /**
- * Fits settings to the fiscal years that exist for the selected flow: the range is clamped to
- * the available span and the base year must be an available year. With no years known
- * (data still loading) settings are returned unchanged.
+ * A county the data doesn't offer falls back to the default county. With no county list yet
+ * (manifest still loading) the county is returned unchanged.
+ */
+export function normalizeCounty(
+  s: TransformSettings,
+  counties: readonly string[],
+  defaults: TransformSettings = DEFAULT_SETTINGS,
+): TransformSettings {
+  if (counties.length === 0) return s;
+  const fallback = defaults.jurisdiction ?? DEFAULT_JURISDICTION;
+  const jurisdiction = s.jurisdiction && counties.includes(s.jurisdiction) ? s.jurisdiction : fallback;
+  return jurisdiction === s.jurisdiction ? s : { ...s, jurisdiction };
+}
+
+/**
+ * Fits settings to the fiscal years that exist for the selected county and flow: the range is
+ * clamped to the available span and the base year must be an available year. With no years
+ * known (data still loading) settings are returned unchanged.
  */
 export function normalizeSettings(
   s: TransformSettings,

@@ -3,7 +3,7 @@
 
   <dl class="facts">
     <dt>Jurisdiction</dt>
-    <dd>Hillsborough County</dd>
+    <dd>{{ countyLabel() }}</dd>
 
     <dt>Data</dt>
     <dd>{{ flowLabel() }}, all account codes, as reported in the county's Annual Financial Reports and compiled by EDR.</dd>
@@ -69,6 +69,9 @@
       <li>
         <div>{{ src.publisher }}</div>
         <a [href]="src.url" target="_blank" rel="noopener">{{ src.title }}</a>
+        @if (crossCheckNotice(src); as notice) {
+          <p class="notice">{{ notice }}</p>
+        }
         <div class="meta">Retrieved {{ src.retrieved }} · SHA-256 <code>{{ src.sha256.slice(0, 12) }}…</code></div>
         @if (src.caveats.length) {
           <details>

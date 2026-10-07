@@ -2,6 +2,7 @@ import { Component, DOCUMENT, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 
 import { ColorSchemeService } from './core/color-scheme.service';
+import { CountyContext } from './core/county';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,9 @@ import { ColorSchemeService } from './core/color-scheme.service';
           <span class="title-full">{{ title }}</span><span class="title-short">{{ shortTitle }}</span>
         </span>
       </a>
-      <span class="jurisdiction">Hillsborough County</span>
+      @if (county.label(); as label) {
+        <span class="jurisdiction">{{ label }}</span>
+      }
       <div class="actions">
         <span class="export">
           <button type="button" class="bar-button" disabled aria-describedby="export-hint">Export</button>
@@ -64,6 +67,7 @@ export class AppComponent {
 
   private readonly doc = inject(DOCUMENT);
   readonly colorScheme = inject(ColorSchemeService);
+  readonly county = inject(CountyContext);
   readonly themeLabel = computed(() => ({ system: 'Auto', light: 'Light', dark: 'Dark' })[this.colorScheme.mode()]);
   readonly shareStatus = signal('');
   readonly shareLabel = signal('Share view');

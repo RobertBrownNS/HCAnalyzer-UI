@@ -2,6 +2,7 @@ import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } f
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
+import { CountyContext } from '../core/county';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
@@ -20,6 +21,7 @@ import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
   QUERY_KEYS,
   QueryParams,
+  normalizeCounty,
   normalizeSettings,
   parseSettings,
   sameParams,
@@ -48,7 +50,18 @@ export class ExplorerStore {
 
   private readonly queryParams = toSignal(this.route.queryParamMap, { requireSync: true });
 
-  readonly status = this.dataService.status;
+  /** Counties the data offers (empty until the manifest has loaded). */
+  readonly counties = this.dataService.counties;
+
+  /**
+   * The county being shown: from the URL, falling back to the default when the data doesn't offer
+   * it. Settled first, because the data, the available years and the defaults all depend on it.
+   */
+  readonly county = computed(
+    () => normalizeCounty(parseSettings(this.queryParams()), this.counties()).jurisdiction ?? DEFAULT_JURISDICTION,
+  );
+
+  readonly status = computed(() => this.dataService.statusFor(this.county()));
   /** Data not loaded yet (idle or loading); not true after an error. */
   readonly loading = computed(() => {
     const s = this.status();
@@ -57,14 +70,15 @@ export class ExplorerStore {
   /** Data loaded successfully. */
   readonly loaded = computed(() => this.status() === 'ready');
   /**
-   * Loading placeholders become visible once, SKELETON_DELAY_MS after the page opens, and stay
-   * revealed for the rest of the load. Every placeholder (page, range control, chart) uses this
-   * one flag, so a placeholder that appears later in the load is shown at once, not after a
-   * second delay (QA-26).
+   * Loading placeholders become visible once per load, SKELETON_DELAY_MS after it starts (page
+   * open or a switch to a county not loaded yet), and stay revealed for the rest of that load.
+   * Every placeholder (page, range control, chart) uses this one flag, so a placeholder that
+   * appears later in the load is shown at once, not after a second delay (QA-26).
    */
   readonly revealSkeleton = signal(false);
-  readonly error = this.dataService.error;
-  readonly data = this.dataService.data;
+  readonly error = computed(() => this.dataService.errorFor(this.county()));
+  /** Shared files plus the selected county's observations; null until both have loaded. */
+  readonly data = computed(() => this.dataService.dataFor(this.county()));
 
   /** Defaults come from the loaded data (full range, latest base year), not hardcoded years. */
   readonly settings = computed<TransformSettings>(
@@ -72,7 +86,8 @@ export class ExplorerStore {
       const params = this.queryParams();
       const flow = parseSettings(params).flow;
       const defaults = this.defaultsFor(flow);
-      return normalizeSettings(parseSettings(params, defaults), this.yearsFor(flow), defaults);
+      const parsed = { ...parseSettings(params, defaults), jurisdiction: this.county() };
+      return normalizeSettings(parsed, this.yearsFor(flow), defaults);
     },
     { equal: (a, b) => sameParams(serializeSettings(a), serializeSettings(b)) },
   );
@@ -113,7 +128,7 @@ export class ExplorerStore {
     return {
       revenues: afr('revenue'),
       expenditures: afr('expenditure'),
-      population: data.population[DEFAULT_JURISDICTION]?.sourceId,
+      population: data.population[this.county()]?.sourceId,
     };
   });
 
@@ -124,10 +139,30 @@ export class ExplorerStore {
   });
 
   constructor() {
-    const reveal = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
-    inject(DestroyRef).onDestroy(() => clearTimeout(reveal));
+    let revealTimer: ReturnType<typeof setTimeout> | undefined;
+    let wasLoading = false;
+    inject(DestroyRef).onDestroy(() => clearTimeout(revealTimer));
+    // One reveal delay per load: restart it each time a load begins.
+    effect(() => {
+      const loading = this.loading();
+      if (loading && !wasLoading) {
+        untracked(() => this.revealSkeleton.set(false));
+        clearTimeout(revealTimer);
+        revealTimer = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
+      }
+      wasLoading = loading;
+    });
 
     void this.dataService.load();
+    // Load the selected county's observations once the county list is known (cached per county).
+    effect(() => {
+      const county = this.county();
+      if (this.counties().length) untracked(() => void this.dataService.loadCounty(county));
+    });
+    // The page header names the county shown.
+    const context = inject(CountyContext);
+    effect(() => context.id.set(this.county()));
+    inject(DestroyRef).onDestroy(() => context.id.set(null));
 
     // Keep the URL canonical: every key present, invalid values replaced.
     effect(() => {
@@ -138,9 +173,17 @@ export class ExplorerStore {
     });
   }
 
-  /** User change: pushes a history entry, so Back/Forward restore earlier views. */
+  /**
+   * User change: pushes a history entry, so Back/Forward restore earlier views. A county switch
+   * keeps the other settings; range and base year are re-clamped to that county's years once its
+   * data is in (a replace, so it adds no history entry).
+   */
   update(patch: Partial<TransformSettings>): void {
     const merged = { ...this.settings(), ...patch };
+    if (merged.jurisdiction !== this.county()) {
+      this.navigate(serializeSettings(normalizeCounty(merged, this.counties())), { replace: false });
+      return;
+    }
     const next = normalizeSettings(merged, this.yearsFor(merged.flow), this.defaultsFor(merged.flow));
     const params = serializeSettings(next);
     if (!sameParams(params, serializeSettings(this.settings()))) this.navigate(params, { replace: false });
@@ -151,18 +194,23 @@ export class ExplorerStore {
     this.navigate(serializeSettings(this.defaultsFor(this.settings().flow)), { replace: false });
   }
 
+  /** Defaults for the selected county, from its data (full range, latest base year). */
   private defaultsFor(flow: Flow): TransformSettings {
     const data = this.data();
-    return data ? defaultSettingsFor(data, flow) : { ...DEFAULT_SETTINGS, flow, range: [...DEFAULT_SETTINGS.range] };
+    const jurisdiction = this.county();
+    return data
+      ? defaultSettingsFor(data, flow, jurisdiction)
+      : { ...DEFAULT_SETTINGS, flow, jurisdiction, range: [...DEFAULT_SETTINGS.range] };
   }
 
   retry(): void {
     void this.dataService.load();
+    void this.dataService.loadCounty(this.county());
   }
 
   private yearsFor(flow: Flow): number[] {
     const data = this.data();
-    return data ? availableYears(data, flow) : [];
+    return data ? availableYears(data, flow, this.county()) : [];
   }
 
   private navigate(queryParams: QueryParams, opts: { replace: boolean }): void {

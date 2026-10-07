@@ -62,6 +62,7 @@ const usdCompactSigned = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
   notation: 'compact',
+  minimumFractionDigits: 2, // "+$1.00B", consistent with the KPI values
   maximumFractionDigits: 2,
   signDisplay: 'exceptZero',
 });

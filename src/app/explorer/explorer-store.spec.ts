@@ -11,7 +11,13 @@ import { TransformData } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
 import { SKELETON_DELAY_MS } from './skeleton';
 
-function obs(flow: 'revenue' | 'expenditure', fiscalYear: number, amount: number, fundType = 'general'): AfrObservation {
+function obs(
+  flow: 'revenue' | 'expenditure',
+  fiscalYear: number,
+  amount: number,
+  fundType = 'general',
+  jurisdiction = 'hillsborough',
+): AfrObservation {
   return {
     account: flow === 'revenue' ? '311' : '513',
     amount,
@@ -19,19 +25,24 @@ function obs(flow: 'revenue' | 'expenditure', fiscalYear: number, amount: number
     fiscalYear,
     flow,
     fundType,
-    jurisdiction: 'hillsborough',
+    jurisdiction,
     ref: `${fiscalYear}!D6`,
     section: 'x',
     sourceId: `edr-afr-${flow}`,
   };
 }
 
-// Revenues FY 2018-2021, expenditures FY 2017-2021.
+// Hillsborough: revenues FY 2018-2021, expenditures FY 2017-2021.
+// Pinellas: revenues and expenditures FY 2020-2023.
 const fixture: TransformData = {
   observations: [
     obs('expenditure', 2017, 50),
     ...[2018, 2019, 2020, 2021].flatMap((y) => [obs('revenue', y, 100 * (y - 2017)), obs('expenditure', y, 90)]),
     obs('revenue', 2021, 1000, 'custodial'),
+    ...[2020, 2021, 2022, 2023].flatMap((y) => [
+      obs('revenue', y, 10 * (y - 2019), 'general', 'pinellas'),
+      obs('expenditure', y, 9, 'general', 'pinellas'),
+    ]),
   ],
   population: {} as PopulationFile,
   cpi: Object.fromEntries(
@@ -40,15 +51,28 @@ const fixture: TransformData = {
       { sourceId: k, fiscalYear: {}, calendarYear: {}, fiscalYearUnavailable: {}, calendarYearUnavailable: {} },
     ]),
   ) as unknown as CpiFile,
-  annotations: [{ fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84)', sourceId: 'p' }],
+  annotations: [
+    { fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84)', sourceId: 'p' },
+    { fiscalYear: 2021, kind: 'methodology', label: 'Hillsborough-only note', sourceId: 'p', jurisdiction: 'hillsborough' },
+    { fiscalYear: 2021, kind: 'methodology', label: 'Pinellas-only note', sourceId: 'p', jurisdiction: 'pinellas' },
+  ],
   sources: [],
 };
 
+/** Per-county fake: `loaded` says which counties have their observations in. */
 class FakeDataService {
-  readonly status = signal<DataStatus>('ready');
-  readonly error = signal<string | null>(null);
-  readonly data = signal<TransformData | null>(fixture);
+  readonly counties = signal(['hillsborough', 'pinellas']);
+  readonly loaded = signal<Record<string, boolean>>({ hillsborough: true, pinellas: true });
+  readonly failed = signal<string | null>(null);
+  statusFor = (c: string): DataStatus => (this.failed() ? 'error' : this.loaded()[c] ? 'ready' : 'loading');
+  errorFor = (): string | null => this.failed();
+  dataFor = (c: string): TransformData | null =>
+    this.loaded()[c] ? { ...fixture, observations: fixture.observations.filter((o) => o.jurisdiction === c) } : null;
   load = vi.fn(() => Promise.resolve());
+  loadCounty = vi.fn((c: string) => {
+    this.loaded.update((l) => ({ ...l, [c]: true }));
+    return Promise.resolve();
+  });
 }
 
 @Component({ template: '', providers: [ExplorerStore] })
@@ -94,6 +118,7 @@ describe('ExplorerStore URL state', () => {
       cpiIndex: 'cpi-u-tampa',
       cpiPeriod: 'calendar',
       transfers: 'gross',
+      jurisdiction: 'hillsborough',
     });
   });
 
@@ -110,6 +135,7 @@ describe('ExplorerStore URL state', () => {
       cpi: 'cpi-u-us',
       cpiper: 'fiscal',
       xfer: 'gross',
+      county: 'hillsborough',
     });
     expect(store.settings().includeCustodial).toBe(false);
   });
@@ -222,14 +248,86 @@ describe('ExplorerStore URL state', () => {
     });
   });
 
-  it('reveals loading placeholders once per load, after the delay, and keeps them revealed (QA-26)', async () => {
-    const store = await open('/');
-    expect(store.revealSkeleton()).toBe(false);
-    await new Promise((r) => setTimeout(r, SKELETON_DELAY_MS + 30));
-    expect(store.revealSkeleton()).toBe(true);
-    store.update({ measure: 'per_capita' });
-    await harness.fixture.whenStable();
-    expect(store.revealSkeleton()).toBe(true);
+  describe('county switch', () => {
+    const fake = () => TestBed.inject(DataService) as unknown as FakeDataService;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    it('reads the county from the URL and writes it back (round trip)', async () => {
+      const store = await open('/?county=pinellas');
+      expect(store.county()).toBe('pinellas');
+      expect(store.settings().jurisdiction).toBe('pinellas');
+      expect(query()['county']).toBe('pinellas');
+    });
+
+    it('falls back to the default county for unknown or malformed values', async () => {
+      let store = await open('/?county=atlantis');
+      expect(store.county()).toBe('hillsborough');
+      expect(query()['county']).toBe('hillsborough');
+      store = await open('/?county=Pinellas%20County');
+      expect(store.county()).toBe('hillsborough');
+    });
+
+    it('a county switch pushes history, like any other setting', async () => {
+      router.setUpLocationChangeListener();
+      const store = await open('/');
+      store.update({ jurisdiction: 'pinellas' });
+      await harness.fixture.whenStable();
+      expect(store.county()).toBe('pinellas');
+      TestBed.inject(Location).back();
+      for (let i = 0; i < 5; i++) {
+        await wait(10);
+        await harness.fixture.whenStable();
+      }
+      expect(store.county()).toBe('hillsborough');
+    });
+
+    it("re-clamps range and base year to the new county's years", async () => {
+      const store = await open('/?from=2018&to=2021&base=2018');
+      store.update({ jurisdiction: 'pinellas' });
+      await harness.fixture.whenStable();
+      // Pinellas revenues are FY 2020-2023.
+      expect(store.years()).toEqual([2020, 2021, 2022, 2023]);
+      expect(store.settings().range).toEqual([2020, 2021]);
+      expect(store.settings().baseYear).toBe(2023);
+      expect(query()).toMatchObject({ county: 'pinellas', from: '2020', to: '2021', base: '2023' });
+    });
+
+    it('loads a county lazily on first view and shows its data and annotations only', async () => {
+      fake().loaded.set({ hillsborough: true, pinellas: false });
+      const store = await open('/');
+      expect(fake().loadCounty).toHaveBeenCalledWith('hillsborough');
+      expect(fake().loadCounty).not.toHaveBeenCalledWith('pinellas');
+
+      store.update({ jurisdiction: 'pinellas' });
+      await harness.fixture.whenStable();
+      expect(fake().loadCounty).toHaveBeenCalledWith('pinellas');
+      expect(store.points().every((p) => p.sourceIds.every((id) => !id.includes('hillsborough')))).toBe(true);
+      expect(store.annotations().map((a) => a.label)).toContain('Pinellas-only note');
+      expect(store.annotations().map((a) => a.label)).not.toContain('Hillsborough-only note');
+    });
+
+    it('reveals placeholders once per load: after the delay on a switch to a county not loaded yet', async () => {
+      fake().loaded.set({ hillsborough: true, pinellas: false });
+      fake().loadCounty.mockImplementation(() => Promise.resolve()); // Pinellas stays loading
+      const store = await open('/');
+      expect(store.loading()).toBe(false);
+      store.update({ jurisdiction: 'pinellas' });
+      await harness.fixture.whenStable();
+      expect(store.loading()).toBe(true);
+      expect(store.revealSkeleton()).toBe(false);
+      await wait(SKELETON_DELAY_MS + 30);
+      expect(store.revealSkeleton()).toBe(true);
+      store.update({ measure: 'per_capita' }); // still the same load
+      await harness.fixture.whenStable();
+      expect(store.revealSkeleton()).toBe(true);
+    });
+
+    it('switching to a county already loaded shows no loading state', async () => {
+      const store = await open('/');
+      store.update({ jurisdiction: 'pinellas' });
+      await harness.fixture.whenStable();
+      expect(store.loading()).toBe(false);
+    });
   });
 
   it('computes points and in-range annotations from settings', async () => {
@@ -239,7 +337,10 @@ describe('ExplorerStore URL state', () => {
 
     store.update({ range: [2018, 2021] });
     await harness.fixture.whenStable();
-    expect(store.annotations().map((a) => a.fiscalYear)).toEqual([2021]);
+    expect(store.annotations().map((a) => a.label)).toEqual([
+      'Custodial fund reporting begins (GASB 84)',
+      'Hillsborough-only note',
+    ]);
     // Custodial excluded by default: FY 2021 revenue is the general-fund amount only.
     expect(store.points().at(-1)?.nominal).toBe(400);
   });

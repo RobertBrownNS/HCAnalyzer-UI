@@ -17,6 +17,7 @@ describe('url-state', () => {
         cpiIndex: 'cpi-u-tampa',
         cpiPeriod: 'calendar',
         transfers: 'net',
+        jurisdiction: 'pinellas',
       },
       {
         flow: 'revenue',
@@ -28,6 +29,7 @@ describe('url-state', () => {
         cpiIndex: 'cpi-u-us',
         cpiPeriod: 'fiscal',
         transfers: 'gross',
+        jurisdiction: 'hillsborough',
       },
     ];
 
@@ -49,6 +51,7 @@ describe('url-state', () => {
         cpiIndex: 'cpi-u-tampa',
         cpiPeriod: 'calendar',
         transfers: 'net',
+        jurisdiction: 'pinellas',
       });
       expect(q).toEqual({
         flow: 'expenditure',
@@ -61,6 +64,7 @@ describe('url-state', () => {
         cpi: 'cpi-u-tampa',
         cpiper: 'calendar',
         xfer: 'net',
+        county: 'pinellas',
       });
     });
   });

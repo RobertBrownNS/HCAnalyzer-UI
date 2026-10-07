@@ -9,6 +9,7 @@ import { TransformData } from './transform';
 export interface ManifestFile {
   schemaVersion: number;
   dataVersion: string;
+  /** Counties with data, e.g. ["hillsborough", "pinellas"]. */
   jurisdictions: string[];
   outputs: { path: string; sha256: string; bytes: number }[];
 }
@@ -32,58 +33,133 @@ export class DataVersionError extends Error {
 
 export type DataStatus = 'idle' | 'loading' | 'ready' | 'error';
 
+/** Files every county view uses: loaded once. */
+interface SharedData {
+  population: PopulationFile;
+  cpi: CpiFile;
+  annotations: Annotation[];
+  sources: SourceRecord[];
+}
+
+interface CountyEntry {
+  status: DataStatus;
+  error: string | null;
+  observations: AfrObservation[] | null;
+}
+
+const IDLE: CountyEntry = { status: 'idle', error: null, observations: null };
+
 /**
- * Loads the build-time JSON once and exposes it as signals. Files are requested with the
- * manifest's dataVersion as a query string so a new data build is never served from cache.
+ * Loads the build-time JSON and exposes it as signals. Shared files (manifest, population, CPI,
+ * annotations, sources) load once; each county's observations load the first time that county
+ * is viewed and are kept. Files are requested with the manifest's dataVersion as a query string
+ * so a new data build is never served from cache.
  */
 @Injectable({ providedIn: 'root' })
 export class DataService {
   private readonly http = inject(HttpClient);
-  private loading?: Promise<void>;
+  private sharedLoad?: Promise<void>;
+  private readonly countyLoads = new Map<string, Promise<void>>();
 
-  private readonly _status = signal<DataStatus>('idle');
-  private readonly _error = signal<string | null>(null);
+  private readonly _sharedStatus = signal<DataStatus>('idle');
+  private readonly _sharedError = signal<string | null>(null);
   private readonly _manifest = signal<ManifestFile | null>(null);
-  private readonly _data = signal<TransformData | null>(null);
+  private readonly _shared = signal<SharedData | null>(null);
+  private readonly _counties = signal<Record<string, CountyEntry>>({});
 
-  readonly status = this._status.asReadonly();
-  readonly error = this._error.asReadonly();
   readonly manifest = this._manifest.asReadonly();
-  readonly data = this._data.asReadonly();
-  readonly ready = computed(() => this._status() === 'ready');
+  /** Counties the data offers (empty until the manifest has loaded). */
+  readonly counties = computed(() => this._manifest()?.jurisdictions ?? []);
 
-  /** Starts loading on first call; later calls return the same promise. */
-  load(jurisdiction = 'hillsborough'): Promise<void> {
-    this.loading ??= this.fetchAll(jurisdiction);
-    return this.loading;
+  /** Loads the shared files. Later calls return the same promise; a failed load can be retried. */
+  load(): Promise<void> {
+    this.sharedLoad ??= this.fetchShared();
+    return this.sharedLoad;
   }
 
-  private async fetchAll(jurisdiction: string): Promise<void> {
-    this._status.set('loading');
-    this._error.set(null);
+  /** Loads one county's observations (after the shared files). Cached; a failed load can be retried. */
+  loadCounty(county: string): Promise<void> {
+    let p = this.countyLoads.get(county);
+    if (!p) {
+      p = this.fetchCounty(county);
+      this.countyLoads.set(county, p);
+    }
+    return p;
+  }
+
+  /** Combined status of the shared files and one county. */
+  statusFor(county: string): DataStatus {
+    const shared = this._sharedStatus();
+    if (shared === 'error') return 'error';
+    const c = this._counties()[county]?.status ?? 'idle';
+    if (c === 'error') return 'error';
+    if (shared === 'ready' && c === 'ready') return 'ready';
+    return shared === 'loading' || c === 'loading' ? 'loading' : 'idle';
+  }
+
+  errorFor(county: string): string | null {
+    return this._sharedError() ?? this._counties()[county]?.error ?? null;
+  }
+
+  /** Everything the transform needs for one county, or null until it has loaded. */
+  dataFor(county: string): TransformData | null {
+    const shared = this._shared();
+    const observations = this._counties()[county]?.observations;
+    return shared && observations ? { ...shared, observations } : null;
+  }
+
+  private async fetchShared(): Promise<void> {
+    this._sharedStatus.set('loading');
+    this._sharedError.set(null);
     try {
       const manifest = await this.get<ManifestFile>('manifest.json');
       if (manifest?.schemaVersion !== SUPPORTED_SCHEMA_VERSION) throw new DataVersionError(manifest?.schemaVersion);
-      const v = `?v=${encodeURIComponent(manifest.dataVersion)}`;
-      const [observations, population, cpi, annotations, sources] = await Promise.all([
-        this.get<AfrObservation[]>(`${jurisdiction}.observations.json${v}`),
+      const v = this.version(manifest);
+      const [population, cpi, annotations, sources] = await Promise.all([
         this.get<PopulationFile>(`population.json${v}`),
         this.get<CpiFile>(`cpi.json${v}`),
         this.get<Annotation[]>(`annotations.json${v}`),
         this.get<SourceRecord[]>(`sources.json${v}`),
       ]);
       this._manifest.set(manifest);
-      this._data.set({ observations, population, cpi, annotations, sources });
-      this._status.set('ready');
+      this._shared.set({ population, cpi, annotations, sources });
+      this._sharedStatus.set('ready');
+    } catch (err) {
+      this._sharedError.set(message(err));
+      this._sharedStatus.set('error');
+      this.sharedLoad = undefined; // allow a retry
+    }
+  }
+
+  private async fetchCounty(county: string): Promise<void> {
+    this.setCounty(county, { ...IDLE, status: 'loading' });
+    try {
+      await this.load();
+      const manifest = this._manifest();
+      if (!manifest) throw new Error('The data index (manifest) is not available.');
+      if (!manifest.jurisdictions.includes(county)) throw new Error(`No data for county "${county}".`);
+      const observations = await this.get<AfrObservation[]>(`${county}.observations.json${this.version(manifest)}`);
+      this.setCounty(county, { status: 'ready', error: null, observations });
       performance.mark?.('fx:dataReady');
     } catch (err) {
-      this._error.set((err as { message?: string } | null)?.message ?? String(err));
-      this._status.set('error');
-      this.loading = undefined; // allow a retry
+      this.setCounty(county, { status: 'error', error: message(err), observations: null });
+      this.countyLoads.delete(county); // allow a retry
     }
+  }
+
+  private setCounty(county: string, entry: CountyEntry): void {
+    this._counties.update((all) => ({ ...all, [county]: entry }));
+  }
+
+  private version(manifest: ManifestFile): string {
+    return `?v=${encodeURIComponent(manifest.dataVersion)}`;
   }
 
   private get<T>(file: string): Promise<T> {
     return firstValueFrom(this.http.get<T>(DATA_BASE_URL + file));
   }
+}
+
+function message(err: unknown): string {
+  return (err as { message?: string } | null)?.message ?? String(err);
 }

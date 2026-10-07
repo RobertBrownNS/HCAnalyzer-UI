@@ -12,7 +12,12 @@ class LoadingDataService {
   readonly status = signal<DataStatus>('loading');
   readonly error = signal<string | null>(null);
   readonly data = signal<TransformData | null>(null);
+  readonly counties = signal(['hillsborough', 'pinellas']);
+  statusFor = () => this.status();
+  errorFor = () => this.error();
+  dataFor = () => this.data();
   load = () => Promise.resolve();
+  loadCounty = () => Promise.resolve();
 }
 
 describe('ExplorerComponent', () => {

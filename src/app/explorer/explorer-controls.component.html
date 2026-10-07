@@ -1,3 +1,14 @@
+@if (show('county')) {
+  <label class="fx-field">
+    County
+    <select class="fx-select" (change)="setCounty(value($event))">
+      @for (c of counties(); track c.value) {
+        <option [value]="c.value" [selected]="c.value === county()">{{ c.label }}</option>
+      }
+    </select>
+  </label>
+}
+
 @if (show('flow')) {
   <label class="fx-field">
     Data

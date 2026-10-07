@@ -4,29 +4,37 @@ import { TestBed } from '@angular/core/testing';
 
 import { DATA_BASE_URL, DataService, ManifestFile, SUPPORTED_SCHEMA_VERSION } from './data.service';
 
-const manifest: ManifestFile = { schemaVersion: SUPPORTED_SCHEMA_VERSION, dataVersion: 'abc123', jurisdictions: ['hillsborough'], outputs: [] };
+const manifest: ManifestFile = {
+  schemaVersion: SUPPORTED_SCHEMA_VERSION,
+  dataVersion: 'abc123',
+  jurisdictions: ['hillsborough', 'pinellas'],
+  outputs: [],
+};
 
-const files = {
-  'hillsborough.observations.json': [
-    {
-      account: '311',
-      amount: 100,
-      category: 'ad_valorem',
-      fiscalYear: 2006,
-      flow: 'revenue',
-      fundType: 'general',
-      jurisdiction: 'hillsborough',
-      ref: '2006!D6',
-      section: 'taxes',
-      sourceId: 'edr-afr-revenues-hillsborough',
-    },
-  ],
-  'population.json': { hillsborough: { byYear: {}, sourceId: 'edr-population-flcopops' } },
+const obs = (jurisdiction: string, amount: number) => [
+  {
+    account: '311',
+    amount,
+    category: 'ad_valorem',
+    fiscalYear: 2006,
+    flow: 'revenue',
+    fundType: 'general',
+    jurisdiction,
+    ref: '2006!D6',
+    section: 'taxes',
+    sourceId: `edr-afr-revenues-${jurisdiction}`,
+  },
+];
+
+const shared = {
+  'population.json': { hillsborough: { byYear: {}, sourceId: 'pop' }, pinellas: { byYear: {}, sourceId: 'pop' } },
   'cpi.json': { national: {}, tampa: {}, tampa_semiannual: {} },
-  'annotations.json': [
-    { fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84)', sourceId: 'edr-cntyfiscal-page' },
-  ],
-  'sources.json': [{ id: 'edr-cntyfiscal-page' }],
+  'annotations.json': [{ fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84).', sourceId: 'p' }],
+  'sources.json': [{ id: 'p' }],
+};
+
+const tick = async () => {
+  for (let i = 0; i < 4; i++) await Promise.resolve();
 };
 
 describe('DataService', () => {
@@ -41,14 +49,11 @@ describe('DataService', () => {
 
   afterEach(() => http.verify());
 
-  /** Answers the manifest, then waits for the data requests and answers each one. */
-  async function flushAll(): Promise<void> {
+  async function flushShared(): Promise<void> {
     http.expectOne(DATA_BASE_URL + 'manifest.json').flush(manifest);
-    await Promise.resolve();
-    await Promise.resolve();
-    for (const [file, body] of Object.entries(files)) {
-      http.expectOne(`${DATA_BASE_URL}${file}?v=abc123`).flush(body);
-    }
+    await tick();
+    for (const [file, body] of Object.entries(shared)) http.expectOne(`${DATA_BASE_URL}${file}?v=abc123`).flush(body);
+    await tick();
   }
 
   it('uses relative data URLs, so they resolve against <base href> (site root or a sub-path)', () => {
@@ -57,67 +62,105 @@ describe('DataService', () => {
   });
 
   it('starts idle with no data', () => {
-    expect(service.status()).toBe('idle');
-    expect(service.data()).toBeNull();
+    expect(service.statusFor('hillsborough')).toBe('idle');
+    expect(service.dataFor('hillsborough')).toBeNull();
+    expect(service.counties()).toEqual([]);
   });
 
-  it('loads the manifest, then every file versioned by dataVersion', async () => {
-    const done = service.load();
-    expect(service.status()).toBe('loading');
-    await flushAll();
+  it('loads the shared files once, then a county\'s observations versioned by dataVersion', async () => {
+    const done = service.loadCounty('hillsborough');
+    expect(service.statusFor('hillsborough')).toBe('loading');
+    await flushShared();
+    http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
     await done;
 
-    expect(service.status()).toBe('ready');
-    expect(service.ready()).toBe(true);
-    expect(service.manifest()?.dataVersion).toBe('abc123');
-    const data = service.data()!;
-    expect(data.observations).toEqual(files['hillsborough.observations.json']);
-    expect(data.population).toEqual(files['population.json']);
-    expect(data.cpi).toEqual(files['cpi.json']);
-    expect(data.annotations).toEqual(files['annotations.json']);
-    expect(data.sources).toEqual(files['sources.json']);
+    expect(service.statusFor('hillsborough')).toBe('ready');
+    expect(service.counties()).toEqual(['hillsborough', 'pinellas']);
+    const data = service.dataFor('hillsborough')!;
+    expect(data.observations[0].jurisdiction).toBe('hillsborough');
+    expect(data.population).toEqual(shared['population.json']);
+    expect(data.annotations).toEqual(shared['annotations.json']);
   });
 
-  it('requests the data only once for repeated load() calls', async () => {
-    const a = service.load();
-    const b = service.load();
-    expect(a).toBe(b);
-    await flushAll();
-    await a;
-    await service.load();
+  it('loads another county lazily, on first use only, without reloading the shared files', async () => {
+    const h = service.loadCounty('hillsborough');
+    await flushShared();
+    http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    await h;
+
+    // Pinellas hasn't been requested yet.
+    http.expectNone(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`);
+    expect(service.statusFor('pinellas')).toBe('idle');
+
+    const p = service.loadCounty('pinellas');
+    expect(service.statusFor('pinellas')).toBe('loading');
+    await tick();
     http.expectNone(DATA_BASE_URL + 'manifest.json');
+    http.expectOne(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`).flush(obs('pinellas', 50));
+    await p;
+    expect(service.dataFor('pinellas')!.observations[0].jurisdiction).toBe('pinellas');
+    // Hillsborough stays cached.
+    expect(service.statusFor('hillsborough')).toBe('ready');
   });
 
-  it('rejects a manifest with an unsupported schemaVersion, with a clear message and no data requests', async () => {
-    const done = service.load();
-    http.expectOne(DATA_BASE_URL + 'manifest.json').flush({ ...manifest, schemaVersion: 99 });
-    await done;
-    expect(service.status()).toBe('error');
-    expect(service.error()).toContain('schema version 99');
-    expect(service.error()).toContain(`schema version ${SUPPORTED_SCHEMA_VERSION}`);
-    expect(service.data()).toBeNull();
+  it('caches each county: switching back requests nothing', async () => {
+    const a = service.loadCounty('hillsborough');
+    const b = service.loadCounty('hillsborough');
+    expect(a).toBe(b);
+    await flushShared();
+    http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    await a;
+    await service.loadCounty('hillsborough');
+    await tick();
     http.expectNone((req) => req.url.includes('observations'));
   });
 
-  it('rejects a manifest without a schemaVersion', async () => {
-    const done = service.load();
-    http.expectOne(DATA_BASE_URL + 'manifest.json').flush({ dataVersion: 'x' });
+  it('never requests a county the manifest does not list', async () => {
+    const done = service.loadCounty('atlantis');
+    await flushShared();
     await done;
-    expect(service.status()).toBe('error');
-    expect(service.error()).toContain('schema version undefined');
+    http.expectNone((req) => req.url.includes('atlantis'));
+    expect(service.statusFor('atlantis')).toBe('error');
+    expect(service.errorFor('atlantis')).toContain('No data for county');
   });
 
-  it('reports an error and allows a retry', async () => {
-    const first = service.load();
-    http.expectOne(DATA_BASE_URL + 'manifest.json').flush('nope', { status: 404, statusText: 'Not Found' });
-    await first;
-    expect(service.status()).toBe('error');
-    expect(service.error()).toContain('404');
-    expect(service.data()).toBeNull();
+  it('rejects a manifest with an unsupported schemaVersion, with a clear message and no data requests', async () => {
+    const done = service.loadCounty('hillsborough');
+    http.expectOne(DATA_BASE_URL + 'manifest.json').flush({ ...manifest, schemaVersion: 99 });
+    await done;
+    expect(service.statusFor('hillsborough')).toBe('error');
+    expect(service.errorFor('hillsborough')).toContain('schema version 99');
+    expect(service.errorFor('hillsborough')).toContain(`schema version ${SUPPORTED_SCHEMA_VERSION}`);
+    expect(service.dataFor('hillsborough')).toBeNull();
+    http.expectNone((req) => req.url.includes('observations'));
+  });
 
-    const retry = service.load();
-    await flushAll();
+  it('reports a failed county load and allows a retry', async () => {
+    const first = service.loadCounty('pinellas');
+    await flushShared();
+    http.expectOne(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`).flush('nope', { status: 404, statusText: 'Not Found' });
+    await first;
+    expect(service.statusFor('pinellas')).toBe('error');
+    expect(service.errorFor('pinellas')).toContain('404');
+
+    const retry = service.loadCounty('pinellas');
+    await tick();
+    http.expectOne(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`).flush(obs('pinellas', 50));
     await retry;
-    expect(service.status()).toBe('ready');
+    expect(service.statusFor('pinellas')).toBe('ready');
+  });
+
+  it('reports a failed shared load for every county and allows a retry', async () => {
+    const first = service.loadCounty('hillsborough');
+    http.expectOne(DATA_BASE_URL + 'manifest.json').flush('nope', { status: 500, statusText: 'Server Error' });
+    await first;
+    expect(service.statusFor('hillsborough')).toBe('error');
+    expect(service.statusFor('pinellas')).toBe('error');
+
+    const retry = service.loadCounty('hillsborough');
+    await flushShared();
+    http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    await retry;
+    expect(service.statusFor('hillsborough')).toBe('ready');
   });
 });
