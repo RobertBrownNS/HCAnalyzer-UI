@@ -2,12 +2,15 @@ import { Component, ElementRef, computed, inject, input } from '@angular/core';
 import type { EChartsCoreOption } from 'echarts/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 
-import { readChartColors } from '../core/chart-palette';
+import { readChartColors, readChartMetrics } from '../core/chart-palette';
 import { ColorSchemeService } from '../core/color-scheme.service';
 import { formatAxisValue, formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
 import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
 import { AnnotationNote, markLineGroups } from './view-notes';
+
+// ECharts renders the tooltip as HTML in the page, so tokens apply.
+const NOTE_STYLE = 'max-width:var(--fx-tooltip-width);white-space:normal;margin-top:var(--fx-space-1)';
 
 function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -27,13 +30,13 @@ export function tooltipHtml(
     rows.push([`CPI ${fiscalYearLabel(s.baseYear)} (base)`, formatCpi(p.cpiBase)]);
   }
   const table = rows
-    .map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td style="text-align:right;padding-left:12px">${escapeHtml(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td style="text-align:right;padding-left:var(--fx-space-3)">${escapeHtml(v)}</td></tr>`)
     .join('');
   const marks = annotations
     .filter((a) => a.fiscalYear === p.fiscalYear)
-    .map((a) => `<div style="max-width:260px;white-space:normal;margin-top:4px">${a.n}. ${escapeHtml(a.label)}</div>`)
+    .map((a) => `<div style="${NOTE_STYLE}">${a.n}. ${escapeHtml(a.label)}</div>`)
     .join('');
-  const notes = p.notes.map((n) => `<div style="max-width:260px;white-space:normal;margin-top:4px">${escapeHtml(n)}</div>`).join('');
+  const notes = p.notes.map((n) => `<div style="${NOTE_STYLE}">${escapeHtml(n)}</div>`).join('');
   return `<strong>${escapeHtml(p.label)}</strong><table>${table}</table>${marks}${notes}`;
 }
 
@@ -49,7 +52,7 @@ export function tooltipHtml(
     .chart {
       width: 100%;
       height: 100%;
-      min-height: 280px;
+      min-height: var(--fx-chart-min-height);
     }
   `,
 })
@@ -68,6 +71,11 @@ export class SeriesChartComponent {
     return readChartColors(this.host.nativeElement);
   });
 
+  private readonly metrics = computed(() => {
+    this.scheme();
+    return readChartMetrics(this.host.nativeElement);
+  });
+
   readonly ariaLabel = computed(() => {
     const pts = this.points();
     if (pts.length === 0) return `${this.valueLabel()}: no data`;
@@ -78,6 +86,7 @@ export class SeriesChartComponent {
     const pts = this.points();
     const s = this.settings();
     const c = this.colors();
+    const m = this.metrics();
     const label = this.valueLabel();
 
     const notes = this.annotations();
@@ -92,8 +101,8 @@ export class SeriesChartComponent {
       color: c.series,
       aria: { enabled: true },
       animationDuration: 300,
-      textStyle: { color: c.text, fontFamily: 'inherit' },
-      grid: { left: 8, right: 16, top: 40, bottom: 8, containLabel: true },
+      textStyle: { color: c.text, fontFamily: m.fontFamily },
+      grid: { left: m.space(2), right: m.space(4), top: m.space(6) + m.space(2), bottom: m.space(2), containLabel: true },
       tooltip: {
         trigger: 'axis',
         confine: true,
@@ -130,13 +139,13 @@ export class SeriesChartComponent {
           data: pts.map((p) => p.value ?? '-'), // '-' is ECharts' missing-value marker
           connectNulls: false,
           showSymbol: true,
-          symbolSize: 6,
-          lineStyle: { width: 2.5 },
+          symbolSize: m.symbolSize,
+          lineStyle: { width: m.lineWidth },
           markLine: {
             silent: true,
             symbol: 'none',
             lineStyle: { type: 'dashed', width: 1.5 },
-            label: { position: 'insideEndTop', distance: 6, color: c.text, fontSize: 11 },
+            label: { position: 'insideEndTop', distance: m.symbolSize, color: c.text, fontSize: m.labelSize },
             data: markLines,
           },
         },

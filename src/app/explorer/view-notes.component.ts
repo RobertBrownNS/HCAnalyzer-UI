@@ -46,37 +46,37 @@ import { groupPointNotes } from './view-notes';
   styles: `
     :host {
       display: block;
-      font: var(--mat-sys-body-medium);
+      font: var(--fx-type-body-medium);
     }
     h2 {
-      margin: 0 0 8px;
-      font: var(--mat-sys-title-medium);
+      margin: 0 0 var(--fx-space-2);
+      font: var(--fx-type-title-medium);
     }
     h3 {
-      margin: 16px 0 8px;
-      font: var(--mat-sys-title-small);
+      margin: var(--fx-space-4) 0 var(--fx-space-2);
+      font: var(--fx-type-title-small);
     }
     ol,
     ul {
       margin: 0;
-      padding-left: 1.5rem;
+      padding-left: var(--fx-list-indent);
     }
     li + li {
-      margin-top: 10px;
+      margin-top: var(--fx-space-2);
     }
     p {
-      margin: 4px 0 0;
+      margin: var(--fx-space-1) 0 0;
     }
     .year {
-      font-weight: 600;
+      font-weight: var(--fx-weight-semibold);
     }
     .meta {
-      font: var(--mat-sys-body-small);
-      color: var(--mat-sys-on-surface-variant);
+      font: var(--fx-type-body-small);
+      color: var(--fx-color-on-surface-variant);
       overflow-wrap: anywhere;
     }
     a {
-      color: var(--mat-sys-primary);
+      color: var(--fx-color-primary);
     }
   `,
 })

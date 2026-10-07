@@ -1,0 +1,62 @@
+// Points every Angular Material system token (--mat-sys-*) at the --fx-* design tokens, so
+// Material components follow _tokens.scss. No values live here.
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use './tokens';
+
+@function _overrides() {
+  $o: ();
+  @each $name, $_ in tokens.$colors {
+    $o: map.set($o, $name, var(--fx-color-#{$name}));
+  }
+  @each $role, $_ in tokens.$type-scale {
+    $o: map.merge(
+      $o,
+      (
+        $role: var(--fx-type-#{$role}),
+        #{$role}-font: var(--fx-type-#{$role}-font),
+        #{$role}-size: var(--fx-type-#{$role}-size),
+        #{$role}-line-height: var(--fx-type-#{$role}-line-height),
+        #{$role}-weight: var(--fx-type-#{$role}-weight),
+        #{$role}-tracking: var(--fx-type-#{$role}-tracking),
+      )
+    );
+  }
+  @each $name, $_ in tokens.$state-layers {
+    $o: map.set($o, #{$name}-state-layer-opacity, var(--fx-state-#{$name}));
+  }
+  @for $i from 0 through 5 {
+    $o: map.set($o, level#{$i}, var(--fx-elevation-#{$i}));
+  }
+  @return map.merge(
+    $o,
+    (
+      label-large-weight-prominent: var(--fx-weight-bold),
+      label-medium-weight-prominent: var(--fx-weight-bold),
+      corner-none: var(--fx-radius-none),
+      corner-extra-small: var(--fx-radius-xs),
+      corner-extra-small-top: var(--fx-radius-xs) var(--fx-radius-xs) 0 0,
+      corner-small: var(--fx-radius-sm),
+      corner-medium: var(--fx-radius-md),
+      corner-large: var(--fx-radius-lg),
+      corner-large-top: var(--fx-radius-lg) var(--fx-radius-lg) 0 0,
+      corner-large-start: var(--fx-radius-lg) 0 0 var(--fx-radius-lg),
+      corner-large-end: 0 var(--fx-radius-lg) var(--fx-radius-lg) 0,
+      corner-extra-large: var(--fx-radius-xl),
+      corner-extra-large-top: var(--fx-radius-xl) var(--fx-radius-xl) 0 0,
+      corner-full: var(--fx-radius-full),
+    )
+  );
+}
+
+@mixin theme {
+  // Base theme generates the full token set (state layers, elevation); the overrides then
+  // replace every color, type and shape value with the design tokens.
+  @include mat.theme((color: mat.$azure-palette, typography: Roboto, density: 0));
+  @include mat.theme-overrides(_overrides());
+
+  // Palette tones aren't accepted by theme-overrides; set them directly.
+  @each $name, $_ in tokens.$tones {
+    --mat-sys-#{$name}: var(--fx-color-#{$name});
+  }
+}

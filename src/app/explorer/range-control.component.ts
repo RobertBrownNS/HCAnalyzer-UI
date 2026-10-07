@@ -55,8 +55,8 @@ const PRESETS: RangePreset[] = [
       display: block;
     }
     .readout {
-      font: var(--mat-sys-label-large);
-      color: var(--mat-sys-on-surface-variant);
+      font: var(--fx-type-label-large);
+      color: var(--fx-color-on-surface-variant);
     }
     .slider {
       width: 100%;
@@ -65,10 +65,10 @@ const PRESETS: RangePreset[] = [
     .presets {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: var(--fx-space-2);
     }
     .presets button {
-      min-height: var(--touch-target);
+      min-height: var(--fx-touch-target);
     }
   `,
 })

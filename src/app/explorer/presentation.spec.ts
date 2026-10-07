@@ -1,7 +1,8 @@
+import { cssLengthToPx } from '../core/chart-palette';
 import { formatAxisValue, formatValue } from '../core/format';
 import { DEFAULT_SETTINGS, SeriesPoint } from '../core/transform';
 import { AnnotationRecord, SourceRecord } from '../core/models';
-import { annotationNotes, chartLabel, groupPointNotes, markLineGroups } from './view-notes';
+import { annotationNotes, groupPointNotes, markLineGroups } from './view-notes';
 import { tooltipHtml } from './series-chart.component';
 
 const point = (fy: number, notes: string[] = [], extra: Partial<SeriesPoint> = {}): SeriesPoint => ({
@@ -71,7 +72,7 @@ describe('annotation notes', () => {
     detail: 'FY 2022-23: expenditure account 581 exceeds revenue account 381.',
     refs: ['2023!N90'],
   } as AnnotationRecord;
-  const sameYear: AnnotationRecord = { fiscalYear: 2023, kind: 'methodology', label: 'Amounts reported rounded to $1,000', sourceId: 'exp' };
+  const sameYear: AnnotationRecord = { fiscalYear: 2023, kind: 'methodology', label: 'Amounts reported rounded to $1,000', sourceId: 'exp', flow: 'expenditure' };
 
   it('numbers annotations by year and uses detail, else the source caveats', () => {
     const notes = annotationNotes([longA, gasb, sameYear], sources);
@@ -82,23 +83,33 @@ describe('annotation notes', () => {
     expect(notes[1].source?.id).toBe('exp');
   });
 
-  it('keeps the GASB 84 label on the chart and shortens long labels to a note number', () => {
-    const notes = annotationNotes([gasb, longA], sources);
-    expect(chartLabel(notes[0])).toBe('Custodial fund reporting begins (GASB 84).');
-    expect(chartLabel(notes[1])).toBe('Note 2');
+  it('spells out view-independent labels on the chart and numbers the rest', () => {
+    const conditional = { ...gasb, fiscalYear: 2021, label: 'Custodial column is all zeros', custodial: 'included' } as AnnotationRecord;
+    const groups = markLineGroups(annotationNotes([gasb, conditional, longA, sameYear], sources));
+    expect(groups).toEqual([
+      { fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84). · Note 2' },
+      { fiscalYear: 2023, kind: 'methodology', label: 'Notes 3, 4' },
+    ]);
   });
 
-  it('draws one markLine per fiscal year', () => {
-    const groups = markLineGroups(annotationNotes([gasb, longA, sameYear], sources));
-    expect(groups).toEqual([
-      { fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84).' },
-      { fiscalYear: 2023, kind: 'methodology', label: 'Note 2 · Amounts reported rounded to $1,000' },
-    ]);
+  it('numbers a view-independent label that is too long for the chart', () => {
+    const long = { ...gasb, label: 'x'.repeat(49) };
+    expect(markLineGroups(annotationNotes([long], sources))[0].label).toBe('Note 1');
   });
 
   it('lists annotations for the hovered year in the tooltip', () => {
     const notes = annotationNotes([longA], sources);
     expect(tooltipHtml(point(2023), DEFAULT_SETTINGS, 'R', notes)).toContain('1. Transfers out (581)');
     expect(tooltipHtml(point(2022), DEFAULT_SETTINGS, 'R', notes)).not.toContain('Transfers out');
+  });
+});
+
+describe('cssLengthToPx', () => {
+  it('converts px and rem token values, with a fallback', () => {
+    expect(cssLengthToPx('2.5px', 16, 0)).toBe(2.5);
+    expect(cssLengthToPx(' 0.75rem ', 16, 0)).toBe(12);
+    expect(cssLengthToPx('6', 16, 0)).toBe(6);
+    expect(cssLengthToPx('', 16, 11)).toBe(11);
+    expect(cssLengthToPx('calc(1px + 1rem)', 16, 11)).toBe(11);
   });
 });

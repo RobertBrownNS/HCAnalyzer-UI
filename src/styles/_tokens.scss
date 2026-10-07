@@ -1,0 +1,246 @@
+// Design tokens. The ONLY file that holds visual values: colors, fonts, type scale, radii,
+// spacing and layout sizes. Everything else (app styles, Angular Material via _material.scss,
+// and the ECharts canvas via chart-palette.ts) reads the --fx-* custom properties emitted below.
+// Switching theme = editing this file.
+//
+// Current values reproduce Angular Material's azure/blue M3 theme (placeholder until a custom
+// theme is chosen). Colors are (light, dark) pairs, emitted with light-dark() so they follow
+// the active color-scheme (prefers-color-scheme, or html[data-theme]).
+@use 'sass:list';
+@use 'sass:map';
+
+// --- Color roles (Material 3 names) -----------------------------------------------------------
+$colors: (
+  primary: (#005cbb, #abc7ff),
+  on-primary: (#ffffff, #002f65),
+  primary-container: (#d7e3ff, #00458f),
+  on-primary-container: (#00458f, #d7e3ff),
+  primary-fixed: (#d7e3ff, #d7e3ff),
+  primary-fixed-dim: (#abc7ff, #abc7ff),
+  on-primary-fixed: (#001b3f, #001b3f),
+  on-primary-fixed-variant: (#00458f, #00458f),
+  inverse-primary: (#abc7ff, #005cbb),
+  surface-tint: (#005cbb, #abc7ff),
+
+  secondary: (#565e71, #bec6dc),
+  on-secondary: (#ffffff, #283041),
+  secondary-container: (#dae2f9, #3e4759),
+  on-secondary-container: (#3e4759, #dae2f9),
+  secondary-fixed: (#dae2f9, #dae2f9),
+  secondary-fixed-dim: (#bec6dc, #bec6dc),
+  on-secondary-fixed: (#131c2b, #131c2b),
+  on-secondary-fixed-variant: (#3e4759, #3e4759),
+
+  tertiary: (#343dff, #bec2ff),
+  on-tertiary: (#ffffff, #0001ac),
+  tertiary-container: (#e0e0ff, #0000ef),
+  on-tertiary-container: (#0000ef, #e0e0ff),
+  tertiary-fixed: (#e0e0ff, #e0e0ff),
+  tertiary-fixed-dim: (#bec2ff, #bec2ff),
+  on-tertiary-fixed: (#00006e, #00006e),
+  on-tertiary-fixed-variant: (#0000ef, #0000ef),
+
+  error: (#ba1a1a, #ffb4ab),
+  on-error: (#ffffff, #690005),
+  error-container: (#ffdad6, #93000a),
+  on-error-container: (#93000a, #ffdad6),
+
+  background: (#faf9fd, #121316),
+  on-background: (#1a1b1f, #e3e2e6),
+  surface: (#faf9fd, #121316),
+  on-surface: (#1a1b1f, #e3e2e6),
+  surface-variant: (#e0e2ec, #44474e),
+  on-surface-variant: (#44474e, #e0e2ec),
+  surface-dim: (#dbd9dd, #121316),
+  surface-bright: (#faf9fd, #38393c),
+  surface-container-lowest: (#ffffff, #0d0e11),
+  surface-container-low: (#f4f3f6, #1a1b1f),
+  surface-container: (#efedf0, #1f2022),
+  surface-container-high: (#e9e7eb, #292a2c),
+  surface-container-highest: (#e3e2e6, #343537),
+  inverse-surface: (#2f3033, #e3e2e6),
+  inverse-on-surface: (#f2f0f4, #2f3033),
+
+  outline: (#74777f, #8e9099),
+  outline-variant: (#c4c6d0, #44474e),
+  shadow: (#000000, #000000),
+  scrim: (#000000, #000000),
+);
+
+// Fixed palette tones Material reads directly (not light/dark).
+$tones: (
+  neutral10: #1a1b1f,
+  neutral-variant20: #2d3038,
+);
+
+// Interaction state-layer opacities.
+$state-layers: (
+  hover: 0.08,
+  focus: 0.12,
+  pressed: 0.12,
+  dragged: 0.16,
+);
+
+// Elevation shadows, level 0-5.
+$elevation: (
+  (0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12)),
+  (0px 2px 1px -1px rgba(0, 0, 0, 0.2), 0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12)),
+  (0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12)),
+  (0px 3px 5px -1px rgba(0, 0, 0, 0.2), 0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12)),
+  (0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12)),
+  (0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12)),
+);
+
+// --- Chart colors -------------------------------------------------------------------------------
+// Colorblind-safe categorical palette (Okabe & Ito), ordered so the first series have the
+// strongest contrast against each background.
+$series: (
+  (#0072b2, #56b4e9), // blue / sky blue
+  (#e69f00, #e69f00), // orange
+  (#009e73, #2ec4a0), // bluish green
+  (#d55e00, #ff8a3d), // vermillion
+  (#cc79a7, #e4a3c8), // reddish purple
+  (#56b4e9, #0b8fd6), // sky blue / blue
+  (#4d4d4d, #bdbdbd), // neutral
+  (#b8a800, #f0e442), // yellow (darkened on light backgrounds)
+);
+
+// Annotation lines by Annotation.kind.
+$annotation: (
+  methodology: (#5f5f5f, #a8a8a8),
+  policy: (#0072b2, #56b4e9),
+  event: (#d55e00, #ff8a3d),
+);
+
+// --- Typography ---------------------------------------------------------------------------------
+$fonts: (
+  // Headings (display, headline, title-large).
+  brand: (system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif),
+  // Everything else.
+  plain: (system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif),
+  mono: (ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace),
+);
+
+$weights: (regular: 400, medium: 500, semibold: 600, bold: 700);
+
+// Type roles (Material 3 names): size, line-height, weight, tracking, font family key.
+$type-scale: (
+  display-large: (3.562rem, 4rem, 400, -0.016rem, brand),
+  display-medium: (2.812rem, 3.25rem, 400, 0, brand),
+  display-small: (2.25rem, 2.75rem, 400, 0, brand),
+  headline-large: (2rem, 2.5rem, 400, 0, brand),
+  headline-medium: (1.75rem, 2.25rem, 400, 0, brand),
+  headline-small: (1.5rem, 2rem, 400, 0, brand),
+  title-large: (1.375rem, 1.75rem, 400, 0, brand),
+  title-medium: (1rem, 1.5rem, 500, 0.009rem, plain),
+  title-small: (0.875rem, 1.25rem, 500, 0.006rem, plain),
+  body-large: (1rem, 1.5rem, 400, 0.031rem, plain),
+  body-medium: (0.875rem, 1.25rem, 400, 0.016rem, plain),
+  body-small: (0.75rem, 1rem, 400, 0.025rem, plain),
+  label-large: (0.875rem, 1.25rem, 500, 0.006rem, plain),
+  label-medium: (0.75rem, 1rem, 500, 0.031rem, plain),
+  label-small: (0.688rem, 1rem, 500, 0.031rem, plain),
+);
+
+// --- Shape, spacing, layout ---------------------------------------------------------------------
+$radii: (
+  none: 0,
+  xs: 4px,
+  sm: 8px,
+  md: 12px,
+  lg: 16px,
+  xl: 28px,
+  full: 9999px,
+);
+
+$space: (
+  0: 2px,
+  1: 4px,
+  2: 8px,
+  3: 12px,
+  4: 16px,
+  5: 24px,
+  6: 32px,
+);
+
+$layout: (
+  gutter: 16px,         // page side padding, phone
+  gutter-wide: 24px,    // page side padding from the tablet breakpoint
+  touch-target: 44px,   // minimum interactive size
+  header-height: 56px,
+  panel-width: 320px,   // desktop controls panel
+  border-width: 1px,
+  focus-ring: 2px,
+  chart-line: 2.5px,
+  chart-symbol: 6px,
+  chart-min-height: 280px,
+  tooltip-width: 260px,
+  notes-min-width: 16rem,  // table notes column
+  list-indent: 1.5rem,
+  button-min-width: 96px,
+  link-min-height: 24px,
+  code-scale: 0.95em,
+  figure-height: 60dvh,       // chart/table area on phones (CLAUDE.md: ~60% of viewport)
+  figure-min-height: 300px,
+  figure-max-height: 600px,   // desktop cap
+);
+
+// Media-query breakpoints (Sass only: custom properties can't be used in media queries).
+// Use with `@use 'tokens'` (stylePreprocessorOptions.includePaths has src/styles).
+$breakpoints: (
+  tablet: 600px,
+  desktop: 1024px,
+);
+
+// --- Emit ---------------------------------------------------------------------------------------
+@function _ld($pair) {
+  @return light-dark(list.nth($pair, 1), list.nth($pair, 2));
+}
+
+@mixin emit {
+  @each $name, $pair in $colors {
+    --fx-color-#{$name}: #{_ld($pair)};
+  }
+  @each $name, $c in $tones {
+    --fx-color-#{$name}: #{$c};
+  }
+  @each $name, $o in $state-layers {
+    --fx-state-#{$name}: #{$o};
+  }
+  @for $i from 1 through list.length($elevation) {
+    --fx-elevation-#{$i - 1}: #{list.nth($elevation, $i)};
+  }
+  @each $pair in $series {
+    --fx-series-#{list.index($series, $pair)}: #{_ld($pair)};
+  }
+  @each $kind, $pair in $annotation {
+    --fx-annotation-#{$kind}: #{_ld($pair)};
+  }
+
+  @each $name, $stack in $fonts {
+    --fx-font-#{$name}: #{$stack};
+  }
+  @each $name, $w in $weights {
+    --fx-weight-#{$name}: #{$w};
+  }
+  @each $role, $t in $type-scale {
+    --fx-type-#{$role}-size: #{list.nth($t, 1)};
+    --fx-type-#{$role}-line-height: #{list.nth($t, 2)};
+    --fx-type-#{$role}-weight: #{list.nth($t, 3)};
+    --fx-type-#{$role}-tracking: #{list.nth($t, 4)};
+    --fx-type-#{$role}-font: var(--fx-font-#{list.nth($t, 5)});
+    // Shorthand for `font:`
+    --fx-type-#{$role}: var(--fx-type-#{$role}-weight) var(--fx-type-#{$role}-size) /
+      var(--fx-type-#{$role}-line-height) var(--fx-type-#{$role}-font);
+  }
+
+  @each $name, $r in $radii {
+    --fx-radius-#{$name}: #{$r};
+  }
+  @each $name, $s in $space {
+    --fx-space-#{$name}: #{$s};
+  }
+  @each $name, $v in $layout {
+    --fx-#{$name}: #{$v};
+  }
+}

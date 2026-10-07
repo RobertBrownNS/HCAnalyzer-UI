@@ -1,35 +1,38 @@
+@use 'sass:map';
+@use 'tokens';
+
 :host {
   display: block;
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface);
+  font: var(--fx-type-body-medium);
+  color: var(--fx-color-on-surface);
 }
 
 h2 {
-  margin: 0 0 8px;
-  font: var(--mat-sys-title-medium);
+  margin: 0 0 var(--fx-space-2);
+  font: var(--fx-type-title-medium);
 }
 
 h3 {
-  margin: 16px 0 8px;
-  font: var(--mat-sys-title-small);
+  margin: var(--fx-space-4) 0 var(--fx-space-2);
+  font: var(--fx-type-title-small);
 }
 
 .facts {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2px 16px;
+  gap: var(--fx-space-0) var(--fx-space-4);
   margin: 0;
 
   dt {
-    font-weight: 600;
-    margin-top: 8px;
+    font-weight: var(--fx-weight-semibold);
+    margin-top: var(--fx-space-2);
   }
 
   dd {
     margin: 0;
   }
 
-  @media (min-width: 600px) {
+  @media (min-width: map.get(tokens.$breakpoints, tablet)) {
     grid-template-columns: max-content 1fr;
 
     dt {
@@ -41,37 +44,37 @@ h3 {
 .notes,
 .sources {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: var(--fx-list-indent);
 
   li + li {
-    margin-top: 8px;
+    margin-top: var(--fx-space-2);
   }
 }
 
 .years {
-  font-weight: 600;
+  font-weight: var(--fx-weight-semibold);
 }
 
 .sources a {
-  color: var(--mat-sys-primary);
+  color: var(--fx-color-primary);
   overflow-wrap: anywhere;
   display: inline-block;
-  min-height: 24px;
+  min-height: var(--fx-link-min-height);
 }
 
 .meta,
 details {
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
+  font: var(--fx-type-body-small);
+  color: var(--fx-color-on-surface-variant);
 }
 
 summary {
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--fx-touch-target);
   display: flex;
   align-items: center;
 }
 
 code {
-  font-size: 0.95em;
+  font-size: var(--fx-code-scale);
 }

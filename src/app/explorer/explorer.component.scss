@@ -1,5 +1,8 @@
-// Mobile first: chips + bottom sheet on phones and tablets, persistent side panel from 1024px.
-$desktop: 1024px;
+// Mobile first: chips + bottom sheet on phones and tablets, persistent side panel from desktop.
+@use 'sass:map';
+@use 'tokens';
+
+$desktop: map.get(tokens.$breakpoints, desktop);
 
 :host {
   display: block;
@@ -16,40 +19,40 @@ $desktop: 1024px;
 .content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px var(--gutter) 32px;
+  gap: var(--fx-space-3);
+  padding: var(--fx-space-3) var(--fx-page-gutter) var(--fx-space-6);
   min-width: 0;
 }
 
 .title {
   margin: 0;
-  font: var(--mat-sys-title-medium);
+  font: var(--fx-type-title-medium);
 }
 
 .chips {
   display: flex;
-  gap: 8px;
+  gap: var(--fx-space-2);
   overflow-x: auto;
   scrollbar-width: none;
   // Let the row scroll edge to edge inside the gutter.
-  margin: 0 calc(-1 * var(--gutter));
-  padding: 0 var(--gutter);
+  margin: 0 calc(-1 * var(--fx-page-gutter));
+  padding: 0 var(--fx-page-gutter);
 }
 
 .chip {
   flex: 0 0 auto;
-  min-height: var(--touch-target);
-  padding: 0 16px;
-  border-radius: 8px;
-  border: 1px solid var(--mat-sys-outline);
-  background: var(--mat-sys-surface-container-low);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-label-large);
+  min-height: var(--fx-touch-target);
+  padding: 0 var(--fx-space-4);
+  border-radius: var(--fx-radius-sm);
+  border: var(--fx-border-width) solid var(--fx-color-outline);
+  background: var(--fx-color-surface-container-low);
+  color: var(--fx-color-on-surface);
+  font: var(--fx-type-label-large);
   white-space: nowrap;
   cursor: pointer;
 
   &:hover {
-    background: var(--mat-sys-surface-container-high);
+    background: var(--fx-color-surface-container-high);
   }
 }
 
@@ -57,14 +60,13 @@ $desktop: 1024px;
   align-self: flex-start;
 
   mat-button-toggle {
-    min-height: var(--touch-target);
+    min-height: var(--fx-touch-target);
   }
 }
 
 .figure {
-  height: 60vh;
-  height: 60dvh;
-  min-height: 300px;
+  height: var(--fx-figure-height);
+  min-height: var(--fx-figure-min-height);
   display: flex;
   flex-direction: column;
 }
@@ -79,25 +81,25 @@ $desktop: 1024px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 12px;
+  gap: var(--fx-space-3);
 }
 
 .scope {
-  margin: 4px 0 0;
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
+  margin: var(--fx-space-1) 0 0;
+  font: var(--fx-type-body-medium);
+  color: var(--fx-color-on-surface-variant);
 }
 
 .section:not(:empty) {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--mat-sys-outline-variant);
+  margin-top: var(--fx-space-4);
+  padding-top: var(--fx-space-4);
+  border-top: var(--fx-border-width) solid var(--fx-color-outline-variant);
 }
 
 @media (min-width: $desktop) {
   .layout {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: var(--fx-panel-width) minmax(0, 1fr);
     align-items: start;
   }
 
@@ -105,10 +107,10 @@ $desktop: 1024px;
     display: block;
     position: sticky;
     top: 0;
-    max-height: calc(100dvh - 56px);
+    max-height: calc(100dvh - var(--fx-header-height));
     overflow-y: auto;
-    padding: 16px var(--gutter);
-    border-right: 1px solid var(--mat-sys-outline-variant);
+    padding: var(--fx-space-4) var(--fx-page-gutter);
+    border-right: var(--fx-border-width) solid var(--fx-color-outline-variant);
   }
 
   .chips {
@@ -116,6 +118,6 @@ $desktop: 1024px;
   }
 
   .figure {
-    height: min(60dvh, 600px);
+    height: min(var(--fx-figure-height), var(--fx-figure-max-height));
   }
 }

@@ -21,16 +21,16 @@ export interface SettingsSheetData {
   styles: `
     :host {
       display: block;
-      padding: 8px 0 16px;
+      padding: var(--fx-space-2) 0 var(--fx-space-4);
     }
     .actions {
       display: flex;
       justify-content: flex-end;
-      margin-top: 16px;
+      margin-top: var(--fx-space-4);
     }
     .actions button {
-      min-height: var(--touch-target);
-      min-width: 96px;
+      min-height: var(--fx-touch-target);
+      min-width: var(--fx-button-min-width);
     }
   `,
 })

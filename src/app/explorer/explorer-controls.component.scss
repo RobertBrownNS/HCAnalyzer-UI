@@ -1,7 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--fx-space-4);
 }
 
 .group {
@@ -10,15 +10,15 @@
   border: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--fx-space-2);
   min-width: 0;
 }
 
 legend {
   padding: 0;
-  margin-bottom: 4px;
-  font: var(--mat-sys-title-small);
-  color: var(--mat-sys-on-surface);
+  margin-bottom: var(--fx-space-1);
+  font: var(--fx-type-title-small);
+  color: var(--fx-color-on-surface);
 }
 
 .segmented {
@@ -34,7 +34,7 @@ legend {
   flex-direction: column;
 
   mat-radio-button {
-    min-height: var(--touch-target);
+    min-height: var(--fx-touch-target);
     display: flex;
     align-items: center;
   }
@@ -42,22 +42,22 @@ legend {
 
 .field {
   width: 100%;
-  margin-top: 8px;
+  margin-top: var(--fx-space-2);
 }
 
 .toggle {
-  min-height: var(--touch-target);
+  min-height: var(--fx-touch-target);
   display: flex;
   align-items: center;
 }
 
 .hint {
   margin: 0;
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
+  font: var(--fx-type-body-small);
+  color: var(--fx-color-on-surface-variant);
 }
 
 .reset {
   align-self: flex-start;
-  min-height: var(--touch-target);
+  min-height: var(--fx-touch-target);
 }

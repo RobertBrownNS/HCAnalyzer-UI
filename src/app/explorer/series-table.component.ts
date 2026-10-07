@@ -57,23 +57,23 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
     .scroll {
       overflow: auto;
       max-height: 100%;
-      border: 1px solid var(--mat-sys-outline-variant);
-      border-radius: 8px;
+      border: var(--fx-border-width) solid var(--fx-color-outline-variant);
+      border-radius: var(--fx-radius-sm);
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      font: var(--mat-sys-body-medium);
+      font: var(--fx-type-body-medium);
     }
     caption {
       text-align: left;
-      padding: 8px 12px;
-      font: var(--mat-sys-title-small);
+      padding: var(--fx-space-2) var(--fx-space-3);
+      font: var(--fx-type-title-small);
     }
     th,
     td {
-      padding: 8px 12px;
-      border-top: 1px solid var(--mat-sys-outline-variant);
+      padding: var(--fx-space-2) var(--fx-space-3);
+      border-top: var(--fx-border-width) solid var(--fx-color-outline-variant);
       text-align: left;
       vertical-align: top;
     }
@@ -83,7 +83,7 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
     thead th {
       position: sticky;
       top: 0;
-      background: var(--mat-sys-surface-container);
+      background: var(--fx-color-surface-container);
     }
     .num {
       text-align: right;
@@ -91,9 +91,9 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
       white-space: nowrap;
     }
     .notes {
-      min-width: 16rem;
-      color: var(--mat-sys-on-surface-variant);
-      font: var(--mat-sys-body-small);
+      min-width: var(--fx-notes-min-width);
+      color: var(--fx-color-on-surface-variant);
+      font: var(--fx-type-body-small);
     }
   `,
 })

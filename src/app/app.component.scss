@@ -1,24 +1,24 @@
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 100dvh; // full viewport (layout, not theme)
 }
 
 .site-header {
   display: flex;
   align-items: center;
-  min-height: 56px;
-  padding: 0 var(--gutter);
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface);
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  min-height: var(--fx-header-height);
+  padding: 0 var(--fx-page-gutter);
+  background: var(--fx-color-surface-container);
+  color: var(--fx-color-on-surface);
+  border-bottom: var(--fx-border-width) solid var(--fx-color-outline-variant);
 }
 
 .site-title {
   display: inline-flex;
   align-items: center;
-  min-height: var(--touch-target);
-  font: var(--mat-sys-title-medium);
+  min-height: var(--fx-touch-target);
+  font: var(--fx-type-title-medium);
   color: inherit;
   text-decoration: none;
 }
