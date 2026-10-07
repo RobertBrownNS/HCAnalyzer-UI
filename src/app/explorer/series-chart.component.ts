@@ -45,8 +45,8 @@ export function tooltipHtml(
 @Component({
   selector: 'app-series-chart',
   imports: [NgxEchartsDirective, ChartSkeletonComponent],
-  template: `@if (!initialized()) {
-      <!-- Data is ready but the ECharts chunk may still be loading. -->
+  template: `@if (!rendered()) {
+      <!-- Until the ECharts chunk has loaded and drawn its first frame: never an empty chart. -->
       <app-chart-skeleton class="overlay" [class.fx-skel-pending]="!revealSkeleton()" />
     }
     <div
@@ -56,6 +56,7 @@ export function tooltipHtml(
     role="img"
     [attr.aria-label]="ariaLabel()"
     (chartInit)="onChartInit($event)"
+    (chartRendered)="onRendered()"
     (chartDataZoom)="onDataZoom()"
   ></div>`,
   styles: `
@@ -121,15 +122,21 @@ export class SeriesChartComponent {
     );
   }
 
-  /** True once ECharts has created the chart (its lazy chunk has loaded). */
-  readonly initialized = signal(false);
+  /** True once ECharts has drawn its first frame (lazy chunk loaded, options applied). */
+  readonly rendered = signal(false);
   /** The placeholder appears only if init takes longer than SKELETON_DELAY_MS. */
   readonly revealSkeleton = signal(false);
 
   onChartInit(chart: ECharts): void {
     this.chart = chart;
-    this.initialized.set(true);
     performance.mark?.('fx:chartInit');
+  }
+
+  onRendered(): void {
+    if (!this.rendered()) {
+      this.rendered.set(true);
+      performance.mark?.('fx:chartRendered');
+    }
   }
 
   onDataZoom(): void {
