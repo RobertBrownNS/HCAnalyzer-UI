@@ -462,8 +462,9 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | done |
 | P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | done |
 | P3-12 | Favicon and app icons (D-22) | FE | none (design approved, D-22) | done |
+| P3-13 | Desktop fund filter: Simple / Advanced modes (D-23) | FE | P3-05 | todo |
 
-Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only.
+Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) was added after approval and ships with Phase 3; status `todo`.
 
 ### Acceptance criteria
 
@@ -567,6 +568,22 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
 - [ ] The icon is legible at 16 px on light and dark browser tab bars.
 - [ ] QA checks it on the live GitHub Pages build and the IIS build (or its local stand-in).
 
+**P3-13 Desktop fund filter: Simple / Advanced modes (FE; D-23)**
+- [ ] On desktop, the fund filter has a Simple / Advanced switch. **Simple is the default** and shows only the 3 presets: General Fund, Governmental funds, All funds as reported by EDR. **Advanced** shows the presets plus per-fund checkboxes.
+- [ ] If the current selection is custom (not equal to a preset), for example from a shared URL, the filter **always shows Advanced**, whatever the stored preference. The selection is never altered to fit Simple.
+- [ ] The mode is stored in `localStorage`. Every read and write is wrapped in try/catch. If storage is unavailable or empty, it falls back to Simple (or Advanced for a custom selection) with no error.
+- [ ] The mode is **not in the URL**. Switching mode changes no query param, no history entry and no data. The same URL gives the same chart, table and KPIs in either mode.
+- [ ] The phone bottom sheet is unchanged (a visual check plus the existing sheet tests still pass).
+- [ ] The switch and checkboxes meet the existing rules: 44 px targets, keyboard operable, visible focus, light and dark, theme tokens, neutral labels.
+- [ ] **QA check:**
+  - default Simple on a fresh profile;
+  - Advanced persists across reloads;
+  - a custom-selection URL opens in Advanced with the Simple preference stored;
+  - private-window / blocked-storage fallback;
+  - the URL is unchanged on mode switch;
+  - the phone sheet is unchanged;
+  - a11y and contrast.
+
 **P3-09 QA: independent sums (QA)**
 - [ ] QA uses its own stdlib reader (no shared code) and its own reading of the UAS mapping source. For both counties and every FY and flow, it re-derives:
   - category sums;
@@ -596,6 +613,7 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
 **Phase 3 approved by QA** (2026-10-07, final sign-off at `60a642f`, tag `phase-3-approved`).
 - **DR-47 closed:** both LOGERX reclassifications are annotated in scoped views (fund, category and drawer; DR-50). **QA-07 / O-07 closed** (D-18).
 - **Still open:** QA-47 (minor county-chip shift on phone) is being fixed. QA-46 is a note only.
+- **Added after approval:** P3-13 (fund filter Simple / Advanced modes, D-23, user request 2026-10-07) ships with Phase 3. It needs its own QA check before the Phase 3 release.
 - **Not verifiable in this round:** real devices (including how browsers render the favicon in the tab bar), screen-reader output, and clicking bands on the canvas. The drawer was tested from table cells and rows.
 
 ---
