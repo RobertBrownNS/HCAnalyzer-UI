@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 
 import { FLOW_LABELS, MEASURE_LABELS, fundScopeLabel, isPerCapita, isReal, transferLabel } from '../core/labels';
+import { ANALYTICS_TOKEN, analyticsConfigured } from '../core/analytics';
 import { CpiSeriesFile, SourceRecord } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
@@ -28,6 +29,8 @@ export function caveatsForCounty(src: SourceRecord, county: string): readonly st
 export class MethodologyComponent {
   private readonly store = inject(ExplorerStore);
   readonly s = this.store.settings;
+  /** Shown only when this build counts page views (a Cloudflare token was set at build time). */
+  readonly analytics = analyticsConfigured(inject(ANALYTICS_TOKEN));
 
   readonly flowLabel = computed(() => FLOW_LABELS[this.s().flow]);
   readonly measureLabel = computed(() => MEASURE_LABELS[this.s().measure]);

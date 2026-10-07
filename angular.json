@@ -40,6 +40,9 @@
               "src/styles.scss"
             ],
             "scripts": [],
+            "define": {
+              "CF_ANALYTICS_TOKEN": "''"
+            },
             "stylePreprocessorOptions": {
               "includePaths": [
                 "src/styles"
@@ -68,7 +71,10 @@
               "sourceMap": true
             },
             "github-pages": {
-              "baseHref": "/HCAnalyzer-UI/"
+              "baseHref": "/HCAnalyzer-UI/",
+              "define": {
+                "CF_ANALYTICS_TOKEN": "'1b211162f18241c7b2899d54d542a420'"
+              }
             }
           },
           "defaultConfiguration": "production"
