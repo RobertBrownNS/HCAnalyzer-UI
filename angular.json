@@ -24,6 +24,10 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
+              "src/favicon.svg",
+              "src/apple-touch-icon.png",
+              "src/icon-192.png",
+              "src/icon-512.png",
               "src/assets",
               {
                 "glob": "web.config",

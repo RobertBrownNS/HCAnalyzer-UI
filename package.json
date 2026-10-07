@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "postbuild": "node tools/postbuild.mjs",
+    "favicons": "node tools/favicons.mjs",
     "build:pages": "ng build --configuration production,github-pages && node tools/postbuild.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
