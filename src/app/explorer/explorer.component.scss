@@ -55,6 +55,17 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   gap: var(--fx-space-2);
 }
 
+.view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fx-space-2);
+  align-items: center;
+}
+
+.chart-type .fx-select {
+  width: auto;
+}
+
 .heading {
   min-width: 0;
 }
@@ -118,6 +129,11 @@ app-view-notes:empty {
   display: flex;
   flex-direction: column;
   gap: var(--fx-space-1);
+}
+
+.skel-field {
+  height: var(--fx-control-h);
+  margin-bottom: var(--fx-space-3);
 }
 
 @media (min-width: $desktop) {

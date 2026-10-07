@@ -3,35 +3,56 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
 import { CountyContext, countyLabel, countyShortName } from '../core/county';
-import { coverageFor, crossCheckByYear } from '../core/cross-check';
+import { formatUsd, formatValue } from '../core/format';
+import { fundScopeLabel } from '../core/labels';
+import { formatShare } from './category-chart';
+import { DrawerContent, accountName, drawerAnnotations, drawerSources } from './source-drawer';
+import { categoryLabel, fundLabel, fundScopeText } from '../core/scope';
+import { coverageFor, crossCheckByYear, crossCheckYearText } from '../core/cross-check';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
   TransformSettings,
+  annotationsForPoint,
   annotationsInRange,
   availableYears,
   buildSeries,
   defaultSettingsFor,
   fiscalYearLabel,
+  availableCategories,
+  availableFunds,
+  buildCategorySeries,
+  CategorySeries,
+  netTransfersAllowed,
+  pointBreakdown,
   selectCpi,
   settingsWithDefaults,
 } from '../core/transform';
+import { DEFAULT_CHART, VIEW_KEYS, ViewState, isCategoryChart, parseView, serializeView } from '../core/view-state';
 import { SKELETON_DELAY_MS } from './skeleton';
 import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
+  ALL_SETTING_KEYS,
   NO_COUNTY,
-  QUERY_KEYS,
-  QueryParams,
   normalizeCounty,
+  normalizeScope,
   normalizeSettings,
   parseSettings,
   sameParams,
   serializeSettings,
 } from '../core/url-state';
 
-function paramsOf(map: ParamMap): Partial<QueryParams> {
-  const out: Partial<QueryParams> = {};
-  for (const k of QUERY_KEYS) {
+function sameOwn(a: OwnParams, b: OwnParams): boolean {
+  return OWN_KEYS.every((k) => (a[k] ?? null) === (b[k] ?? null));
+}
+
+/** Every query key the explorer owns: settings, id lists and the view. */
+const OWN_KEYS = [...ALL_SETTING_KEYS, ...VIEW_KEYS] as const;
+type OwnParams = Partial<Record<(typeof OWN_KEYS)[number], string>>;
+
+function paramsOf(map: ParamMap): OwnParams {
+  const out: OwnParams = {};
+  for (const k of OWN_KEYS) {
     const v = map.get(k);
     if (v !== null) out[k] = v;
   }
@@ -98,12 +119,67 @@ export class ExplorerStore {
       const flow = parseSettings(params).flow;
       const defaults = this.defaultsFor(flow);
       const parsed = { ...parseSettings(params, defaults), jurisdiction: this.county() };
-      return normalizeSettings(parsed, this.yearsFor(flow), defaults);
+      return this.canonicalize(parsed, defaults);
     },
     { equal: (a, b) => sameParams(serializeSettings(a), serializeSettings(b)) },
   );
 
   readonly years = computed(() => this.yearsFor(this.settings().flow));
+
+  /** How the data is shown (chart type; D-20). */
+  readonly view = computed<ViewState>(() => parseView(this.queryParams()), {
+    equal: (a, b) => a.chart === b.chart,
+  });
+
+  /** Fund types and categories the data offers for this county (and flow). */
+  readonly fundsAvailable = computed(() => {
+    const data = this.data();
+    return data ? availableFunds(data, this.county()) : [];
+  });
+  readonly categoriesAvailable = computed(() => {
+    const data = this.data();
+    return data ? availableCategories(data, this.settings().flow, this.county()) : [];
+  });
+
+  /** Plain fund scope: a preset's name, the funds named, or "All funds as reported by EDR". */
+  readonly fundScope = computed(() =>
+    fundScopeText(this.settings().funds ?? null, this.fundsAvailable(), this.dataService.fundsMeta()),
+  );
+  /** Display label per category id (categories.json, else readable ids). */
+  readonly categoryLabels = computed<Record<string, string>>(() => {
+    const meta = this.dataService.categoriesMeta();
+    return Object.fromEntries(this.categoriesAvailable().map((id) => [id, categoryLabel(id, meta)]));
+  });
+
+  /** Net of transfers is allowed only with every fund selected (O-11 interim, R-19). */
+  readonly netAllowed = computed(() => {
+    const data = this.data();
+    return data ? netTransfersAllowed(data, this.settings()) : true;
+  });
+
+  /**
+   * The total as the current chart shows it: on stacked area, share and bars (no index-to-100),
+   * the same total without indexing, so it matches the stack exactly; otherwise `points`.
+   */
+  readonly chartTotal = computed(() => {
+    const data = this.data();
+    const chart = this.view().chart;
+    const s = this.settings();
+    if (!data || !s.indexTo100 || chart === 'line' || chart === 'lines') return this.points();
+    return buildSeries(data, { ...s, indexTo100: false });
+  });
+
+  /**
+   * Category series for the category chart types. Stacked area, share and bars don't apply
+   * index-to-100 (summing indexes has no meaning); lines by category do.
+   */
+  readonly categorySeries = computed<CategorySeries[] | null>(() => {
+    const data = this.data();
+    const chart = this.view().chart;
+    if (!data || !isCategoryChart(chart)) return null;
+    const s = this.settings();
+    return buildCategorySeries(data, chart === 'lines' ? s : { ...s, indexTo100: false });
+  });
 
   /** buildSeries output; a CPI gap note about the base year is labelled as such (QA-19). */
   readonly points = computed(() => {
@@ -123,7 +199,7 @@ export class ExplorerStore {
 
   readonly annotations = computed(() => {
     const data = this.data();
-    return data ? annotationsInRange(data, this.settings()) : [];
+    return data ? annotationsInRange(data, this.settings(), isCategoryChart(this.view().chart) ? 'categories' : 'total') : [];
   });
 
   /** In-range annotations, numbered for the chart and the notes list. */
@@ -190,10 +266,10 @@ export class ExplorerStore {
     effect(() => {
       // Only once the county is settled (the data's county list and default have loaded).
       if (!this.countyKnown()) return;
-      const canonical = serializeSettings(this.settings());
+      const canonical = { ...serializeSettings(this.settings()), ...serializeView(this.view()) };
       const current = paramsOf(this.queryParams());
       // Replace, don't push: canonicalizing isn't a user action, so Back skips it.
-      if (!sameParams(canonical, current)) untracked(() => this.navigate(canonical, { replace: true }));
+      if (!sameOwn(canonical, current)) untracked(() => this.navigate(canonical, { replace: true }));
     });
   }
 
@@ -206,17 +282,87 @@ export class ExplorerStore {
     const merged = { ...this.settings(), ...patch };
     if (merged.jurisdiction !== this.county()) {
       const fallback = this.dataService.defaultCounty() ?? NO_COUNTY;
-      this.navigate(serializeSettings(normalizeCounty(merged, this.counties(), fallback)), { replace: false });
+      this.navigate(
+        { ...serializeSettings(normalizeCounty(merged, this.counties(), fallback)), ...serializeView(this.view()) },
+        { replace: false },
+      );
       return;
     }
-    const next = normalizeSettings(merged, this.yearsFor(merged.flow), this.defaultsFor(merged.flow));
+    const next = this.canonicalize(merged, this.defaultsFor(merged.flow));
     const params = serializeSettings(next);
-    if (!sameParams(params, serializeSettings(this.settings()))) this.navigate(params, { replace: false });
+    if (!sameParams(params, serializeSettings(this.settings()))) {
+      this.navigate({ ...params, ...serializeView(this.view()) }, { replace: false });
+    }
+  }
+
+  /**
+   * Content for the source drawer: one point (the total, or one category) traced to the
+   * observations behind it. Uses the same formatters as the chart and table; the rows sum to the
+   * point's nominal value (pointBreakdown applies the same fund, custodial and transfer rules).
+   */
+  drawerContent(fiscalYear: number, category: string | null, valueLabel: string): DrawerContent | null {
+    const data = this.data();
+    if (!data) return null;
+    const s = this.settings();
+    const series = category ? this.categorySeries()?.find((c) => c.category === category) : null;
+    const point = category
+      ? series?.points.find((p) => p.fiscalYear === fiscalYear)
+      : this.chartTotal().find((p) => p.fiscalYear === fiscalYear);
+    if (!point) return null;
+    const accounts = this.dataService.accountsFor(this.county()) ?? [];
+    const fundsMeta = this.dataService.fundsMeta();
+    const rows = pointBreakdown(data, s, fiscalYear, category ?? undefined).map((o) => ({
+      account: o.account,
+      name: accountName(o.account, o.flow, fiscalYear, accounts),
+      fund: fundLabel(o.fundType, fundsMeta),
+      amount: o.amount,
+      ref: o.ref,
+    }));
+    const range = this.crossCheck()?.get(fiscalYear) ?? null;
+    const annotations = drawerAnnotations(
+      this.annotations().filter((a) => a.fiscalYear === fiscalYear),
+      annotationsForPoint(data, s, fiscalYear, category ?? undefined),
+    );
+    const catLabel = category ? `${this.categoryLabels()[category] ?? category} · ` : '';
+    const share = category && 'share' in point ? ` (${formatShare((point as { share: number | null }).share)} of the selected total)` : '';
+    return {
+      fiscalYearLabel: point.label,
+      seriesLabel: `${catLabel}${valueLabel}`,
+      context: `${this.countyLabel()} · ${fundScopeLabel(s, this.fundScope())}`,
+      valueText: `${formatValue(point.value, this.view().chart === 'line' || this.view().chart === 'lines' ? s : { ...s, indexTo100: false })}${share}`,
+      nominalText: formatUsd(rows.reduce((sum, r) => sum + r.amount, 0)),
+      rows,
+      sources: drawerSources([...point.sourceIds, ...annotations.map((a) => a.sourceId)], data.sources, this.county()),
+      crossCheck: range ? crossCheckYearText(range) : null,
+      notes: point.notes,
+      annotations: annotations.map((a) => (a.detail ? { label: a.label, detail: a.detail } : { label: a.label })),
+    };
+  }
+
+  /** Change how the data is shown (chart type); pushes history like any setting. */
+  updateView(patch: Partial<ViewState>): void {
+    const next = { ...this.view(), ...patch };
+    if (next.chart !== this.view().chart) {
+      this.navigate({ ...serializeSettings(this.settings()), ...serializeView(next) }, { replace: false });
+    }
+  }
+
+  /**
+   * Fits settings to the selected county's data: years, base year, fund and category lists, and
+   * the net-of-transfers rule (net needs every fund selected; otherwise transfers are as reported).
+   */
+  private canonicalize(s: TransformSettings, defaults: TransformSettings): TransformSettings {
+    const data = this.data();
+    let next = normalizeSettings(s, this.yearsFor(s.flow), defaults);
+    if (!data) return next;
+    next = normalizeScope(next, availableFunds(data, next.jurisdiction), availableCategories(data, next.flow, next.jurisdiction));
+    if (next.transfers === 'net' && !netTransfersAllowed(data, next)) next = { ...next, transfers: 'gross' };
+    return next;
   }
 
   /** Resets every setting to the data-derived defaults for the current flow. */
   reset(): void {
-    this.navigate(serializeSettings(this.defaultsFor(this.settings().flow)), { replace: false });
+    this.navigate({ ...serializeSettings(this.defaultsFor(this.settings().flow)), ...serializeView({ chart: DEFAULT_CHART }) }, { replace: false });
   }
 
   /** Defaults for the selected county, from its data (full range, latest base year). */
@@ -238,7 +384,11 @@ export class ExplorerStore {
     return data ? availableYears(data, flow, this.county()) : [];
   }
 
-  private navigate(queryParams: QueryParams, opts: { replace: boolean }): void {
+  private navigate(params: OwnParams, opts: { replace: boolean }): void {
+    // Every owned key is set; absent ones (an "all" id list) are removed with null, since the
+    // navigation merges with the current query (unknown params are kept).
+    const queryParams: Record<string, string | null> = {};
+    for (const k of OWN_KEYS) queryParams[k] = params[k] ?? null;
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams,

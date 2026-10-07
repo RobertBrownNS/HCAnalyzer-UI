@@ -90,6 +90,9 @@ const shared = {
 class ReadyDataService {
   readonly counties = signal(['hillsborough', 'pinellas']);
   readonly defaultCounty = signal<string | null>('hillsborough');
+  readonly fundsMeta = signal(null);
+  readonly categoriesMeta = signal(null);
+  accountsFor = () => [];
   readonly countyNames = signal<Record<string, string>>({ hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' });
   statusFor = (): DataStatus => 'ready';
   errorFor = () => null;

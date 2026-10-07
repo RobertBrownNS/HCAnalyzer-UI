@@ -2,7 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
-import { AfrObservation, Annotation, CpiFile, PopulationFile, SourceRecord } from './models';
+import {
+  AccountRecord,
+  AfrObservation,
+  Annotation,
+  CategoriesFile,
+  CpiFile,
+  FundsFile,
+  PopulationFile,
+  SourceRecord,
+} from './models';
 import { TransformData } from './transform';
 
 /** manifest.json (fields the UI uses). */
@@ -39,6 +48,9 @@ export type DataStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 /** Files every county view uses: loaded once. */
 interface SharedData {
+  /** Optional metadata (Phase 3), present when the manifest lists the files. */
+  funds: FundsFile | null;
+  categoryMeta: CategoriesFile | null;
   population: PopulationFile;
   cpi: CpiFile;
   annotations: Annotation[];
@@ -49,6 +61,8 @@ interface CountyEntry {
   status: DataStatus;
   error: string | null;
   observations: AfrObservation[] | null;
+  /** Account names for the source drawer. */
+  accounts?: AccountRecord[] | null;
 }
 
 const IDLE: CountyEntry = { status: 'idle', error: null, observations: null };
@@ -116,8 +130,19 @@ export class DataService {
   dataFor(county: string): TransformData | null {
     const shared = this._shared();
     const observations = this._counties()[county]?.observations;
-    return shared && observations ? { ...shared, observations } : null;
+    if (!shared || !observations) return null;
+    const { funds: _f, categoryMeta, ...transformData } = shared;
+    return { ...transformData, observations, ...(categoryMeta ? { categories: categoryMeta } : {}) };
   }
+
+  /** Account names for one county (null until loaded). */
+  accountsFor(county: string): AccountRecord[] | null {
+    return this._counties()[county]?.accounts ?? null;
+  }
+
+  /** Fund and category metadata (labels, groups, presets); null until loaded or when not published. */
+  readonly fundsMeta = computed(() => this._shared()?.funds ?? null);
+  readonly categoriesMeta = computed(() => this._shared()?.categoryMeta ?? null);
 
   private async fetchShared(): Promise<void> {
     this._sharedStatus.set('loading');
@@ -126,14 +151,17 @@ export class DataService {
       const manifest = await this.get<ManifestFile>('manifest.json');
       if (manifest?.schemaVersion !== SUPPORTED_SCHEMA_VERSION) throw new DataVersionError(manifest?.schemaVersion);
       const v = this.version(manifest);
-      const [population, cpi, annotations, sources] = await Promise.all([
+      const listed = (f: string) => manifest.outputs?.some((o) => o.path === f) ?? false;
+      const [population, cpi, annotations, sources, funds, categoryMeta] = await Promise.all([
         this.get<PopulationFile>(`population.json${v}`),
         this.get<CpiFile>(`cpi.json${v}`),
         this.get<Annotation[]>(`annotations.json${v}`),
         this.get<SourceRecord[]>(`sources.json${v}`),
+        listed('funds.json') ? this.get<FundsFile>(`funds.json${v}`) : Promise.resolve(null),
+        listed('categories.json') ? this.get<CategoriesFile>(`categories.json${v}`) : Promise.resolve(null),
       ]);
       this._manifest.set(manifest);
-      this._shared.set({ population, cpi, annotations, sources });
+      this._shared.set({ population, cpi, annotations, sources, funds, categoryMeta });
       this._sharedStatus.set('ready');
     } catch (err) {
       this._sharedError.set(message(err));
@@ -149,8 +177,12 @@ export class DataService {
       const manifest = this._manifest();
       if (!manifest) throw new Error('The data index (manifest) is not available.');
       if (!manifest.jurisdictions.includes(county)) throw new Error(`No data for county "${county}".`);
-      const observations = await this.get<AfrObservation[]>(`${county}.observations.json${this.version(manifest)}`);
-      this.setCounty(county, { status: 'ready', error: null, observations });
+      const v = this.version(manifest);
+      const [observations, accounts] = await Promise.all([
+        this.get<AfrObservation[]>(`${county}.observations.json${v}`),
+        this.get<AccountRecord[]>(`${county}.accounts.json${v}`),
+      ]);
+      this.setCounty(county, { status: 'ready', error: null, observations, accounts });
       performance.mark?.('fx:dataReady');
     } catch (err) {
       this.setCounty(county, { status: 'error', error: message(err), observations: null });

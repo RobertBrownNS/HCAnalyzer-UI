@@ -27,6 +27,30 @@
   border-top: 0;
 }
 
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fx-space-1);
+}
+
+.fund-group {
+  margin: var(--fx-space-1) 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
 .reset {
   align-self: flex-start;
+}
+
+.link {
+  align-self: flex-start;
+  min-height: var(--fx-touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fx-color-link);
+  font: var(--fx-type-body-small);
+  text-decoration: underline;
 }

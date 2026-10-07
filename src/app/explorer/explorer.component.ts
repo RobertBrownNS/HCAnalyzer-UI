@@ -1,4 +1,4 @@
-import { Component, ViewContainerRef, computed, inject, signal } from '@angular/core';
+import { Component, ViewContainerRef, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 
 import {
@@ -14,6 +14,8 @@ import {
 import { CROSS_CHECK_LABELS, mismatchLegendLabel } from '../core/cross-check';
 import { CrossCheckRange } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
+import { CHART_LABELS, CHART_TYPES, ChartType, isCategoryChart } from '../core/view-state';
+import { CategoryTableComponent } from './category-table.component';
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
@@ -24,6 +26,7 @@ import { RangeControlComponent } from './range-control.component';
 import { SeriesChartComponent } from './series-chart.component';
 import { SeriesTableComponent } from './series-table.component';
 import { SettingsSheetComponent, SettingsSheetData } from './settings-sheet.component';
+import { SourceDrawerService } from './source-drawer.service';
 import { ViewNotesComponent } from './view-notes.component';
 
 export interface SettingChip {
@@ -38,6 +41,7 @@ export interface SettingChip {
 @Component({
   selector: 'app-explorer',
   imports: [
+    CategoryTableComponent,
     ChartSkeletonComponent,
     ExplorerControlsComponent,
     KpiRowComponent,
@@ -62,6 +66,15 @@ export class ExplorerComponent {
   readonly loading = this.store.loading;
   /** Placeholders are laid out at once but shown only after SKELETON_DELAY_MS (once per load). */
   readonly reveal = this.store.revealSkeleton;
+  /**
+   * The Filters pane shows its controls from the first successful load (or a load error) on; after
+   * that they stay, including while another county loads.
+   */
+  readonly controlsReady = linkedSignal<boolean, boolean>({
+    source: () => this.store.loaded() || !!this.store.error(),
+    computation: (ready, previous) => ready || (previous?.value ?? false),
+  });
+  readonly skeletonFields = ['30%', '25%', '35%', '40%', '45%', '35%', '50%'];
   readonly skeletonTiles = [
     { heading: 'notes', lines: ['90%', '75%', '85%', '60%'] },
     { heading: 'sources', lines: ['70%', '95%', '80%', '90%', '65%', '85%'] },
@@ -83,6 +96,12 @@ export class ExplorerComponent {
 
   readonly countyLabel = this.store.countyLabel;
 
+  readonly chartTypes = CHART_TYPES.map((value) => ({ value, label: CHART_LABELS[value] }));
+  readonly chartType = computed(() => this.store.view().chart);
+  setChartType(e: Event): void {
+    this.store.updateView({ chart: (e.target as HTMLSelectElement).value as ChartType });
+  }
+
   /** Series 1 is revenue, series 2 is spending (expenditure); see _tokens.scss. */
   readonly seriesIndex = computed<1 | 2>(() => (this.store.settings().flow === 'revenue' ? 1 : 2));
   readonly seriesColor = computed(() => `var(--fx-series-${this.seriesIndex()})`);
@@ -98,7 +117,8 @@ export class ExplorerComponent {
    */
   readonly crossCheckLegend = computed(() => {
     const check = this.store.crossCheck();
-    if (!check) return [];
+    // The markers sit on the total line; the 100% share chart has none (the drawer still says).
+    if (!check || this.chartType() === 'share') return [];
     const ranges = [...check.values()].filter((r): r is CrossCheckRange => r !== null);
     const mismatches = ranges.filter((r) => r.status === 'mismatch');
     const items: { status: 'not-checked' | 'mismatch'; label: string }[] = [];
@@ -122,7 +142,7 @@ export class ExplorerComponent {
   /** "All funds as reported by EDR, excluding custodial. Transfers between funds: as reported (gross)" */
   readonly scopeLine = computed(() => {
     const s = this.store.settings();
-    return `${fundScopeLabel(s)}. ${transferLabel(s)}.`;
+    return `${fundScopeLabel(s, this.store.fundScope())}. ${transferLabel(s)}.`;
   });
 
   readonly chips = computed<SettingChip[]>(() => {
@@ -147,6 +167,11 @@ export class ExplorerComponent {
       label: !this.store.loaded() ? 'Fiscal years' : `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
       aria: 'Fiscal years',
     });
+    chips.push({ group: 'funds', label: this.store.fundScope(), aria: 'Funds' });
+    if (isCategoryChart(this.store.view().chart)) {
+      const n = s.categories?.length;
+      chips.push({ group: 'categories', label: n ? `${n} categories` : 'All categories', aria: 'Categories' });
+    }
     chips.push({
       group: 'funds',
       label: s.includeCustodial ? 'Custodial included' : 'Custodial excluded',
@@ -170,6 +195,14 @@ export class ExplorerComponent {
       ariaLabel: `${c.label === c.aria || c.label.startsWith(`${c.aria}:`) ? c.label : `${c.aria}: ${c.label}`}. Change`,
     }));
   });
+
+  private readonly drawer = inject(SourceDrawerService);
+
+  /** A point or table cell was chosen: open its source drawer. */
+  openDrawer(fiscalYear: number, category: string | null): void {
+    const content = this.store.drawerContent(fiscalYear, category, this.valueLabel());
+    if (content) this.drawer.open(content);
+  }
 
   openSheet(group: ControlGroup): void {
     this.sheet.open<SettingsSheetComponent, SettingsSheetData>(SettingsSheetComponent, {

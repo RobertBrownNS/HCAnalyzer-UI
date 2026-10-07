@@ -9,10 +9,16 @@ import {
   settingsWithDefaults,
 } from './transform';
 import { Flow } from './models';
+import { normalizeIdList, parseIdList, serializeIdList } from './view-state';
 
+/** Settings written on every URL (DR-32). */
 export const QUERY_KEYS = ['flow', 'measure', 'base', 'idx', 'from', 'to', 'cust', 'cpi', 'cpiper', 'xfer', 'county'] as const;
+/** Id-list settings, omitted when "all" (D-18; old links without them keep their meaning). */
+export const LIST_KEYS = ['funds', 'cats'] as const;
+/** Every key this module reads or writes. */
+export const ALL_SETTING_KEYS = [...QUERY_KEYS, ...LIST_KEYS] as const;
 export type QueryKey = (typeof QUERY_KEYS)[number];
-export type QueryParams = Record<QueryKey, string>;
+export type QueryParams = Record<QueryKey, string> & Partial<Record<(typeof LIST_KEYS)[number], string>>;
 
 /** Anything with a `get(name)` lookup, e.g. Angular's ParamMap or URLSearchParams. */
 export interface ParamSource {
@@ -66,6 +72,7 @@ export function parseSettings(params: ParamSource, defaults: TransformSettings =
     cpiPeriod: oneOf(params.get('cpiper'), CPI_PERIODS, defaults.cpiPeriod),
     transfers: oneOf(params.get('xfer'), TRANSFER_MODES, defaults.transfers ?? 'gross'),
     jurisdiction: county(params.get('county')) ?? defaults.jurisdiction,
+    ...idLists(parseIdList(params.get('funds')), parseIdList(params.get('cats'))),
   };
 }
 
@@ -83,7 +90,29 @@ export function serializeSettings(s: TransformSettings): QueryParams {
     cpiper: s.cpiPeriod,
     xfer: s.transfers ?? 'gross',
     county: s.jurisdiction,
+    ...(serializeIdList(s.funds ?? null) ? { funds: serializeIdList(s.funds ?? null) } : {}),
+    ...(serializeIdList(s.categories ?? null) ? { cats: serializeIdList(s.categories ?? null) } : {}),
   };
+}
+
+function idLists(funds: string[] | null, categories: string[] | null): Pick<TransformSettings, 'funds' | 'categories'> {
+  return { ...(funds ? { funds } : {}), ...(categories ? { categories } : {}) };
+}
+
+/**
+ * Keeps only funds and categories the data offers for this county and flow; a selection that
+ * names every one of them, or none, becomes "all" (the setting is removed). With no lists yet
+ * (data loading) settings are returned unchanged.
+ */
+export function normalizeScope(
+  s: TransformSettings,
+  availableFunds: readonly string[],
+  availableCategories: readonly string[],
+): TransformSettings {
+  const { funds: _f, categories: _c, ...rest } = s;
+  const funds = normalizeIdList(s.funds ?? null, availableFunds);
+  const categories = normalizeIdList(s.categories ?? null, availableCategories);
+  return { ...rest, ...idLists(funds, categories) };
 }
 
 /**
@@ -125,5 +154,5 @@ export function normalizeSettings(
 }
 
 export function sameParams(a: Partial<QueryParams>, b: Partial<QueryParams>): boolean {
-  return QUERY_KEYS.every((k) => (a[k] ?? null) === (b[k] ?? null));
+  return ALL_SETTING_KEYS.every((k) => (a[k] ?? null) === (b[k] ?? null));
 }

@@ -10,8 +10,13 @@
 
     <dt>Funds</dt>
     <dd>
-      {{ scope() }}. This covers every fund column in the report, including pension and trust funds,
-      private-purpose funds and component units (legally separate entities).
+      {{ scope() }}.
+      @if (allFunds()) {
+        This covers every fund column in the report, including pension and trust funds, private-purpose funds and
+        component units (legally separate entities).
+      } @else {
+        Only the selected fund columns are included.
+      }
       @if (s().includeCustodial) {
         The custodial column is reported from FY 2020-21 (GASB Statement No. 84); earlier years have no
         custodial amounts.
@@ -62,6 +67,43 @@
       }
     </dd>
   </dl>
+
+  @if (mapping().length) {
+    <h3 [id]="mappingId" tabindex="-1">Category mapping</h3>
+    <p>
+      Categories are the Florida Uniform Accounting System (UAS) account classes, as published by the Department of
+      Financial Services, with Ad Valorem Taxes (311) shown separately.
+    </p>
+    <div class="mapping" tabindex="0" role="region" aria-label="Category mapping table">
+      <table>
+        <caption>Account codes in each category: {{ flowLabel() }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Account codes</th>
+            <th scope="col">Fiscal years</th>
+            <th scope="col">UAS reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of mapping(); track $index) {
+            <tr>
+              <th scope="row">{{ r.category }}</th>
+              <td class="code">{{ r.accounts }}</td>
+              <td>{{ r.years }}</td>
+              <td>{{ r.reference }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mapping-sources">UAS Manual editions used:</p>
+    <ul class="sources">
+      @for (src of mappingSources(); track src.id) {
+        <li><a [href]="src.url" target="_blank" rel="noopener">{{ src.title }}</a></li>
+      }
+    </ul>
+  }
 
   <h3>Sources</h3>
   <ul class="sources">

@@ -132,6 +132,22 @@ $series: (
   (#b8a800, #f0e442), // yellow (darkened on light backgrounds)
 );
 
+// Category series (stacked area, share, bars, category lines): Okabe & Ito's eight colours
+// plus a neutral ninth, so up to nine categories never repeat a colour (expenditures have
+// nine). Areas and bars also get ECharts decal patterns, and lines distinct marker shapes, so
+// colour is never the only cue. Dark values are lightened for contrast on dark tiles.
+$categories: (
+  (#e69f00, #f0b13a), // orange
+  (#56b4e9, #7cc6ef), // sky blue
+  (#009e73, #2ec4a0), // bluish green
+  (#0072b2, #4a9fd8), // blue
+  (#d55e00, #f08a4b), // vermillion
+  (#cc79a7, #e4a3c8), // reddish purple
+  (#b8a800, #f0e442), // yellow (darkened on light backgrounds)
+  (#4d4d4d, #bdbdbd), // neutral dark / light
+  (#8c96a5, #7d8696), // neutral mid (ninth)
+);
+
 // Annotation lines by Annotation.kind: muted grey, dashed.
 $annotation: (
   methodology: (#7d8696, #7d8696),   // >= 3:1 against tiles (non-text contrast)
@@ -212,6 +228,7 @@ $layout: (
   header-height: 48px,
   header-button-height: 32px,
   panel-width: 260px,   // desktop Filters pane (right)
+  drawer-width: 560px,  // source drawer (desktop): fits the five account columns
   tab-height: 34px,
   tab-indicator: 3px,
   kpi-accent: 3px,      // KPI card top border
@@ -298,6 +315,9 @@ $font-files: (
   }
   @each $pair in $series {
     --fx-series-#{list.index($series, $pair)}: #{_ld($pair)};
+  }
+  @for $i from 1 through list.length($categories) {
+    --fx-category-#{$i}: #{_ld(list.nth($categories, $i))};
   }
   @each $kind, $pair in $annotation {
     --fx-annotation-#{$kind}: #{_ld($pair)};

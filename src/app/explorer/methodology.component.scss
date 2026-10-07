@@ -84,3 +84,62 @@ code {
   font: var(--fx-type-body-small);
   color: var(--fx-color-text);
 }
+
+.mapping {
+  overflow-x: auto;
+  border: var(--fx-border-width) solid var(--fx-color-outline-variant);
+  border-radius: var(--fx-radius-sm);
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    padding: var(--fx-space-1) var(--fx-space-2);
+    border-top: var(--fx-border-width) solid var(--fx-color-outline-variant);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    border-top: 0;
+    background: var(--fx-color-surface-container);
+    font: var(--fx-type-label-medium);
+  }
+
+  tbody th {
+    font-weight: var(--fx-weight-regular);
+  }
+
+  .code {
+    font: var(--fx-type-numeric);
+    white-space: nowrap;
+  }
+
+  a {
+    margin-left: var(--fx-space-1);
+    color: var(--fx-color-primary);
+  }
+}
+
+h3[tabindex='-1'] {
+  // Clear of the sticky top bar when the Categories control scrolls here.
+  scroll-margin-top: calc(var(--fx-header-height) + var(--fx-space-3));
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.mapping-sources {
+  margin: var(--fx-space-3) 0 var(--fx-space-1);
+}
+
+.mapping caption {
+  padding: var(--fx-space-1) var(--fx-space-2);
+  text-align: left;
+  font: var(--fx-type-caption);
+  color: var(--fx-color-text-muted);
+}

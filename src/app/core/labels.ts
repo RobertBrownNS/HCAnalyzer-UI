@@ -43,8 +43,11 @@ export const TRANSFER_LABELS: Record<TransferMode, string> = {
 };
 
 /** "All funds as reported by EDR, excluding custodial" */
-export function fundScopeLabel(s: Pick<TransformSettings, 'includeCustodial'>): string {
-  return `All funds as reported by EDR, ${s.includeCustodial ? 'including' : 'excluding'} custodial`;
+export function fundScopeLabel(
+  s: Pick<TransformSettings, 'includeCustodial'>,
+  funds = 'All funds as reported by EDR',
+): string {
+  return `${funds}, ${s.includeCustodial ? 'including' : 'excluding'} custodial`;
 }
 
 /** "Transfers between funds: as reported (gross)" */

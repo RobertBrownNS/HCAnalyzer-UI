@@ -2,9 +2,12 @@
 // Everything comes from the design tokens (src/styles/_tokens.scss). Colors use light-dark(),
 // so they are resolved through a probe element.
 const SERIES_COUNT = 8;
+const CATEGORY_COUNT = 9;
 
 export interface ChartColors {
   series: string[];
+  /** Category palette (--fx-category-1..9), never repeated. */
+  categories: string[];
   text: string;
   textMuted: string;
   /** Axis tick labels. */
@@ -73,6 +76,7 @@ export function readChartColors(host?: Element): ChartColors {
   const c = (expr: string) => resolveCssColor(expr, host);
   return {
     series: readSeriesPalette(host),
+    categories: Array.from({ length: CATEGORY_COUNT }, (_, i) => c(`var(--fx-category-${i + 1})`)),
     text: c('var(--fx-color-text)'),
     textMuted: c('var(--fx-color-text-muted)'),
     textFaint: c('var(--fx-color-text-faint)'),

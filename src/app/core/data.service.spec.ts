@@ -72,6 +72,7 @@ describe('DataService', () => {
     expect(service.statusFor('hillsborough')).toBe('loading');
     await flushShared();
     http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    http.expectOne(`${DATA_BASE_URL}hillsborough.accounts.json?v=abc123`).flush([]);
     await done;
 
     expect(service.statusFor('hillsborough')).toBe('ready');
@@ -86,6 +87,7 @@ describe('DataService', () => {
     const h = service.loadCounty('hillsborough');
     await flushShared();
     http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    http.expectOne(`${DATA_BASE_URL}hillsborough.accounts.json?v=abc123`).flush([]);
     await h;
 
     // Pinellas hasn't been requested yet.
@@ -97,6 +99,7 @@ describe('DataService', () => {
     await tick();
     http.expectNone(DATA_BASE_URL + 'manifest.json');
     http.expectOne(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`).flush(obs('pinellas', 50));
+    http.expectOne(`${DATA_BASE_URL}pinellas.accounts.json?v=abc123`).flush([]);
     await p;
     expect(service.dataFor('pinellas')!.observations[0].jurisdiction).toBe('pinellas');
     // Hillsborough stays cached.
@@ -109,6 +112,7 @@ describe('DataService', () => {
     expect(a).toBe(b);
     await flushShared();
     http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    http.expectOne(`${DATA_BASE_URL}hillsborough.accounts.json?v=abc123`).flush([]);
     await a;
     await service.loadCounty('hillsborough');
     await tick();
@@ -139,6 +143,7 @@ describe('DataService', () => {
     const first = service.loadCounty('pinellas');
     await flushShared();
     http.expectOne(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`).flush('nope', { status: 404, statusText: 'Not Found' });
+    http.expectOne(`${DATA_BASE_URL}pinellas.accounts.json?v=abc123`).flush([]);
     await first;
     expect(service.statusFor('pinellas')).toBe('error');
     expect(service.errorFor('pinellas')).toContain('404');
@@ -146,6 +151,7 @@ describe('DataService', () => {
     const retry = service.loadCounty('pinellas');
     await tick();
     http.expectOne(`${DATA_BASE_URL}pinellas.observations.json?v=abc123`).flush(obs('pinellas', 50));
+    http.expectOne(`${DATA_BASE_URL}pinellas.accounts.json?v=abc123`).flush([]);
     await retry;
     expect(service.statusFor('pinellas')).toBe('ready');
   });
@@ -160,6 +166,7 @@ describe('DataService', () => {
     const retry = service.loadCounty('hillsborough');
     await flushShared();
     http.expectOne(`${DATA_BASE_URL}hillsborough.observations.json?v=abc123`).flush(obs('hillsborough', 100));
+    http.expectOne(`${DATA_BASE_URL}hillsborough.accounts.json?v=abc123`).flush([]);
     await retry;
     expect(service.statusFor('hillsborough')).toBe('ready');
   });

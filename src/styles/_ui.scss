@@ -198,6 +198,17 @@
   }
 }
 
+// Source drawer (desktop): a full-height dialog along the right edge.
+.fx-drawer-panel {
+  width: var(--fx-drawer-width);
+  max-width: 100vw;
+  height: 100dvh;
+
+  .mat-mdc-dialog-surface {
+    border-radius: 0;
+  }
+}
+
 // Setting chip: opens a bottom sheet (phone).
 .fx-chip {
   flex: 0 0 auto;

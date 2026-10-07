@@ -45,6 +45,15 @@
           </p>
           <p class="fx-caption meta">{{ scopeLine() }}</p>
         </div>
+        <div class="view-controls">
+        <label class="chart-type">
+          <span class="sr-only">Chart type</span>
+          <select class="fx-select" (change)="setChartType($event)" aria-label="Chart type">
+            @for (t of chartTypes; track t.value) {
+              <option [value]="t.value" [selected]="t.value === chartType()">{{ t.label }}</option>
+            }
+          </select>
+        </label>
         <div class="fx-segmented" role="group" aria-label="Display">
           <button type="button" class="fx-button" [attr.aria-pressed]="view() === 'chart'" (click)="view.set('chart')">
             Chart
@@ -52,6 +61,7 @@
           <button type="button" class="fx-button" [attr.aria-pressed]="view() === 'table'" (click)="view.set('table')">
             Table
           </button>
+        </div>
         </div>
       </div>
 
@@ -67,14 +77,18 @@
             @if (view() === 'chart') {
               <app-series-chart
                 class="fill"
-                [points]="store.points()"
+                [points]="store.chartTotal()"
                 [annotations]="store.annotationNotes()"
                 [settings]="store.settings()"
                 [valueLabel]="valueLabel()"
                 [seriesIndex]="seriesIndex()"
                 [revealSkeleton]="reveal()"
                 [crossCheck]="store.crossCheck()"
+                [chartType]="chartType()"
+                [categories]="store.categorySeries()"
+                [categoryLabels]="store.categoryLabels()"
                 (rangeChange)="store.update({ range: $event })"
+                (pointSelect)="openDrawer($event.fiscalYear, $event.category)"
               />
               @if (crossCheckLegend().length) {
                 <!-- Inside the fixed-height figure, below the chart: appearing after load moves
@@ -94,6 +108,17 @@
                   }
                 </ul>
               }
+            } @else if (store.categorySeries(); as cats) {
+              <app-category-table
+                class="fill"
+                [total]="store.chartTotal()"
+                [categories]="cats"
+                [labels]="store.categoryLabels()"
+                [settings]="store.settings()"
+                [chartType]="chartType()"
+                [valueLabel]="valueLabel()"
+                (cellSelect)="openDrawer($event.fiscalYear, $event.category)"
+              />
             } @else {
               <app-series-table
                 class="fill"
@@ -101,6 +126,7 @@
                 [settings]="store.settings()"
                 [valueLabel]="valueLabel()"
                 [crossCheck]="store.crossCheck()"
+                (rowSelect)="openDrawer($event, null)"
               />
             }
           }
@@ -159,6 +185,17 @@
 
   <aside class="filters" aria-labelledby="filters-title">
     <h2 id="filters-title" class="filters-title">Filters</h2>
-    <app-explorer-controls />
+    @if (controlsReady()) {
+      <app-explorer-controls />
+    } @else {
+      <!-- Fund and category lists depend on the county's data: placeholders until the first load,
+           so no control moves when they arrive (CLS 0). -->
+      <div class="skel-controls" aria-hidden="true" [class.fx-skel-pending]="!reveal()">
+        @for (w of skeletonFields; track $index) {
+          <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-body-small-line-height)" [style.width]="w"></span>
+          <span class="fx-skel skel-field"></span>
+        }
+      </div>
+    }
   </aside>
 </div>

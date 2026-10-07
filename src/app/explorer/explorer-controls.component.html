@@ -71,7 +71,42 @@
 @if (show('funds')) {
   <div class="divider" role="group" aria-labelledby="funds-label">
     <span id="funds-label" class="group-label">Funds</span>
-    <span class="hint">{{ scope() }}.</span>
+    @if (presets().length) {
+      <div class="presets" role="group" aria-label="Fund presets">
+        @for (p of presets(); track p.id) {
+          <button
+            type="button"
+            class="fx-button preset"
+            [attr.aria-pressed]="matchedPreset() === p.id"
+            (click)="applyPreset(p.funds)"
+          >
+            {{ p.label }}
+          </button>
+        }
+      </div>
+    }
+    <span class="hint" aria-live="polite">
+      @if (matchedPreset() === 'custom') {
+        Custom selection.
+      }
+      {{ scopeDescription() }}
+    </span>
+    @for (g of fundGroups(); track g.id) {
+      <fieldset class="fund-group">
+        <legend class="group-label">{{ g.label }}</legend>
+        @for (f of g.funds; track f.id) {
+          <label class="fx-check">
+            <input
+              type="checkbox"
+              [checked]="isFundSelected(f.id)"
+              [disabled]="isFundSelected(f.id) && selectedFundCount() === 1"
+              (change)="toggleFund(f.id, checked($event))"
+            />
+            {{ f.label }}
+          </label>
+        }
+      </fieldset>
+    }
     <label class="fx-check">
       <input
         type="checkbox"
@@ -85,13 +120,49 @@
     </span>
     <label class="fx-field">
       Transfers between funds
-      <select class="fx-select" (change)="setTransfers(value($event))">
+      <select class="fx-select" (change)="setTransfers(value($event))" aria-describedby="net-hint">
         @for (t of transferModes; track t.value) {
-          <option [value]="t.value" [selected]="t.value === (settings().transfers ?? 'gross')">{{ t.label }}</option>
+          <option
+            [value]="t.value"
+            [selected]="t.value === (settings().transfers ?? 'gross')"
+            [disabled]="t.value === 'net' && !netAllowed()"
+          >
+            {{ t.label }}
+          </option>
         }
       </select>
-      <span class="hint">Account 381 (transfers in, revenues) and 581 (transfers out, expenditures).</span>
+      <span id="net-hint" class="hint">
+        @if (!netAllowed()) {
+          Excluded (net) needs all funds selected (every fund with data for this county): with only some funds,
+          transfers to and from the others are real inflows and outflows.
+        } @else {
+          Account 381 (transfers in, revenues) and 581 (transfers out, expenditures).
+        }
+      </span>
     </label>
+  </div>
+}
+
+@if (show('categories')) {
+  <div class="divider" role="group" aria-labelledby="cats-label">
+    <span id="cats-label" class="group-label">Categories</span>
+    <button type="button" class="fx-button preset" [attr.aria-pressed]="!settings().categories" (click)="allCategories()">
+      All categories
+    </button>
+    @for (c of categoryOptions(); track c.id) {
+      <label class="fx-check">
+        <input
+          type="checkbox"
+          [checked]="isCategorySelected(c.id)"
+          [disabled]="isCategorySelected(c.id) && selectedCategoryCount() === 1"
+          (change)="toggleCategory(c.id, checked($event))"
+        />
+        {{ c.label }}
+      </label>
+    }
+    @if (hasMapping()) {
+      <button type="button" class="link" (click)="showMapping()">How account codes map to categories</button>
+    }
   </div>
 }
 

@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 
 import { crossCheckYearText } from '../core/cross-check';
 import { formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
@@ -33,7 +33,16 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
         <tbody>
           @for (p of points(); track p.fiscalYear) {
             <tr>
-              <th scope="row">{{ p.label }}</th>
+              <th scope="row">
+                <button
+                  type="button"
+                  class="year"
+                  [attr.aria-label]="p.label + ': ' + fmt(p.value) + '. Show sources'"
+                  (click)="rowSelect.emit(p.fiscalYear)"
+                >
+                  {{ p.label }}
+                </button>
+              </th>
               <td class="num">{{ fmt(p.value) }}</td>
               <td class="num">{{ usd(p.nominal) }}</td>
               @if (showPopulation()) {
@@ -88,6 +97,17 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
     tbody th {
       white-space: nowrap;
     }
+    .year {
+      min-height: var(--fx-control-h);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--fx-color-link);
+      font: inherit;
+      font-weight: var(--fx-weight-semibold);
+      text-decoration: underline;
+      cursor: pointer;
+    }
     thead th.num {
       font: inherit; // headers are text: only the figures use the mono face
       font-weight: var(--fx-weight-semibold);
@@ -116,6 +136,8 @@ export class SeriesTableComponent {
   readonly points = input.required<SeriesPoint[]>();
   readonly settings = input.required<TransformSettings>();
   readonly valueLabel = input.required<string>();
+  /** A year was chosen: open the source drawer for its total. */
+  readonly rowSelect = output<number>();
   /** Cross-check status per year; null = the source has no coverage, so no column. */
   readonly crossCheck = input<ReadonlyMap<number, CrossCheckRange | null> | null>(null);
 
