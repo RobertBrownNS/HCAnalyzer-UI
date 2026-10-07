@@ -31,7 +31,7 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 - QA-07: what "all funds" includes (pension, trust, component units). Goes to Phase 3 with O-07.
 - QA-15: tablet collapsible side panel. Phase 6 (DR-33).
 - QA-21: chart self-description when cropped. Phase 5; the PNG export must print the settings (DR-33).
-- Phase 3 categories and fund scope, Phase 4 comparisons (on hold, D-11), Phase 5 presets and export. The methodology and "how to reproduce" pages come first in Phase 5 (D-12).
+- Phase 3 categories and fund scope, Phase 4 comparison overlays (on hold, D-11; the Pinellas switch shipped as Phase 4a), Phase 5 presets and export. The methodology and "how to reproduce" pages come first in Phase 5 (D-12).
 - Not verified this round: real devices, screen-reader output, live IIS/GitHub Pages deploys.
 
 **Open decisions for the user** (details in [decisions.md](decisions.md))
@@ -44,6 +44,23 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | O-08 | GASB 84 label trailing period | Keep as in CLAUDE.md |
 | O-10 | FY 2022-23 / FY 2023-24 expenditure classification break | Shown as published, with annotations and cell refs |
 | O-11 | Net transfers with a narrower fund scope | Disable "net" outside all-funds scope (risks R-19) |
+
+### Phase 4a: County switch (Pinellas), 2026-10-07
+
+**Status:** approved by QA (tag `phase-4a-approved`) on branch `feature/pinellas`. Nothing was pushed.
+
+**What shipped**
+- **Pinellas** is a county switch: one county at a time, no overlay (D-13). It has its own pipeline output, validation parity with Hillsborough, and D-14 annotations. Transfer-imbalance annotations now come only from a reviewed approval list. An unapproved imbalance over $1,000,000 (strictly greater) fails the build (DR-38, DR-40, DR-41).
+- **The county is a URL setting.** No Hillsborough text is hard-coded. Each county's data loads only when selected.
+- **LOGERX cross-check for both counties** (D-16): a cross-check that EDR matches the county's DFS filing, not an audit (QA-30).
+  - It covers FY 2012-13 to FY 2024-25, and 8,106 of 8,110 cells match.
+  - The 4 differing cells are 2 reclassifications with matching year totals (DR-47).
+  - Both counties are `partial` (DR-45); earlier years are labelled "not cross-checked".
+
+**Carried forward**
+- Phase 3 must annotate the 2 LOGERX reclassifications (DR-47).
+- LOGERX has no documented API, so it may change without notice (QA-31). Extracts are committed with hashes, so builds don't depend on it.
+- Not verified: real devices, screen readers, and clamping on a county switch (unit tests only).
 
 ---
 
@@ -272,13 +289,13 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
-| P4a-01 | Pinellas pipeline: raw files, parse, validation, annotations | DE | none | todo |
-| P4a-02 | Reviewed transfer-imbalance approval list (all counties) | DE | none | todo |
-| P4a-03 | Multi-county `transform.ts` + golden tests | TE | P4a-01 (data shape) | todo |
-| P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | todo |
+| P4a-01 | Pinellas pipeline: raw files, parse, validation, annotations | DE | none | done |
+| P4a-02 | Reviewed transfer-imbalance approval list (all counties) | DE | none | done |
+| P4a-03 | Multi-county `transform.ts` + golden tests | TE | P4a-01 (data shape) | done |
+| P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | done |
 | P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | done |
-| P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | todo |
-| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | done (pending QA-32 wording) |
+| P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | done |
+| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | done |
 
 ### Acceptance criteria
 
@@ -379,11 +396,17 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 - [ ] Neutrality sweep: no Hillsborough text on Pinellas views, no copy comparing counties, no advocacy sources.
 
 ### Phase 4a Definition of Done
-- [ ] P4a-01 to P4a-06 are `done`, and there are no open blocker or major findings.
-- [ ] Pinellas validation all passes. Hillsborough outputs and golden tests are unchanged.
-- [ ] `ng build` and `ng test` are green. The pipeline is deterministic.
-- [ ] Every Pinellas number traces to a Source. For each county and year range, the sources show either the P4a-07 cross-check result or the DR-42 caveat, never both and never neither.
-- [ ] P4a-07 is done for both counties, or the user knowingly accepts shipping with the DR-42 caveat for the counties or years not covered. No doc or UI text describes either county's cross-check as full coverage.
+- [x] P4a-01 to P4a-07 are `done`, and there are no open blocker or major findings.
+- [x] Pinellas validation all passes. Hillsborough outputs and golden tests are unchanged.
+- [x] `ng build` and `ng test` are green. The pipeline is deterministic.
+- [x] Every Pinellas number traces to a Source. For each county and year range, the sources show either the P4a-07 cross-check result or the DR-42 caveat, never both and never neither.
+- [x] P4a-07 is done for both counties, or the user knowingly accepts shipping with the DR-42 caveat for the counties or years not covered. No doc or UI text describes either county's cross-check as full coverage.
+
+**Phase 4a approved by QA** (2026-10-07, final sign-off at `b25cecc`, tag `phase-4a-approved`).
+- 319 app tests and 68 pipeline tests pass. `npm run pipeline` reproduces the committed outputs.
+- No open QA findings for Phase 4a (per QA's final sign-off).
+- **Not verifiable in this round:** real devices; screen-reader output; base-year and range clamping on a county switch. Both counties have identical year spans, so clamping is covered by unit tests only.
+- **Carry-over to Phase 3 (DR-47):** the 2 LOGERX reclassifications must be annotated through the approval list when the fund-scope or category views ship. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. See "Later phases".
 
 ---
 
