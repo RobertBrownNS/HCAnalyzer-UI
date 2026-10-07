@@ -463,8 +463,9 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | done |
 | P3-12 | Favicon and app icons (D-22) | FE | none (design approved, D-22) | done |
 | P3-13 | Desktop fund filter: Simple / Advanced modes (D-23) | FE | P3-05 | todo |
+| P3-14 | Desktop Filters pane: accordion, single page scrollbar (D-24) | FE | P3-13 | todo |
 
-Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) was added after approval and ships with Phase 3; status `todo`.
+Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) and **P3-14** (D-24, Filters accordion) were added after approval and ship with Phase 3; both `todo`.
 
 ### Acceptance criteria
 
@@ -584,6 +585,36 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
   - the phone sheet is unchanged;
   - a11y and contrast.
 
+**P3-14 Desktop Filters pane: accordion, single page scrollbar (FE; D-24)**
+- [ ] The desktop Filters pane is an accordion with these sections, in order:
+  - **View**, open by default;
+  - **Inflation**, collapsed by default;
+  - **Funds & transfers**, collapsed by default;
+  - **Categories**, collapsed by default.
+
+  Several sections can be open at once.
+- [ ] **Methodology stays visible:** every collapsed header shows a summary of its current settings. Across the four headers, every active setting is readable without expanding anything: measure, base year/range, index-to-100, inflation index and period, fund scope or "Custom selection.", transfers gross/net, custodial include/exclude, and categories. The summary wording is neutral and follows DR-54.
+- [ ] **One scrollbar:** the pane has no internal scrollbar (`overflow` is not set to scroll or auto). It is sticky only while its full height fits the viewport. When it is taller, it scrolls with the page. There are never two scrollbars.
+- [ ] The open state is stored in `localStorage`, with every read and write wrapped in try/catch. If storage is unavailable, the defaults above apply with no error. The open state is **not in the URL**: opening or closing changes no query param, history entry or data.
+- [ ] A custom fund selection (from the URL or a P3-13 edit) **auto-opens Funds & transfers**, whatever the stored state. This works together with D-23 (a custom selection also forces Advanced mode).
+- [ ] Phone is unchanged: the chip row and bottom sheets stay as before, and the existing tests pass.
+- [ ] Accessibility:
+  - headers are buttons with `aria-expanded` and `aria-controls`;
+  - they are keyboard operable (Enter/Space) with visible focus;
+  - they are at least 44 px tall;
+  - they work in light and dark, using tokens only.
+- [ ] Expanding or collapsing causes no layout shift in the chart area. CLS stays 0 on load with the stored state applied before first paint, with no visible jump.
+- [ ] **QA check** at **1366×768** and **1920×1080**, in light and dark:
+  - no double scrollbars with all sections open or all closed;
+  - sticky behaviour switches correctly when the pane stops fitting;
+  - every active setting is readable from collapsed headers;
+  - the custom-selection link opens Funds;
+  - blocked-storage fallback;
+  - the URL is unchanged on toggle;
+  - CLS 0;
+  - keyboard and screen-reader pass on the headers;
+  - the phone is unchanged.
+
 **P3-09 QA: independent sums (QA)**
 - [ ] QA uses its own stdlib reader (no shared code) and its own reading of the UAS mapping source. For both counties and every FY and flow, it re-derives:
   - category sums;
@@ -613,7 +644,7 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
 **Phase 3 approved by QA** (2026-10-07, final sign-off at `60a642f`, tag `phase-3-approved`).
 - **DR-47 closed:** both LOGERX reclassifications are annotated in scoped views (fund, category and drawer; DR-50). **QA-07 / O-07 closed** (D-18).
 - **Still open:** QA-47 (minor county-chip shift on phone) is being fixed. QA-46 is a note only.
-- **Added after approval:** P3-13 (fund filter Simple / Advanced modes, D-23, user request 2026-10-07) ships with Phase 3. It needs its own QA check before the Phase 3 release.
+- **Added after approval:** P3-13 (fund filter Simple / Advanced modes, D-23) and P3-14 (Filters accordion with a single scrollbar, D-24), both user requests on 2026-10-07, ship with Phase 3. Each needs its own QA check before the Phase 3 release.
 - **Not verifiable in this round:** real devices (including how browsers render the favicon in the tab bar), screen-reader output, and clicking bands on the canvas. The drawer was tested from table cells and rows.
 
 ---
