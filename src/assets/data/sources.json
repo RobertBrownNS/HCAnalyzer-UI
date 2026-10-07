@@ -303,12 +303,18 @@
     "caveats": [
       "Values are April 1 figures. Most years are BEBR estimates published that year; 2000, 2010 and 2020 also have census counts. These are not intercensal-revised series, so a census year can step up or down relative to the estimates around it.",
       "For 2020 the pipeline uses the revised BEBR estimate (the value EDR used for FY 2019-20 per-capita figures); the 2020 census count is listed as an alternate.",
-      "EDR notes that countywide figures do not reflect the population estimates ultimately used for revenue-sharing purposes.",
-      "Hillsborough County: Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (1,229,226); FY 2008-09 used the April 1, 2009 BEBR estimate (1,196,892), a change of 2.7%. These are point-in-time figures from different sources, not a revised continuous series.",
-      "Hillsborough County: Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (1,490,374); FY 2019-20 used the revised April 1, 2020 BEBR estimate (1,478,759), a change of 0.8%. The April 1, 2020 census count was 1,459,762. These are point-in-time figures from different sources, not a revised continuous series.",
-      "Pinellas County: Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (916,542); FY 2008-09 used the April 1, 2009 BEBR estimate (931,113), a change of -1.6%. These are point-in-time figures from different sources, not a revised continuous series.",
-      "Pinellas County: Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (964,490); FY 2019-20 used the revised April 1, 2020 BEBR estimate (984,054), a change of -2.0%. The April 1, 2020 census count was 959,107. These are point-in-time figures from different sources, not a revised continuous series."
+      "EDR notes that countywide figures do not reflect the population estimates ultimately used for revenue-sharing purposes."
     ],
+    "caveatsByJurisdiction": {
+      "hillsborough": [
+        "Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (1,229,226); FY 2008-09 used the April 1, 2009 BEBR estimate (1,196,892), a change of 2.7%. These are point-in-time figures from different sources, not a revised continuous series.",
+        "Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (1,490,374); FY 2019-20 used the revised April 1, 2020 BEBR estimate (1,478,759), a change of 0.8%. The April 1, 2020 census count was 1,459,762. These are point-in-time figures from different sources, not a revised continuous series."
+      ],
+      "pinellas": [
+        "Per-resident figures for FY 2009-10 divide by the April 1, 2010 census count (916,542); FY 2008-09 used the April 1, 2009 BEBR estimate (931,113), a change of -1.6%. These are point-in-time figures from different sources, not a revised continuous series.",
+        "Per-resident figures for FY 2020-21 divide by the April 1, 2021 BEBR estimate (964,490); FY 2019-20 used the revised April 1, 2020 BEBR estimate (984,054), a change of -2.0%. The April 1, 2020 census count was 959,107. These are point-in-time figures from different sources, not a revised continuous series."
+      ]
+    },
     "id": "edr-population-flcopops",
     "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR); estimates by the Bureau of Economic and Business Research (BEBR), University of Florida",
     "rawFile": "data/raw/edr-population/FLcopops.xlsx",

@@ -182,6 +182,7 @@ Account names changed wording over the years: 64 revenue codes and 47 expenditur
 - **October 2025 national CPI is missing.** BLS footnote: "Data unavailable due to the 2025 lapse in appropriations." BLS still published a 2025 annual average (321.943), which is used as published. FY 2025-26 national has no fiscal-year average (`fiscalYearUnavailable`). It isn't needed for FY 2024-25 or earlier.
 - National values before 2007 have 1 decimal. Values from 2007 on have 3.
 - **Fiscal-year CPI** (Oct-Sep) is computed by the pipeline because BLS doesn't publish it.
+  - Averages are computed in exact integer thousandths and rounded half-up to 3 decimals (QA-38), so a tie such as Tampa FY 2023-24 (298.1655) is 298.166, not a float artifact.
   - National: mean of the 12 monthly values. Applied to calendar years, the same method reproduces all 25 complete BLS annual averages.
   - Tampa: mean of the 6 published bimonthly values in the fiscal year (Nov, Jan, Mar, May, Jul, Sep). Available for FY 2017-18 to FY 2024-25 only. Applied to calendar years, this method does **not** reproduce the BLS annual average: it runs 0.06-0.29% low. Each value carries that caveat.
   - Tampa before FY 2017-18: only semiannual and annual averages exist. Semiannual halves don't line up with Oct-Sep, so no fiscal-year value is produced. Tampa **calendar-year** averages exist for every finance year: `cpi.json` → `tampa_semiannual.calendarYear`.
@@ -312,7 +313,7 @@ Source fields (DR-45), derived from these results, never from config:
 - Transfer-imbalance years are annotated only when listed in `scripts/pipeline/config/approved-annotations.ts`. Rule (DR-40): \|581 − 381\| over all funds except custodial > $1,000,000 (strictly greater; exactly $1,000,000 is not flagged), the same rule the transform uses for point notes. The build fails if a flagged year is not listed, or a listed year is no longer flagged. Approved: Hillsborough FY 2022-23 and FY 2023-24; Pinellas FY 2005-06 and FY 2021-22.
 - Research notes for a single county (where no other county has a comparable issue) are listed in the same file. Today there is one: Pinellas `custodial-start`.
 - Drop-and-recover gaps: `config/approved-gaps.ts` (unchanged).
-- The population source is shared by every county, so its generated caveats start with the county name.
+- The population source is shared by every county. Its general caveats are in `caveats` (shown for every county); county-specific ones are in `caveatsByJurisdiction[<slug>]`, with no county-name prefix (QA-33).
 - `manifest.json` lists `jurisdictions` (slugs) and `jurisdictionNames` (display names, e.g. `"pinellas": "Pinellas County"`).
 
 ## Quirks the transform engineer and QA need to know

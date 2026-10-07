@@ -129,8 +129,10 @@ export function transferBalances(revenues: AfrSheet[], expenditures: AfrSheet[])
 
 export interface Generated {
   annotations: Annotation[];
-  /** Extra caveats per source id. */
+  /** Extra caveats per source id (sources that belong to this jurisdiction). */
   caveats: Map<string, string[]>;
+  /** Extra caveats for sources shared by every jurisdiction (e.g. population), to be filed under this jurisdiction. */
+  sharedSourceCaveats: Map<string, string[]>;
 }
 
 function pushCaveat(caveats: Map<string, string[]>, id: string, text: string) {
@@ -139,8 +141,6 @@ function pushCaveat(caveats: Map<string, string[]>, id: string, text: string) {
 
 export interface AnomalyInput {
   jurisdiction: string;
-  /** Display name, e.g. "Hillsborough County". */
-  jurisdictionName: string;
   revenues: AfrSheet[];
   expenditures: AfrSheet[];
   revenueSourceId: string;
@@ -160,6 +160,7 @@ export interface AnomalyInput {
 export function generateAnomalies(input: AnomalyInput): Generated {
   const annotations: Annotation[] = [];
   const caveats = new Map<string, string[]>();
+  const sharedSourceCaveats = new Map<string, string[]>();
   const { jurisdiction } = input;
   const flows: Array<[Flow, AfrSheet[], string]> = [
     ['revenue', input.revenues, input.revenueSourceId],
@@ -415,11 +416,11 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       detail,
       refs: [populationRef(cur), populationRef(prev)],
     });
-    // The population source is shared by every county, so its caveats name the county.
-    pushCaveat(caveats, input.populationSourceId, `${input.jurisdictionName}: ${detail}`);
+    // The population source is shared by every county; these caveats are filed under this county (QA-33).
+    pushCaveat(sharedSourceCaveats, input.populationSourceId, detail);
   }
 
-  return { annotations, caveats };
+  return { annotations, caveats, sharedSourceCaveats };
 }
 
 function generalFund(sheet: AfrSheet, account: string): number {

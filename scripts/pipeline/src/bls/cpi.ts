@@ -109,6 +109,23 @@ export function round3(n: number): number {
   return Math.round(n * 1000) / 1000;
 }
 
+/**
+ * Mean rounded half-up to 3 decimals, computed in exact integer thousandths (QA-38). BLS index values
+ * have at most 3 decimals, so the sum is exact and ties such as 298.1655 round to 298.166, not to a
+ * float artifact (298.165). This is also the rule that reproduces BLS's published annual averages.
+ */
+export function meanHalfUp3(values: number[]): number {
+  if (!values.length) throw new Error('meanHalfUp3: no values');
+  let sum = 0;
+  for (const v of values) {
+    const t = Math.round(v * 1000);
+    if (Math.abs(v * 1000 - t) > 1e-6 || v <= 0) throw new Error(`meanHalfUp3: ${v} is not a positive value with at most 3 decimals`);
+    sum += t;
+  }
+  const n = values.length;
+  return Math.floor((2 * sum + n) / (2 * n)) / 1000;
+}
+
 export type AverageResult =
   | { ok: true; value: number; months: string[] }
   | { ok: false; reason: string; months: string[] };
@@ -121,8 +138,7 @@ export function averageOf(cpi: ParsedCpi, config: CpiSeriesConfig, months: strin
     const reasons = missing.map((ym) => (cpi.missing.has(ym) ? `${ym} (${cpi.missing.get(ym)})` : `${ym} (not in the downloaded BLS data)`));
     return { ok: false, reason: `missing ${reasons.join(', ')}`, months: expected };
   }
-  const sum = expected.reduce((acc, ym) => acc + cpi.monthly.get(ym)!, 0);
-  return { ok: true, value: round3(sum / expected.length), months: expected };
+  return { ok: true, value: meanHalfUp3(expected.map((ym) => cpi.monthly.get(ym)!)), months: expected };
 }
 
 export function calendarYearMonths(year: number): string[] {

@@ -49,6 +49,11 @@ export interface Source {
   rawFile: string;
   /** Endpoint actually downloaded, when it differs from `url` (a human-readable page). */
   accessUrl?: string;
+  /**
+   * Shared sources only: caveats that apply to one jurisdiction, keyed by jurisdiction slug.
+   * `caveats` holds the ones that apply to every jurisdiction.
+   */
+  caveatsByJurisdiction?: Record<string, string[]>;
   /** EDR AFR sources only: how the figures were cross-checked against the county-filed AFR (strongest status in any year). */
   countyAfrCrossCheck?: CrossCheckStatus;
   /** EDR AFR sources only: plain-language summary of that cross-check. */

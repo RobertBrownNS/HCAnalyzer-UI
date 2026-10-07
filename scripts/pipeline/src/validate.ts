@@ -123,10 +123,12 @@ function userFacingStrings(outDir: string): Array<{ where: string; text: string 
     push(`annotation ${a.fiscalYear} ${a.topic} label`, a.label);
     push(`annotation ${a.fiscalYear} ${a.topic} detail`, a.detail);
   }
-  for (const src of JSON.parse(readFileSync(path.join(outDir, 'sources.json'), 'utf8')) as Array<{ id: string; title: string; publisher: string; caveats: string[] }>) {
+  for (const src of JSON.parse(readFileSync(path.join(outDir, 'sources.json'), 'utf8')) as Array<{ id: string; title: string; publisher: string; caveats: string[]; caveatsByJurisdiction?: Record<string, string[]>; crossCheckSummary?: string }>) {
     push(`source ${src.id} title`, src.title);
     push(`source ${src.id} publisher`, src.publisher);
+    push(`source ${src.id} crossCheckSummary`, src.crossCheckSummary);
     src.caveats.forEach((c, i) => push(`source ${src.id} caveat ${i + 1}`, c));
+    for (const [j, list] of Object.entries(src.caveatsByJurisdiction ?? {})) list.forEach((c, i) => push(`source ${src.id} ${j} caveat ${i + 1}`, c));
   }
   const pop = JSON.parse(readFileSync(path.join(outDir, 'population.json'), 'utf8')) as Record<string, Record<string, unknown>>;
   for (const [key, e] of Object.entries(pop)) {
@@ -575,7 +577,17 @@ async function main() {
     leaks.length ? leaks.slice(0, 10).join('; ') + (leaks.length > 10 ? `; and ${leaks.length - 10} more` : '') : `${texts.length} strings checked in cpi, annotations, sources and population`);
   // County metadata the UI relies on: display names, cross-check status, DR-42 caveat text.
   const manifestJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'manifest.json'), 'utf8')) as { jurisdictions: string[]; jurisdictionNames?: Record<string, string> };
+  const manifestJsonForScope = manifestJson;
   const missingNames = manifestJson.jurisdictions.filter((j) => !manifestJson.jurisdictionNames?.[j]);
+  // QA-33: county-specific caveats on shared sources are keyed by jurisdiction, never prefixed text.
+  const scopeProblems: string[] = [];
+  const countyNames = inputs.counties.map((c) => c.county.name);
+  for (const src of JSON.parse(readFileSync(path.join(OUT_DIR, 'sources.json'), 'utf8')) as Array<{ id: string; caveats: string[]; caveatsByJurisdiction?: Record<string, string[]> }>) {
+    for (const c of src.caveats) if (countyNames.some((n) => c.startsWith(`${n}: `))) scopeProblems.push(`${src.id}: shared caveat starts with a county name`);
+    for (const j of Object.keys(src.caveatsByJurisdiction ?? {})) if (!manifestJsonForScope.jurisdictions.includes(j)) scopeProblems.push(`${src.id}: caveatsByJurisdiction key "${j}" is not a jurisdiction`);
+  }
+  add('Shared sources: county-specific caveats are in caveatsByJurisdiction (no county-name prefixes in shared caveats)', !scopeProblems.length,
+    scopeProblems.length ? scopeProblems.join('; ') : 'ok');
   add('manifest: every jurisdiction has a display name (jurisdictionNames)', !missingNames.length,
     missingNames.length ? `missing: ${missingNames.join(', ')}` : manifestJson.jurisdictions.map((j) => `${j} = "${manifestJson.jurisdictionNames![j]}"`).join('; '));
   const sourcesList = JSON.parse(readFileSync(path.join(OUT_DIR, 'sources.json'), 'utf8')) as Array<{

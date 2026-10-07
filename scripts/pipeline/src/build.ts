@@ -181,6 +181,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
 
   const generatedAnnotations: Annotation[] = [];
   const extraCaveats = new Map<string, string[]>();
+  const sharedCaveats = new Map<string, Record<string, string[]>>();
   for (const { county, revenues, expenditures, population: pop, countyAfrFiles } of inputs.counties) {
     const revId = sourceIds.afr(county, 'revenue');
     const expId = sourceIds.afr(county, 'expenditure');
@@ -205,7 +206,6 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     }
     const generated = generateAnomalies({
       jurisdiction: county.slug,
-      jurisdictionName: county.name,
       revenues: revenues.sheets,
       expenditures: expenditures.sheets,
       revenueSourceId: revId,
@@ -220,6 +220,11 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     });
     generatedAnnotations.push(...generated.annotations);
     for (const [id, list] of generated.caveats) extraCaveats.set(id, [...(extraCaveats.get(id) ?? []), ...list]);
+    for (const [id, list] of generated.sharedSourceCaveats) {
+      const byCounty = sharedCaveats.get(id) ?? {};
+      byCounty[county.slug] = [...(byCounty[county.slug] ?? []), ...list];
+      sharedCaveats.set(id, byCounty);
+    }
     population[county.slug] = {
       sourceId: sourceIds.population,
       reference: 'April 1 of the year shown',
@@ -276,6 +281,8 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   for (const src of sources) {
     const extra = extraCaveats.get(src.id);
     if (extra) src.caveats = [...src.caveats, ...extra];
+    const byCounty = sharedCaveats.get(src.id);
+    if (byCounty) src.caveatsByJurisdiction = byCounty;
   }
 
   files.set('population.json', stableStringify(population, 2));

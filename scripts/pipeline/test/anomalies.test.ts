@@ -42,7 +42,6 @@ function input(revenues: AfrSheet[], expenditures: AfrSheet[], population: Popul
   return {
     approvedTransferImbalances: approvedTransferYears.map((fiscalYear) => ({ jurisdiction: 'test', fiscalYear })),
     jurisdiction: 'test',
-    jurisdictionName: 'Test County',
     revenues,
     expenditures,
     revenueSourceId: 'rev',
@@ -117,6 +116,13 @@ describe('population basis changes', () => {
     expect(popNotes[0].measures).toEqual(['per_capita', 'real_per_capita']);
     expect(popNotes.every((x) => x.topic === 'population-source')).toBe(true);
     expect(popNotes[0].detail).toContain('2.7%');
+  });
+
+  it('files population caveats under the jurisdiction, not as prefixed shared caveats (QA-33)', () => {
+    const years = [2009, 2010].map((y) => sheet('revenue', y, { '311': [1_234_567, 0] }, false));
+    const g = generateAnomalies(input(years, [], [pop(2009, 1000, 'bebr_estimate'), pop(2010, 1027, 'census_count')]));
+    expect(g.caveats.has('pop')).toBe(false);
+    expect(g.sharedSourceCaveats.get('pop')?.[0]).toMatch(/^Per-resident figures for FY 2009-10/);
   });
 });
 

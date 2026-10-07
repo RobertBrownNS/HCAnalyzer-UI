@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { averageOf, CPI_SERIES, fiscalYearAverage, parseBlsResponses, type BlsResponse } from '../src/bls/cpi.js';
+import { averageOf, CPI_SERIES, fiscalYearAverage, meanHalfUp3, parseBlsResponses, type BlsResponse } from '../src/bls/cpi.js';
 
 const national = CPI_SERIES.find((s) => s.key === 'national')!;
 const tampa = CPI_SERIES.find((s) => s.key === 'tampa')!;
@@ -70,5 +70,22 @@ describe('fiscal-year averages', () => {
   it('rounds to BLS precision (3 decimals)', () => {
     const p = parseBlsResponses(national.id, [resp(national.id, [['2020', 'M01', '1'], ['2020', 'M02', '1'], ['2020', 'M03', '2']])]);
     expect(averageOf(p, { ...national, publishedMonths: [1, 2, 3] }, ['2020-01', '2020-02', '2020-03'])).toMatchObject({ ok: true, value: 1.333 });
+  });
+});
+
+describe('meanHalfUp3 (QA-38)', () => {
+  it('rounds a half-thousandth tie up, where float division gives the wrong side', () => {
+    // Tampa FY 2023-24 bimonthly values: mean 298.1655 exactly.
+    const tampaFy2024 = [295.029, 296.477, 299.03, 298.673, 300.062, 299.722]; // Nov 2023 - Sep 2024 (CUURS35DSA0)
+    expect(Math.round((tampaFy2024.reduce((a, b) => a + b, 0) / 6) * 1000) / 1000).toBe(298.165); // the float artifact
+    expect(meanHalfUp3(tampaFy2024)).toBe(298.166);
+  });
+  it('handles exact results and 1-decimal values', () => {
+    expect(meanHalfUp3([100, 101])).toBe(100.5);
+    expect(meanHalfUp3([195.3, 195.4, 195.4])).toBe(195.367);
+    expect(meanHalfUp3([1, 1, 2])).toBe(1.333);
+  });
+  it('rejects values with more than 3 decimals', () => {
+    expect(() => meanHalfUp3([1.2345])).toThrow();
   });
 });
