@@ -16,6 +16,7 @@ npm run pipeline:refresh  # fetch + pipeline
 - `validate` rebuilds in memory, requires the files on disk to match byte for byte, re-checks every total against the workbooks, writes `data/validation.md`, and exits 1 on any failure.
 - Counties are configured in `scripts/pipeline/config/counties.ts`: Hillsborough and Pinellas.
 - `npm run fetch -- --county <slug>` downloads only that county's own files and leaves the shared files (population, CPI, EDR index page) alone.
+- `npm run fetch -- --logerx` downloads the DFS LOGERX public reports (26 requests, 15 s apart; stops at the first failure) into the gitignored `data/cache/logerx/` and writes the committed per-county extracts. `--logerx --use-cache` rebuilds the extracts from the cache without downloading. `npm run pipeline` needs only the committed extracts.
 - `build` deletes `<slug>.observations|accounts|workbook-totals.json` files for counties that are no longer configured, and validation fails if any remain.
 
 ## Raw files (`data/raw/`)
@@ -252,18 +253,64 @@ Differences from Hillsborough:
 | Section placement | 367 Licenses printed under "Permits, Fees, and Special Assessments" in FY 2009-10, FY 2010-11 and FY 2012-13 to FY 2018-19; 313.5 printed under "Franchise Fees, Licenses, and Permits" in FY 2006-07 | Classified by code; documented per county in validation |
 | Custodial timing | Column present from FY 2020-21, $0 in FY 2020-21 and FY 2021-22, first amounts in FY 2022-23 (revenue $6,221,197,931, expenditure $6,219,926,164) | `custodial-zero` rows for FY 2020-21 and FY 2021-22 plus a `custodial-start` research note at FY 2022-23 (both flows) |
 | Custodial accounts | Revenue: 311, 341.9, 367, 348.42, 369.9, 342.1 (311 drops out in FY 2024-25 and 369.9 carries $3.48B). Expenditure: 513, 604, 521 | `custodial-accounts` rows |
-| Transfers 381/581 | Equal to the dollar in 17 of 20 years. FY 2005-06: 581 exceeds 381 by $283,213,259; FY 2021-22: by $13,778,002; FY 2022-23: by $369,300 (below the $1,000,000 threshold, no note) | Approved `transfer-imbalance` annotations for FY 2005-06 and FY 2021-22 |
+| Transfers 381/581 | Equal to the dollar in 17 of 20 years. FY 2005-06: 581 exceeds 381 by $283,213,259; FY 2021-22: by $13,778,002; FY 2022-23: by $369,300 (below the $1,000,000 threshold: no annotation and no point note, DR-40) | Approved `transfer-imbalance` annotations for FY 2005-06 and FY 2021-22 |
 | Rounding | No years reported rounded to $1,000 | none |
 | Population | 2009 estimate 931,113, 2010 census 916,542 (−1.6%); revised 2020 estimate 984,054, 2021 estimate 964,490 (−2.0%; 2020 census 959,107) | `population-source` rows (per-resident measures) |
 | Drop-and-recover gaps | 3: revenue Special Revenue funds FY 2009-10 to FY 2010-11; revenue Component Units FY 2016-17; expenditure Capital funds FY 2010-11 to FY 2011-12 | Listed in validation for reference; not annotated |
-| County-filed AFR cross-check | None. The Pinellas Clerk's "Annual Financial Report" is the audited ACFR (GAAP functions, not UAS accounts); the DFS-form AFR is only in DFS LOGERX | Source caveat: "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals." |
+| County-filed AFR cross-check | Cell-by-cell against DFS LOGERX for FY 2012-13 to FY 2024-25 (see "DFS LOGERX cross-check"); the Clerk's "Annual Financial Report" is the audited ACFR, not the DFS form, so no Clerk PDF checks. FY 2005-06 (including the transfer imbalance) is before LOGERX coverage | `countyAfrCrossCheck: "partial"`; summary states counts and the unchecked years |
+
+## DFS LOGERX cross-check
+
+LOGERX is the Florida Department of Financial Services system where local governments file the Annual Financial Report (the DFS form). Its public reports page (https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu, "Citizens Enter Here") calls a public JSON API with no login:
+
+- `GET https://logerx.myfloridacfo.gov/api/document/AFR/reportYears` returns `[2013, ..., 2025]` (fiscal years ending; FY 2012-13 to FY 2024-25).
+- `POST https://logerx.myfloridacfo.gov/api/document/systemReport` with `{"afrYear": 2024, "reportFormat": "EXCEL", "reportName": "REVENUEDETAILREPORT"}` (or `EXPENDITUREDETAILREPORT`) returns `{mimeType, content}` with a base64 xlsx: the statewide "Revenue Details" / "Expenditure Details" report (verified data only; about 1,900 governments, 2.0-3.4 MB).
+
+Report layout: title in row 1 ("Revenue Details for Fiscal Year 2024, as of Wednesday, October 7, 2026"), header in row 3, data from row 4.
+
+| Report | Leading columns | Then |
+|---|---|---|
+| Revenue Details | Code, Name, Account, Dwelling Type, Fee Type | General, Special Revenue, Debt Service, Capital Projects, Permanent, Enterprise, Internal Service, Custodial, Pension, Trust, Private Purpose, Component Units |
+| Expenditure Details | Code, Name, Account, Object Code | the same 12 fund columns |
+
+- Same fund set as EDR, including Custodial and Component Units (so custodial and component-unit amounts are compared like any other fund).
+- Account is the full UAS code with 3 decimals plus name ("312.410 - ..."), normalized to EDR's form ("312.41"). LOGERX writes the catch-all "Other Permits, Fees and Special Assessments" as `329.xxx`; EDR prints it as account 329, so `NNN.xxx` maps to `NNN`.
+- Revenue impact-fee accounts are split into Dwelling Type / Fee Type rows, and expenditures into Object Code rows (10 Personnel Services, 30 Operating, 60 Capital Outlay, ...). Both are summed to the account, which is how EDR reports them.
+- Entity codes: Hillsborough County 100029, Pinellas County 100052 (`logerxEntityCode` in config/counties.ts). Both counties are present in all 13 years.
+
+Storage (DR-43):
+
+- Full statewide downloads are kept only in `data/cache/logerx/<REPORT>-<year>.xlsx` (gitignored).
+- Committed: `data/raw/logerx/<county>/<revenues|expenditures>-fy<year>.csv`, every row for the county's entity code, all columns verbatim, sorted by account, then the remaining non-fund columns, then the whole row, with `\n` line endings. The extract's hash does not depend on the report's "as of" stamp or row order.
+- `data/raw/manifest.json` records per extract: the request (endpoint and body), retrieval date, the full download's cache path, byte size and sha256, the extract's sha256 and size, the entity code, row count and the report's "as of" stamp.
+- The full statewide file's sha256 changes on every download, because the title carries the "as of" date. The extracts do not. To re-verify: `npm run fetch -- --logerx` (network) or `--logerx --use-cache` (from the local cache); unchanged extracts are reported as "unchanged".
+
+Reconciliation (validation section "LOGERX reconciliation"): every fiscal year x county x flow x account x fund amount in the extract is compared with the EDR cell. Differences are notes for review and never change EDR values.
+
+Result (2026-10-07):
+
+| County | Flow | Cells | Match | Differences |
+|---|---|---:|---:|---|
+| Hillsborough | revenue | 2,618 | 2,618 | none |
+| Hillsborough | expenditure | 1,830 | 1,828 | FY 2014-15, account 559 Other Economic Environment, $1,164,281: Component Units in LOGERX, Internal Service in EDR (`expenditures:2015!J41`) |
+| Pinellas | revenue | 2,307 | 2,305 | FY 2013-14, $2,309,587 Special Revenue: account 335.9 in LOGERX, 335.8 in EDR (`revenues:2014!E48`) |
+| Pinellas | expenditure | 1,355 | 1,355 | none |
+
+Yearly totals match in all 52 county-year-flow comparisons. Each difference is one amount classified differently (another fund, or another account), so it counts as two one-sided cells.
+
+Source fields (DR-45), derived from these results, never from config:
+
+- `countyAfrCrossCheck`: "full" only if every workbook year is reconciled and matches; "partial" otherwise when anything is reconciled. Both counties are "partial".
+- `crossCheckCoverage`: each workbook year exactly once; ranges "full", "mismatch" (reconciled with differences), "not-checked" (before FY 2012-13).
+- `crossCheckSummary`: the counts above, the unchecked years, Hillsborough's Clerk-PDF spot check, and for Pinellas the note that the FY 2005-06 transfer imbalance is before LOGERX coverage.
 
 ## Annotation approvals
 
-- Transfer-imbalance years are annotated only when listed in `scripts/pipeline/config/approved-annotations.ts`. Rule: \|581 − 381\| over all funds except custodial > $1,000,000. The build fails if a flagged year is not listed, or a listed year is no longer flagged. Approved: Hillsborough FY 2022-23 and FY 2023-24; Pinellas FY 2005-06 and FY 2021-22.
+- Transfer-imbalance years are annotated only when listed in `scripts/pipeline/config/approved-annotations.ts`. Rule (DR-40): \|581 − 381\| over all funds except custodial > $1,000,000 (strictly greater; exactly $1,000,000 is not flagged), the same rule the transform uses for point notes. The build fails if a flagged year is not listed, or a listed year is no longer flagged. Approved: Hillsborough FY 2022-23 and FY 2023-24; Pinellas FY 2005-06 and FY 2021-22.
 - Research notes for a single county (where no other county has a comparable issue) are listed in the same file. Today there is one: Pinellas `custodial-start`.
 - Drop-and-recover gaps: `config/approved-gaps.ts` (unchanged).
 - The population source is shared by every county, so its generated caveats start with the county name.
+- `manifest.json` lists `jurisdictions` (slugs) and `jurisdictionNames` (display names, e.g. `"pinellas": "Pinellas County"`).
 
 ## Quirks the transform engineer and QA need to know
 

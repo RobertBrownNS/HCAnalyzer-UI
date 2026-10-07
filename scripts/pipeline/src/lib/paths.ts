@@ -25,6 +25,18 @@ export function blsPath(seriesId: string): string {
   return path.join(RAW_DIR, 'bls', `${seriesId}.json`);
 }
 
+/** Full LOGERX statewide downloads: local only, gitignored. */
+export const LOGERX_CACHE_DIR = path.join(REPO_ROOT, 'data', 'cache', 'logerx');
+
+export function logerxCachePath(reportName: string, fiscalYear: number): string {
+  return path.join(LOGERX_CACHE_DIR, `${reportName}-${fiscalYear}.xlsx`);
+}
+
+/** Committed per-county extract of a LOGERX statewide report. */
+export function logerxExtractPath(slug: string, flow: 'revenue' | 'expenditure', fiscalYear: number): string {
+  return path.join(RAW_DIR, 'logerx', slug, `${flow === 'revenue' ? 'revenues' : 'expenditures'}-fy${fiscalYear}.csv`);
+}
+
 export function countyAfrPath(slug: string, fiscalYear: number): string {
   return path.join(RAW_DIR, 'county-afr', slug, `afr-fy${fiscalYear}.pdf`);
 }

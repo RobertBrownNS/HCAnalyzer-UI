@@ -16,6 +16,8 @@ export interface CountyConfig {
    */
   /** Extra caveats copied into this county's two EDR AFR Source records. */
   afrCaveats?: string[];
+  /** DFS LOGERX entity code of the county government (counties are 100xxx). */
+  logerxEntityCode?: string;
   countyAfr?: {
     publisher: string;
     /** Page that lists the files. */
@@ -31,6 +33,7 @@ export const COUNTIES: CountyConfig[] = [
     name: 'Hillsborough County',
     edrFileStem: 'hillsboroughcounty',
     populationName: 'Hillsborough',
+    logerxEntityCode: '100029',
     countyAfr: {
       publisher: 'Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)',
       indexUrl: 'https://hillsclerk.com/records-and-reports/financial-reports-county',
@@ -53,8 +56,6 @@ export const COUNTIES: CountyConfig[] = [
     name: 'Pinellas County',
     edrFileStem: 'pinellascounty',
     populationName: 'Pinellas',
-    afrCaveats: [
-      "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals.",
-    ],
+    logerxEntityCode: '100052',
   },
 ];

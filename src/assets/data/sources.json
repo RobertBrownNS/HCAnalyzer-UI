@@ -113,6 +113,7 @@
       "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
       "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
       "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
+      "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: 1,828 of 1,830 expenditure values match; 2 differ or appear in only one source (FY 2014-15) and are listed in the project validation report. FY 2004-05 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals. Spot check: 14 values in the county-filed Annual Financial Reports for FY 2021-22 to FY 2024-25 (the Florida Department of Financial Services form, as published by the county Clerk) match the EDR workbook.",
       "FY 2022-23, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $1,160,934,246) exceeds revenue account 381 (transfers in, $536,330,405) by $624,603,841. Non-custodial figures, FY 2022-23: account 521 $732,874, public safety section $387.4M, court-related section $24.6M, General Fund 581 $787.4M; compared with FY 2021-22: account 521 $511.3M, public safety section $883.3M, court-related section $77.6M, General Fund 581 $121.3M; FY 2024-25: account 521 $716.3M, public safety section $1.30B, court-related section $65.9M, General Fund 581 $341.1M. The Hillsborough County Annual Financial Report for FY 2022-23, as filed with the Florida Chief Financial Officer, shows the same values: expenditure account 521, general $203,849 (page 18); expenditure account 581, general $787,390,037 (page 22); revenue account 381, general $168,326,824 (page 16). Cells: revenues:2023!P124, expenditures:2023!P57, expenditures:2023!P16, expenditures:2023!D16, expenditures:2023!D57.",
       "FY 2023-24, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $1,310,890,615) exceeds revenue account 381 (transfers in, $775,012,474) by $535,878,141. Non-custodial figures, FY 2023-24: account 521 $9.0M, public safety section $368.2M, court-related section $24.5M, General Fund 581 $912.3M; compared with FY 2021-22: account 521 $511.3M, public safety section $883.3M, court-related section $77.6M, General Fund 581 $121.3M; FY 2024-25: account 521 $716.3M, public safety section $1.30B, court-related section $65.9M, General Fund 581 $341.1M. The Hillsborough County Annual Financial Report for FY 2023-24, as filed with the Florida Chief Financial Officer, shows the same values: expenditure account 521, general $150,746 (page 8); expenditure account 581, general $912,284,168 (page 11); revenue account 381, general $186,897,223 (page 7). Cells: revenues:2024!P121, expenditures:2024!P57, expenditures:2024!P16, expenditures:2024!D16, expenditures:2024!D57, expenditures:2024!K57.",
       "FY 2021-22 expenditures: 138 of 139 non-zero amounts are whole multiples of $1,000.",
@@ -125,6 +126,30 @@
       "FY 2024-25: custodial expenditures total $4,114,554,470 (expenditures:2025!K78), reported under account 513 Financial and Administrative $4,114,554,470 (expenditures:2025!K8).",
       "FY 2023-24 expenditures, excluding custodial amounts: Enterprise funds $126.5M (FY 2022-23: $543.3M; FY 2024-25: $665.7M); account 534 Garbage / Solid Waste Control Services, enterprise: $14.4M (expenditures:2024!I27) vs $181.3M and $201.1M; account 536 Water-Sewer Combination Services, enterprise: $0 (expenditures:2024!I29) vs $234.5M and $239.4M; Internal Service funds $18.9M (FY 2022-23: $252.1M; FY 2024-25: $344.8M); account 519 Other General Government Services, internal service: $18.9M (expenditures:2024!J14) vs $231.6M and $243.2M; Component Units $0 (FY 2022-23: $7.5M; FY 2024-25: $8.5M); account 515 Comprehensive Planning, component unit: $0 (expenditures:2024!O10) vs $6.4M and $7.3M; account 559 Other Economic Environment, component unit: $0 (expenditures:2024!O43) vs $1.1M and $1.2M; physical environment section $188.3M (FY 2022-23: $586.4M; FY 2024-25: $770.6M). The Hillsborough County Annual Financial Report for FY 2023-24, as filed with the Florida Chief Financial Officer, shows the same values: expenditure total, enterprise $126,477,435 (page 16); expenditure total, internal service $18,872,025 (page 16); expenditure account 519, internal service $18,872,025 (page 15); expenditure account 533, enterprise $92,680,415 (page 15); expenditure account 536, enterprise: no line (page 15). Cells: expenditures:2024!I27, expenditures:2024!I29, expenditures:2024!J14, expenditures:2024!O10, expenditures:2024!O43."
     ],
+    "countyAfrCrossCheck": "partial",
+    "crossCheckCoverage": [
+      {
+        "fromFiscalYear": 2005,
+        "status": "not-checked",
+        "toFiscalYear": 2012
+      },
+      {
+        "fromFiscalYear": 2013,
+        "status": "full",
+        "toFiscalYear": 2014
+      },
+      {
+        "fromFiscalYear": 2015,
+        "status": "mismatch",
+        "toFiscalYear": 2015
+      },
+      {
+        "fromFiscalYear": 2016,
+        "status": "full",
+        "toFiscalYear": 2025
+      }
+    ],
+    "crossCheckSummary": "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: 1,828 of 1,830 expenditure values match; 2 differ or appear in only one source (FY 2014-15) and are listed in the project validation report. FY 2004-05 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals. Spot check: 14 values in the county-filed Annual Financial Reports for FY 2021-22 to FY 2024-25 (the Florida Department of Financial Services form, as published by the county Clerk) match the EDR workbook.",
     "id": "edr-afr-expenditures-hillsborough",
     "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
     "rawFile": "data/raw/edr/hillsboroughcountyexpenditures.xlsx",
@@ -141,7 +166,7 @@
       "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
       "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
       "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
-      "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals.",
+      "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: all 1,355 expenditure values match. FY 2004-05 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals. The FY 2005-06 transfer imbalance is before LOGERX coverage and is not cross-checked against the county-filed Annual Financial Report.",
       "FY 2005-06, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $410,049,573) exceeds revenue account 381 (transfers in, $126,836,314) by $283,213,259. Non-custodial figures, FY 2005-06: account 521 $165.0M, public safety section $410.3M, court-related section $68.7M, General Fund 581 $301.6M; compared with FY 2004-05: account 521 $120.4M, public safety section $329.8M, court-related section $64.6M, General Fund 581 $271.2M; FY 2006-07: account 521 $180.0M, public safety section $423.6M, court-related section $74.2M, General Fund 581 $6.5M. Cells: revenues:2006!N118, expenditures:2006!N50, expenditures:2006!N14, expenditures:2006!D14, expenditures:2006!D50.",
       "FY 2021-22, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, $108,050,158) exceeds revenue account 381 (transfers in, $94,272,156) by $13,778,002. Non-custodial figures, FY 2021-22: account 521 $426.2M, public safety section $696.2M, court-related section $75.4M, General Fund 581 $83.5M; compared with FY 2020-21: account 521 $392.8M, public safety section $738.8M, court-related section $65.5M, General Fund 581 $4.9M; FY 2022-23: account 521 $463.3M, public safety section $729.3M, court-related section $52.0M, General Fund 581 $41.2M. Cells: revenues:2022!P119, expenditures:2022!P50, expenditures:2022!P15, expenditures:2022!D15, expenditures:2022!D50.",
       "FY 2020-21: the Custodial column is present and every custodial expenditure amount is $0 (expenditures:2021!K74).",
@@ -151,6 +176,20 @@
       "FY 2024-25: custodial expenditures total $4,047,074,986 (expenditures:2025!K73), reported under account 513 Financial and Administrative $3,632,767,486 (expenditures:2025!K8); account 604 General Administration - Clerk of Court Administration $404,576,249 (expenditures:2025!K53); account 521 Law Enforcement $9,731,251 (expenditures:2025!K15).",
       "The Custodial column is present from FY 2020-21. Custodial expenditures are $0 in FY 2020-21 (expenditures:2021!K74) and FY 2021-22 (expenditures:2022!K75), and first reported in FY 2022-23: $6,219,926,164 (expenditures:2023!K75)."
     ],
+    "countyAfrCrossCheck": "partial",
+    "crossCheckCoverage": [
+      {
+        "fromFiscalYear": 2005,
+        "status": "not-checked",
+        "toFiscalYear": 2012
+      },
+      {
+        "fromFiscalYear": 2013,
+        "status": "full",
+        "toFiscalYear": 2025
+      }
+    ],
+    "crossCheckSummary": "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: all 1,355 expenditure values match. FY 2004-05 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals. The FY 2005-06 transfer imbalance is before LOGERX coverage and is not cross-checked against the county-filed Annual Financial Report.",
     "id": "edr-afr-expenditures-pinellas",
     "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
     "rawFile": "data/raw/edr/pinellascountyexpenditures.xlsx",
@@ -167,6 +206,7 @@
       "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
       "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
       "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
+      "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: all 2,618 revenue values match. FY 2005-06 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals. Spot check: 14 values in the county-filed Annual Financial Reports for FY 2021-22 to FY 2024-25 (the Florida Department of Financial Services form, as published by the county Clerk) match the EDR workbook.",
       "FY 2021-22 revenues: 211 of 211 non-zero amounts are whole multiples of $1,000.",
       "FY 2020-21 revenues: 212 of 212 non-zero amounts are whole multiples of $1,000.",
       "FY 2020-21: the Custodial column is present and every custodial revenue amount is $0 (revenues:2021!K158).",
@@ -175,6 +215,20 @@
       "FY 2023-24: custodial revenues total $2,619,613,346 (revenues:2024!K129), reported under account 311 Ad Valorem Taxes $2,219,989,146 (revenues:2024!K6); account 369.9 Other Miscellaneous Revenues - Other $399,613,572 (revenues:2024!K119); and 2 other accounts (each under $1M).",
       "FY 2024-25: custodial revenues total $4,128,975,000 (revenues:2025!K134), reported under account 369.9 Other Miscellaneous Revenues - Other $4,126,516,697 (revenues:2025!K126); account 361.1 Interest and Other Earnings - Interest $2,458,303 (revenues:2025!K117)."
     ],
+    "countyAfrCrossCheck": "partial",
+    "crossCheckCoverage": [
+      {
+        "fromFiscalYear": 2006,
+        "status": "not-checked",
+        "toFiscalYear": 2012
+      },
+      {
+        "fromFiscalYear": 2013,
+        "status": "full",
+        "toFiscalYear": 2025
+      }
+    ],
+    "crossCheckSummary": "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: all 2,618 revenue values match. FY 2005-06 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals. Spot check: 14 values in the county-filed Annual Financial Reports for FY 2021-22 to FY 2024-25 (the Florida Department of Financial Services form, as published by the county Clerk) match the EDR workbook.",
     "id": "edr-afr-revenues-hillsborough",
     "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
     "rawFile": "data/raw/edr/hillsboroughcountyrevenues.xlsx",
@@ -191,7 +245,7 @@
       "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
       "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).",
       "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.",
-      "Not cross-checked against the county's filed Annual Financial Report; values are reconciled to the EDR workbook totals.",
+      "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: 2,305 of 2,307 revenue values match; 2 differ or appear in only one source (FY 2013-14) and are listed in the project validation report. FY 2005-06 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals.",
       "FY 2020-21: the Custodial column is present and every custodial revenue amount is $0 (revenues:2021!K122).",
       "FY 2021-22: the Custodial column is present and every custodial revenue amount is $0 (revenues:2022!K125).",
       "FY 2022-23: custodial revenues total $6,221,197,931 (revenues:2023!K127), reported under account 311 Ad Valorem Taxes $5,519,216,114 (revenues:2023!K6); account 341.9 General Government - Other General Government Charges and Fees $428,589,770 (revenues:2023!K60); account 367 Licenses $179,532,504 (revenues:2023!K116); account 348.42 Court-Related Revenues - Circuit Court Civil - Service Charges $43,657,423 (revenues:2023!K84); account 369.9 Other Miscellaneous Revenues - Other $41,823,588 (revenues:2023!K118); account 342.1 Public Safety - Law Enforcement Services $8,378,532 (revenues:2023!K61).",
@@ -199,6 +253,30 @@
       "FY 2024-25: custodial revenues total $4,045,549,500 (revenues:2025!K128), reported under account 369.9 Other Miscellaneous Revenues - Other $3,482,372,402 (revenues:2025!K117); account 341.9 General Government - Other General Government Charges and Fees $376,295,306 (revenues:2025!K59); account 367 Licenses $150,395,084 (revenues:2025!K115); account 348.42 Court-Related Revenues - Circuit Court Civil - Service Charges $26,790,855 (revenues:2025!K83); account 342.1 Public Safety - Law Enforcement Services $9,695,853 (revenues:2025!K60).",
       "The Custodial column is present from FY 2020-21. Custodial revenues are $0 in FY 2020-21 (revenues:2021!K122) and FY 2021-22 (revenues:2022!K125), and first reported in FY 2022-23: $6,221,197,931 (revenues:2023!K127)."
     ],
+    "countyAfrCrossCheck": "partial",
+    "crossCheckCoverage": [
+      {
+        "fromFiscalYear": 2006,
+        "status": "not-checked",
+        "toFiscalYear": 2012
+      },
+      {
+        "fromFiscalYear": 2013,
+        "status": "full",
+        "toFiscalYear": 2013
+      },
+      {
+        "fromFiscalYear": 2014,
+        "status": "mismatch",
+        "toFiscalYear": 2014
+      },
+      {
+        "fromFiscalYear": 2015,
+        "status": "full",
+        "toFiscalYear": 2025
+      }
+    ],
+    "crossCheckSummary": "Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for FY 2012-13 to FY 2024-25: 2,305 of 2,307 revenue values match; 2 differ or appear in only one source (FY 2013-14) and are listed in the project validation report. FY 2005-06 to FY 2011-12 not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals.",
     "id": "edr-afr-revenues-pinellas",
     "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
     "rawFile": "data/raw/edr/pinellascountyrevenues.xlsx",

@@ -10,7 +10,8 @@ import { averageOf, calendarYearMonths, round3 } from './bls/cpi.js';
 import { classifyAccount, normalizeHeading, SECTION_HEADINGS } from './edr/accounts.js';
 import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
-import { buildOutputs, PER_COUNTY_FILE } from './build.js';
+import { buildOutputs, countyCrossChecks, PER_COUNTY_FILE } from './build.js';
+import { crossCheckSourceProblems } from './logerx/crosscheck.js';
 import { indexComparisonSection } from './index-comparison.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import {
@@ -31,6 +32,7 @@ import { COUNTY_AFR_CHECKS } from './edr/county-afr-checks.js';
 import { fiscalYearLabel } from './lib/fiscal.js';
 import { sha256 } from './lib/hash.js';
 import { OUT_DIR, rel, VALIDATION_REPORT } from './lib/paths.js';
+import { NOT_CROSS_CHECKED_CAVEAT } from './sources.js';
 import { readWorkbook } from './lib/xlsx.js';
 import ExcelJS, { type Workbook } from 'exceljs';
 import { loadInputs } from './inputs.js';
@@ -571,6 +573,66 @@ async function main() {
   }
   add('User-facing text has no file names, paths, JSON keys or code identifiers', !leaks.length,
     leaks.length ? leaks.slice(0, 10).join('; ') + (leaks.length > 10 ? `; and ${leaks.length - 10} more` : '') : `${texts.length} strings checked in cpi, annotations, sources and population`);
+  // County metadata the UI relies on: display names, cross-check status, DR-42 caveat text.
+  const manifestJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'manifest.json'), 'utf8')) as { jurisdictions: string[]; jurisdictionNames?: Record<string, string> };
+  const missingNames = manifestJson.jurisdictions.filter((j) => !manifestJson.jurisdictionNames?.[j]);
+  add('manifest: every jurisdiction has a display name (jurisdictionNames)', !missingNames.length,
+    missingNames.length ? `missing: ${missingNames.join(', ')}` : manifestJson.jurisdictions.map((j) => `${j} = "${manifestJson.jurisdictionNames![j]}"`).join('; '));
+  const sourcesList = JSON.parse(readFileSync(path.join(OUT_DIR, 'sources.json'), 'utf8')) as Array<{
+    id: string; caveats: string[]; countyAfrCrossCheck?: string; crossCheckSummary?: string;
+    crossCheckCoverage?: Array<{ fromFiscalYear: number; toFiscalYear: number; status: string }>;
+  }>;
+  const crossProblems: string[] = [];
+  const crossChecks = new Map<string, ReturnType<typeof countyCrossChecks>>();
+  for (const c of inputs.counties) {
+    const derived = countyCrossChecks(c);
+    crossChecks.set(c.county.slug, derived);
+    for (const flow of ['revenue', 'expenditure'] as const) {
+      const d = derived[flow];
+      const src = sourcesList.find((x) => x.id === `edr-afr-${flow}s-${c.county.slug}`);
+      if (!src) { crossProblems.push(`${c.county.slug} ${flow}: source missing`); continue; }
+      const sheetYears = (flow === 'revenue' ? c.revenues.sheets : c.expenditures.sheets).map((x) => x.fiscalYear);
+      crossProblems.push(...crossCheckSourceProblems(src, d, sheetYears, NOT_CROSS_CHECKED_CAVEAT));
+    }
+  }
+  add('EDR AFR sources: countyAfrCrossCheck, coverage and summary follow the cross-check results; DR-42 caveat text exact where not-checked', !crossProblems.length,
+    crossProblems.length ? crossProblems.join('; ') : [...crossChecks].map(([slug, d]) => `${slug}: revenue ${d.revenue.status}, expenditure ${d.expenditure.status}`).join('; '));
+
+  // --- LOGERX reconciliation (P4a-07) -------------------------------------------------------
+  const logerxRows: string[] = [];
+  const logerxDiffs: string[] = [];
+  for (const c of inputs.counties) {
+    if (!c.county.logerxEntityCode) continue;
+    const d = crossChecks.get(c.county.slug)!;
+    const yearsBy = (flow: string) => c.logerx.filter((e) => e.flow === flow).map((e) => e.fiscalYear).sort((x, y) => x - y);
+    const ry = yearsBy('revenue');
+    const ey = yearsBy('expenditure');
+    const gaps = ry.slice(1).filter((y, i) => y !== ry[i] + 1);
+    add(tag2(c.county.slug, 'LOGERX extracts present for the same contiguous years in both flows'), !!ry.length && ry.join(',') === ey.join(',') && !gaps.length,
+      ry.length ? `revenue ${fiscalYearLabel(ry[0])} to ${fiscalYearLabel(ry.at(-1)!)} (${ry.length}), expenditure ${ey.length ? `${fiscalYearLabel(ey[0])} to ${fiscalYearLabel(ey.at(-1)!)}` : 'none'} (${ey.length})` : 'no extracts');
+    const badMeta = c.logerx.filter((e) => !e.record.fullDownload?.sha256 || !e.record.reportAsOf || e.record.entityCode !== c.county.logerxEntityCode || !e.record.rows);
+    add(tag2(c.county.slug, 'LOGERX manifest entries record request, full-download hash, "as of" stamp, entity code and row count'), !badMeta.length,
+      badMeta.length ? badMeta.map((e) => rel(e.file)).join(', ') : `${c.logerx.length} extracts`);
+    let cells = 0;
+    let matched = 0;
+    for (const flow of ['revenue', 'expenditure'] as const) {
+      for (const r of d[flow].reconciliations) {
+        cells += r.cells;
+        matched += r.match;
+        const diffs = r.mismatches.length + r.onlyLogerx.length + r.onlyEdr.length;
+        logerxRows.push(`| ${c.county.name} | ${fiscalYearLabel(r.fiscalYear)} | ${flow} | ${r.cells} | ${r.match} | ${r.mismatches.length} | ${r.onlyLogerx.length} | ${r.onlyEdr.length} | ${usd(r.logerxTotal)} | ${usd(r.edrTotal)} | ${diffs ? 'differences listed below' : 'all match'} |`);
+        for (const [kind, list] of [['mismatch', r.mismatches], ['only in LOGERX', r.onlyLogerx], ['only in EDR', r.onlyEdr]] as const) {
+          for (const x of list) {
+            logerxDiffs.push(`| ${c.county.name} | ${fiscalYearLabel(r.fiscalYear)} | ${flow} | ${x.account} | ${x.fundType} | ${kind} | ${x.logerx === null ? 'n/a' : usd(x.logerx)} | ${x.edr === null ? 'n/a' : usd(x.edr)} | ${x.ref ? `\`${x.ref}\`` : 'n/a'} |`);
+          }
+        }
+      }
+    }
+    const diffCount = cells - matched;
+    add(tag2(c.county.slug, 'LOGERX reconciliation: every account x fund amount vs EDR (differences are listed for review, never applied)'), true,
+      `${matched.toLocaleString('en-US')} of ${cells.toLocaleString('en-US')} cells match${diffCount ? `; ${diffCount} differ or are in one source only (listed under "LOGERX reconciliation")` : ''}`, !!diffCount);
+  }
+
   const gasb = annotationsJson.find((a) => a.fiscalYear === 2021 && a.label === 'Custodial fund reporting begins (GASB 84).' && a.kind === 'methodology');
   add('GASB 84 annotation present at FY 2020-21', !!gasb, gasb ? `sourceId ${gasb.sourceId}` : 'missing');
 
@@ -731,6 +793,17 @@ async function main() {
     '|---|---|---|---|---|---|---:|---|---:|',
     ...crossRows,
     '',
+    '## LOGERX reconciliation',
+    '',
+    "Every account and fund amount in the DFS LOGERX public \"Revenue Details\" and \"Expenditure Details\" reports (verified data; the county's own Annual Financial Report filing) compared with the EDR workbook cell for the same fiscal year, flow, account and fund. Impact-fee rows split by dwelling and fee type are summed to the account. Extracts: data/raw/logerx/<county>/. Differences never change EDR values; they are listed here for review.",
+    '',
+    '| County | Fiscal year | Flow | Cells | Match | Mismatch | Only in LOGERX | Only in EDR | LOGERX total | EDR total | Result |',
+    '|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|',
+    ...logerxRows,
+    '',
+    ...(logerxDiffs.length
+      ? ['### Differences', '', '| County | Fiscal year | Flow | Account | Fund | Kind | LOGERX | EDR | EDR cell |', '|---|---|---|---|---|---|---:|---:|---|', ...logerxDiffs, '']
+      : ['No differences.', '']),
     ...indexSection,
     '## County-filed AFR cross-check',
     '',
@@ -742,7 +815,7 @@ async function main() {
     '',
     '## Inter-fund transfers (informational)',
     '',
-    `Revenue account 381 (inter-fund group transfers in) and expenditure account 581 (inter-fund group transfers out), all funds except custodial. Difference = out minus in. Years whose difference exceeds ${usd(TRANSFER_IMBALANCE_THRESHOLD)} in absolute value are marked and annotated.`,
+    `Revenue account 381 (inter-fund group transfers in) and expenditure account 581 (inter-fund group transfers out), all funds except custodial. Difference = out minus in. Years whose absolute difference is more than ${usd(TRANSFER_IMBALANCE_THRESHOLD)} are marked; each must be approved, and approved years are annotated.`,
     '',
     '| Jurisdiction | Fiscal year | 381 transfers in | 581 transfers out | Difference | |',
     '|---|---|---:|---:|---:|---|',

@@ -175,6 +175,14 @@ describe('drop-and-recover gaps', () => {
   });
 });
 
+describe('transfer-imbalance threshold (DR-40: strictly greater than $1,000,000)', () => {
+  const at = (gap: number) =>
+    transferBalances([sheet('revenue', 2024, { '381': [100_000_000, 0] })], [sheet('expenditure', 2024, { '581': [100_000_000 + gap, 0] })])[0];
+  it('does not flag exactly $1,000,000', () => expect(at(1_000_000).flagged).toBe(false));
+  it('flags $1,000,001', () => expect(at(1_000_001).flagged).toBe(true));
+  it('flags -$1,000,001 (in exceeds out)', () => expect(at(-1_000_001).flagged).toBe(true));
+});
+
 describe('transfer-imbalance approvals', () => {
   const rev = [sheet('revenue', 2023, { '381': [100_000_000, 0] }), sheet('revenue', 2024, { '381': [100_000_000, 0] })];
   const exp = [sheet('expenditure', 2023, { '581': [100_369_300, 0] }), sheet('expenditure', 2024, { '581': [700_000_000, 0] })];

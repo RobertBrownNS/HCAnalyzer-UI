@@ -12,6 +12,7 @@ import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig,
 import type { AfrSheet } from './edr/afr.js';
 import { generateAnomalies, type Annotation } from './edr/anomalies.js';
 import { countyAfrNote } from './edr/county-afr-checks.js';
+import { flowCrossCheck, preCoverageTransferNotes, type FlowCrossCheck } from './logerx/crosscheck.js';
 import { APPROVED_TRANSFER_IMBALANCES, RESEARCH_NOTES } from '../config/approved-annotations.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import { toAccounts, toObservations } from './edr/observations.js';
@@ -159,6 +160,20 @@ function cpiEntry(
   };
 }
 
+/** LOGERX / county-AFR cross-check per flow for one county. Shared by build and validate. */
+export function countyCrossChecks(c: Inputs['counties'][number]): { revenue: FlowCrossCheck; expenditure: FlowCrossCheck } {
+  const observations = [
+    ...toObservations(c.county.slug, c.revenues.sheets, sourceIds.afr(c.county, 'revenue')),
+    ...toObservations(c.county.slug, c.expenditures.sheets, sourceIds.afr(c.county, 'expenditure')),
+  ];
+  const firstChecked = c.logerx.length ? Math.min(...c.logerx.map((e) => e.fiscalYear)) : null;
+  const approved = APPROVED_TRANSFER_IMBALANCES.filter((a) => a.jurisdiction === c.county.slug).map((a) => a.fiscalYear);
+  return {
+    revenue: flowCrossCheck(c.county.slug, 'revenue', c.revenues.sheets, observations, c.logerx, []),
+    expenditure: flowCrossCheck(c.county.slug, 'expenditure', c.expenditures.sheets, observations, c.logerx, preCoverageTransferNotes(approved, firstChecked)),
+  };
+}
+
 export function buildOutputs(inputs: Inputs): Map<string, string> {
   const files = new Map<string, string>();
   const sources: Source[] = [];
@@ -169,8 +184,9 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   for (const { county, revenues, expenditures, population: pop, countyAfrFiles } of inputs.counties) {
     const revId = sourceIds.afr(county, 'revenue');
     const expId = sourceIds.afr(county, 'expenditure');
-    sources.push(afrSource(county, 'revenue', rel(revenues.file), retrievalFor(inputs.retrieval, revenues.file)));
-    sources.push(afrSource(county, 'expenditure', rel(expenditures.file), retrievalFor(inputs.retrieval, expenditures.file)));
+    const { revenue: revCheck, expenditure: expCheck } = countyCrossChecks(inputs.counties.find((c) => c.county.slug === county.slug)!);
+    sources.push(afrSource(county, 'revenue', rel(revenues.file), retrievalFor(inputs.retrieval, revenues.file), revCheck));
+    sources.push(afrSource(county, 'expenditure', rel(expenditures.file), retrievalFor(inputs.retrieval, expenditures.file), expCheck));
 
     const observations = [
       ...toObservations(county.slug, revenues.sheets, revId),
@@ -278,6 +294,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     dataVersion: sha256(outputs.map((o) => `${o.path}:${o.sha256}`).join('\n')).slice(0, 16),
     generator: 'scripts/pipeline (npm run build)',
     jurisdictions: inputs.counties.map((c) => c.county.slug),
+    jurisdictionNames: Object.fromEntries(inputs.counties.map((c) => [c.county.slug, c.county.name])),
     inputs: inputsList,
     outputs,
   };

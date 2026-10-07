@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { CountyConfig } from '../config/counties.js';
 import type { CpiSeriesConfig } from './bls/cpi.js';
+import type { CoverageRange, CrossCheckStatus, FlowCrossCheck } from './logerx/crosscheck.js';
 import { RAW_DIR } from './lib/paths.js';
 
 export const EDR_AFR_BASE = 'https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/';
@@ -20,6 +21,15 @@ export interface RetrievalRecord {
   /** ISO date the bytes were last re-downloaded and found identical. */
   lastVerified: string;
   sha256: string;
+  /** LOGERX extracts: the POST request that produced the statewide report. */
+  request?: { endpoint: string; body: Record<string, unknown> };
+  /** LOGERX extracts: the full statewide download (kept only in the local, gitignored cache). */
+  fullDownload?: { cachePath: string; bytes: number; sha256: string };
+  /** LOGERX extracts: entity code whose rows were extracted, and how many rows. */
+  entityCode?: string;
+  rows?: number;
+  /** LOGERX extracts: the "as of" stamp from the report title (why the full download's hash changes). */
+  reportAsOf?: string;
 }
 
 export interface RetrievalLog {
@@ -39,7 +49,17 @@ export interface Source {
   rawFile: string;
   /** Endpoint actually downloaded, when it differs from `url` (a human-readable page). */
   accessUrl?: string;
+  /** EDR AFR sources only: how the figures were cross-checked against the county-filed AFR (strongest status in any year). */
+  countyAfrCrossCheck?: CrossCheckStatus;
+  /** EDR AFR sources only: plain-language summary of that cross-check. */
+  crossCheckSummary?: string;
+  /** EDR AFR sources only: status by fiscal-year range, covering every year in the workbook. */
+  crossCheckCoverage?: CoverageRange[];
 }
+
+/** DR-42: caveat for a county whose EDR figures are not cross-checked against its filed AFR. */
+export const NOT_CROSS_CHECKED_CAVEAT =
+  "Not cross-checked against the county's Annual Financial Report as filed with the Florida Department of Financial Services; values are reconciled to the EDR workbook totals.";
 
 export const EDR = 'Florida Legislature, Office of Economic and Demographic Research (EDR)';
 
@@ -58,7 +78,13 @@ export const sourceIds = {
   cpi: (series: CpiSeriesConfig) => `bls-cpi-${series.id}`,
 };
 
-export function afrSource(county: CountyConfig, flow: 'revenue' | 'expenditure', rawFile: string, r: RetrievalRecord): Source {
+export function afrSource(
+  county: CountyConfig,
+  flow: 'revenue' | 'expenditure',
+  rawFile: string,
+  r: RetrievalRecord,
+  crossCheck: FlowCrossCheck,
+): Source {
   const years = flow === 'revenue' ? 'revenues' : 'expenditures';
   return {
     id: sourceIds.afr(county, flow),
@@ -68,6 +94,9 @@ export function afrSource(county: CountyConfig, flow: 'revenue' | 'expenditure',
     retrieved: r.retrieved,
     sha256: r.sha256,
     rawFile,
+    countyAfrCrossCheck: crossCheck.status,
+    crossCheckSummary: crossCheck.summary,
+    crossCheckCoverage: crossCheck.coverage,
     caveats: [
       AFR_FOOTNOTE,
       EDR_CUSTODIAL_NOTICE,
@@ -75,6 +104,7 @@ export function afrSource(county: CountyConfig, flow: 'revenue' | 'expenditure',
       `Amounts are as reported by the county in its Annual Financial Report; ${years} include inter-fund transfers (${flow === 'revenue' ? 'account 381' : 'account 581'}), so summing across funds counts money moved between county funds in both the sending and receiving fund.`,
       'Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).',
       'Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.',
+      ...(crossCheck.status === 'not-checked' ? [NOT_CROSS_CHECKED_CAVEAT] : crossCheck.caveats),
       ...(county.afrCaveats ?? []),
     ],
   };

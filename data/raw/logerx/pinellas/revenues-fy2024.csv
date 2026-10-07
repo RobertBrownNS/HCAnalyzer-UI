@@ -1,0 +1,297 @@
+Code,Name,Account,Dwelling Type,Fee Type,General,Special Revenue,Debt Service,Capital Projects,Permanent ,Enterprise  ,Internal Service,Custodial,Pension,Trust,Private Purpose ,Component Units
+100052,Pinellas,311.000 - Ad Valorem Taxes, , ,621021217,143679046,,0,,0,0,4744487762,,,,2521491
+100052,Pinellas,312.130 - Tourist Development Taxes, , ,0,97214559,,0,,0,0,,,,,0
+100052,Pinellas,312.300 - County Ninth-Cent Voted Fuel Tax, , ,0,3900269,,0,,0,0,,,,,0
+100052,Pinellas,312.410 - (1 To 6 Cents Local Option Fuel Tax), , ,0,13065635,,0,,0,0,,,,,0
+100052,Pinellas,312.420 - (1 To 5 Cents Local Option Fuel Tax), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,312.620 - Charter County Transportation System, , ,0,0,,136051762,,0,0,,,,,0
+100052,Pinellas,312.630 - Local Government Infrastructure Surtax, , ,,,,,,0,0,,,,,0
+100052,Pinellas,312.650 - Indigent Care And Trauma Surtax, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,312.670 - School Capital Outlay Surtax, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,314.100 - Utility Service Tax - Electricity, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,314.300 - Utility Service Tax - Water, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,314.400 - Utility Service Tax - Gas, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,314.700 - Utility Service Tax - Fuel Oil, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,314.800 - Utility Service Tax - Propane, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,314.900 - Utility Service Tax - Other, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,315.100 - State Communications Services Tax, , ,7646201,0,,0,,0,0,,,,,0
+100052,Pinellas,315.200 - Local Communications Services Tax, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,316.000 - Local Business Tax (Formerly Local Occupational License Tax - 321.000), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,319.100 - Gross Receipts Tax On Commercial Hazardous Waste Facilities, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,319.900 - Other General Taxes, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,322.000 - Building Permits (Building Permit Fees), , ,0,10174325,,0,,0,0,,,,,0
+100052,Pinellas,322.900 - Permits -Other, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.100 - Franchise Fee - Electricity, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.200 - Franchise Fee - Telecommunications, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.300 - Franchise Fee - Water, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.400 - Franchise Fee - Gas, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.500 - Franchise Fee - Cable Television, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.600 - Franchise Fee - Sewer, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.700 - Franchise Fee - Solid Waste, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,323.900 - Franchise Fee - Other, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,324.310 - Impact Fees - Residential - Transportation,02 Residential Buildings,01 Flat Fees,,,,14129,,,,,,,,
+100052,Pinellas,324.310 - Impact Fees - Residential - Transportation,02 Residential Buildings,03 Tiered Scale Based on Square Footage,,,,398867,,,,,,,,
+100052,Pinellas,324.310 - Impact Fees - Residential - Transportation,02 Residential Buildings,09 Other,,,,768580,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,01 Office Buildings,03 Tiered Scale Based on Square Footage,,,,21884,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,03 Retail Buildings,03 Tiered Scale Based on Square Footage,,,,78213,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,03 Retail Buildings,09 Other,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,04 Hospitality Buildings,02 Tiered Scale Based on Number of Bedrooms,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,04 Hospitality Buildings,03 Tiered Scale Based on Square Footage,,,,39058,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,04 Hospitality Buildings,09 Other,,,,273600,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,05 Institutional Civic Buildings,03 Tiered Scale Based on Square Footage,,,,61392,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,05 Institutional Civic Buildings,09 Other,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,06 Gathering Buildings,03 Tiered Scale Based on Square Footage,,,,102,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,07 Religious Buildings,03 Tiered Scale Based on Square Footage,,,,4646,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,08 Educational Buildings,09 Other,,,,39180,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,09 Industrial Buildings,03 Tiered Scale Based on Square Footage,,,,134674,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,10 Agricultural Buildings,03 Tiered Scale Based on Square Footage,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,11 Transportation Buildings,09 Other,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,12 Recreational Buildings,03 Tiered Scale Based on Square Footage,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,12 Recreational Buildings,09 Other,,,,0,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,13 Multi-Purpose,03 Tiered Scale Based on Square Footage,,,,77123,,,,,,,,
+100052,Pinellas,324.320 - Impact Fees - Commercial - Transportation,19 Other,09 Other,,,,28487,,,,,,,,
+100052,Pinellas,325.100 - Special Assessments - Capital Improvement, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,325.200 - Special Assessments - Charges For Public Services, , ,0,131770999,,0,,0,0,,,,,0
+100052,Pinellas,329.100 - Inspection Fee, , ,0,15015,,0,,0,0,,,,,0
+100052,Pinellas,329.200 - Stormwater Fee, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,329.300 - Green Utility Fee, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,329.400 - Vessel Registration Fee, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,"329.500 - Other Permits, Fees And Special Assessments", , ,1499064,164646,,0,,0,0,,,,,0
+100052,Pinellas,331.100 - Federal Grant - General Government, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.200 - Federal Grant - Public Safety, , ,2761274,0,,0,,0,0,,,,,0
+100052,Pinellas,331.310 - Federal Grant - Water Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.320 - Federal Grant - Electric Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.330 - Federal Grant - Gas Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.340 - Federal Grant - Garbage/Solid Waste, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.350 - Federal Grant - Sewer/Wastewater, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.390 - Federal Grant - Other Physical Environment, , ,541129,7010,,5789644,,746391,0,,,,,0
+100052,Pinellas,331.410 - Federal Grant - Airport Development, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.420 - Federal Grant - Mass Transit, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.490 - Federal Grant - Other Transportation, , ,0,0,,1731230,,0,0,,,,,0
+100052,Pinellas,331.500 - Federal Grant - Economic Environment, , ,2580226,4789777,,1318923,,33805,0,,,,,3528996
+100052,Pinellas,331.510 - Federal Grant ARPA Funds, , ,63662,46162592,,0,,602447,0,,,,,0
+100052,Pinellas,331.610 - Federal Grant - Health Or Hospitals, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.620 - Federal Grant - Public Assistance, , ,2373918,208127,,0,,0,0,,,,,0
+100052,Pinellas,331.650 - Federal Grant - Child Support Reimbursement, , ,1593809,0,,0,,0,0,,,,,0
+100052,Pinellas,331.690 - Federal Grant - Other Human Services, , ,1381795,31562,,921344,,0,0,,,,,0
+100052,Pinellas,331.700 - Federal Grant - Culture/Recreation, , ,0,0,,129200,,0,0,,,,,0
+100052,Pinellas,331.810 - Federal Grant - Process Servers, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.820 - Federal Grant - Drug Court Management, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.830 - Federal Grant - Hearing Officer, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.890 - Federal Grant - Other Court Related, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,331.900 - Other Federal Grants, , ,0,0,,0,,0,0,,,,,483323
+100052,Pinellas,332.000 - Other Financial Assistance - Federal Source, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,332.100 - Other Financial Assistance - State Source, , ,-3445,0,,21525,,0,0,,,,,0
+100052,Pinellas,333.000 - Federal Payments In Lieu Of Taxes, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.100 - State Grant - General Government, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.200 - State Grant - Public Safety, , ,1015092,914318,,0,,0,0,,,,,0
+100052,Pinellas,334.310 - State Grant - Water Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.320 - State Grant - Electric Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.330 - State Grant - Gas Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.340 - State Grant - Garbage/Solid Waste, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.350 - State Grant - Sewer/Wastewater, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.360 - State Grant - Stormwater Management, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.390 - State Grant - Other Physical Environment, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.410 - State Grant - Airport Development, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.420 - State Grant - Mass Transit, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.490 - State Grant - Other Transportation, , ,0,0,,37370,,0,0,,,,,0
+100052,Pinellas,334.500 - State Grant - Economic Environment, , ,0,5891983,,131314,,0,0,,,,,0
+100052,Pinellas,334.610 - State Grant - Health Or Hospitals, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.620 - State Grant - Public Welfare, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.690 - State Grant - Other Human Services, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.700 - State Grant - Culture/Recreation, , ,0,0,,1400000,,0,0,,,,,0
+100052,Pinellas,334.810 - State Grant - Conflict Cases (Formerly 334.161), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.820 - Article V Clerk Of Court Trust Fund, , ,0,6123520,,0,,0,0,,,,,0
+100052,Pinellas,334.830 - State Grant - Child Dependency, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.890 - State Grant - Other Court-Related, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,334.900 - State Grant - Other, , ,23893,0,,9392796,,700000,0,,,,,0
+100052,Pinellas,335.121 - County Revenue Sharing Program - Proceeds, , ,26821853,0,,0,,0,0,,,,,0
+100052,Pinellas,335.130 - State Revenue Sharing - Insurance License Tax (AKA Insurance Agents County Licenses), , ,354732,0,,0,,0,0,,,,,0
+100052,Pinellas,335.140 - State Revenue Sharing - Mobile Home Licenses, , ,83281,0,,0,,0,0,,,,,0
+100052,Pinellas,335.150 - State Revenue Sharing - Alcoholic Beverage Licenses, , ,525167,0,,0,,0,0,,,,,0
+100052,Pinellas,335.160 - State Revenue Sharing - Distribution Of Sales And Use Taxes To Counties (Formerly: Pari-Mutual Tax Distribution), , ,391514,0,,0,,0,0,,,,,0
+100052,Pinellas,335.170 - State Revenue Sharing - Cardroom Tax, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.180 - State Revenue Sharing - Local Government Half-Cent Sales Tax Program, , ,58997738,0,,0,,0,0,,,,,0
+100052,Pinellas,335.190 - State Revenue Sharing - Other General Government, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.210 - State Revenue Sharing - Firefighter Supplemental Compensation, , ,0,0,,0,,1980,0,,,,,0
+100052,Pinellas,335.220 - State Revenue Sharing - Enhanced 911 Fee (Previously: Wireless 911 Board Distributions), , ,0,5583362,,0,,0,0,,,,,0
+100052,Pinellas,335.230 - State Revenue Sharing - Emergency Management Assistance, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.290 - State Revenue Sharing - Other Public Safety, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.310 - State Revenue Sharing - Water Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.320 - State Revenue Sharing - Electric Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.330 - State Revenue Sharing - Gas Supply System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.340 - State Revenue Sharing - Garbage/Solid Waste System, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.350 - State Revenue Sharing - Sewer/Wastewater, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.380 - State Revenue Sharing - Other Physical Environment, , ,0,1158540,,0,,0,0,,,,,0
+100052,Pinellas,335.410 - State Revenue Sharing - Airport Development, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.420 - State Revenue Sharing - Mass Transit, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.430 - State Revenue Sharing - Constitutional Fuel Tax (2Cent Fuel Tax), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.440 - State Revenue Sharing - County Fuel Tax (1Cent Fuel Tax), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.450 - State Revenue Sharing - Fuel Tax Refunds And Credits, , ,0,10671072,,0,,0,0,,,,,0
+100052,Pinellas,335.480 - State Revenue Sharing - Other Transportation, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.500 - State Revenue Sharing - Economic Environment, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.610 - State Revenue Sharing - Health Or Hospitals, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.620 - State Revenue Sharing - Public Welfare, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.690 - State Revenue Sharing - Other Human Services, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.700 - State Revenue Sharing - Culture/Recreation, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,335.900 - State Revenue Sharing - Other, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,336.000 - State Payments In Lieu Of Taxes, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,337.100 - Local Government Unit Grant - General Government, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,337.200 - Local Government Unit Grant - Public Safety, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,337.300 - Local Government Unit Grant - Physical Environment, , ,182628,105417,,282266,,166282,0,,,,,0
+100052,Pinellas,337.400 - Local Government Unit Grant - Transportation, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,337.500 - Local Government Unit Grant - Economic Environment, , ,0,0,,0,,0,0,,,,,528576
+100052,Pinellas,337.600 - Local Government Unit Grant - Human Services, , ,597078,0,,0,,0,0,,,,,0
+100052,Pinellas,337.700 - Local Government Unit Grant - Culture/Recreation, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,337.900 - Local Government Unit Grants - Other, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,338.000 - Shared Revenue From Other Local Units, , ,757722,0,,0,,0,0,,,,,0
+100052,Pinellas,339.000 - Payments From Other Local Units In Lieu Of Taxes, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.100 - Service Charge - Recording Fees, , ,3212222,1350293,,0,,0,0,,,,,0
+100052,Pinellas,341.150 - Public Records Modernization Trust Fund, , ,0,608329,,0,,0,0,,,,,0
+100052,Pinellas,341.160 - County Portion ($2) Of $4 Additional Service Charge, , ,1421317,0,,0,,0,0,,,,,0
+100052,Pinellas,341.200 - Internal Service Fund Fees And Charges, , ,0,0,,0,,0,215971192,,,,,0
+100052,Pinellas,341.300 - Administrative Service Fees, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.510 - Fees Remitted To County From Tax Collector, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.520 - Fees Remitted To County From Sheriff, , ,5260791,0,,0,,0,0,,,,,0
+100052,Pinellas,341.530 - Fees Remitted To County From Clerk Of Circuit Court, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.540 - Fees Remitted To County From Clerk Of County Court, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.550 - Fees Remitted To County From Supervisor Of Elections, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.560 - Fees Remitted To County From Property Appraiser, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,341.800 - County Officer Commission And Fees, , ,15066451,0,,0,,0,0,,,,,0
+100052,Pinellas,341.900 - Other General Government Charges And Fees, , ,3152540,70625,,0,,0,0,379707181,,,,0
+100052,Pinellas,342.100 - Service Charge - Law Enforcement Services, , ,40100744,0,,0,,0,0,9514941,,,,0
+100052,Pinellas,342.200 - Service Charge - Fire Protection, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,342.300 - Service Charge - Housing For Prisoners, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,342.400 - Service Charge - Emergency Management Service Fees/Charges, , ,14216,0,,0,,0,0,,,,,0
+100052,Pinellas,342.500 - Service Charge - Protective Inspection Fees, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,342.600 - Service Charge - Ambulance Fees, , ,0,80300714,,0,,0,0,,,,,0
+100052,Pinellas,342.900 - Service Charge - Other Public Safety Charges And Fees, , ,870663,0,,0,,0,0,,,,,0
+100052,Pinellas,343.100 - Service Charge - Electric Utility, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,343.200 - Service Charge - Gas Utility, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,343.300 - Service Charge - Water Utility, , ,200611,0,,0,,103393620,0,,,,,0
+100052,Pinellas,343.400 - Service Charge - Garbage/Solid Waste, , ,0,0,,0,,144844795,0,,,,,0
+100052,Pinellas,343.500 - Service Charge - Sewer/Wastewater Utility, , ,0,0,,0,,118741003,0,,,,,0
+100052,Pinellas,343.600 - Service Charge - Water/Sewer Combination Utility, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,343.700 - Service Charge - Conservation And Resource Management, , ,124700,396713,,0,,0,0,,,,,0
+100052,Pinellas,343.800 - Service Charge - Cemetery, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,343.900 - Service Charge - Other Physical Environment Charges, , ,718368,0,,0,,0,0,,,,,0
+100052,Pinellas,344.100 - Service Charge - Airports, , ,0,0,,0,,14160944,0,,,,,0
+100052,Pinellas,344.200 - Service Charge - Water Ports And Terminals, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,344.300 - Service Charge - Mass Transit, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,344.400 - Service Charge - Railroads, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,344.500 - Service Charge - Parking Facilities, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,"344.600 - Service Charge - Tolls (Ferry, Road, Bridge, Etc.)", , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,344.900 - Service Charge - Other Transportation Charges, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,345.100 - Service Charge - Housing, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,345.900 - Service Charge - Other Economic Environment Charges, , ,330,0,,0,,0,0,,,,,0
+100052,Pinellas,346.100 - Service Charge - Health Inspection Fees, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,346.200 - Service Charge - Hospital Charges, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,346.300 - Service Charge - Clinic Fees, , ,388518,0,,0,,0,0,,,,,0
+100052,Pinellas,346.400 - Service Charge - Animal Control And Shelter Fees, , ,3345559,0,,0,,0,0,,,,,0
+100052,Pinellas,346.900 - Service Charge - Other Human Services Charges, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,347.100 - Service Charge - Libraries, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,347.200 - Service Charge - Parks And Recreation, , ,7219879,0,,0,,0,0,,,,,0
+100052,Pinellas,347.300 - Service Charge - Cultural Services, , ,1722,0,,0,,0,0,,,,,0
+100052,Pinellas,347.400 - Service Charge - Special Events, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,347.500 - Service Charge - Special Recreation Facilities, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,347.800 - Service Charge - Charter Schools, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,347.900 - Service Charge - Other Culture/Recreation Charges, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.110 - County Court Criminal - Filing Fees, , ,0,52380,,0,,0,0,,,,,0
+100052,Pinellas,348.120 - County Court Criminal - Service Charges, , ,0,72583,,0,,0,0,,,,,0
+100052,Pinellas,348.130 - County Court Criminal - Court Costs, , ,0,528202,,0,,0,0,,,,,0
+100052,Pinellas,348.140 - County Court Criminal - Non-Local Fines And Forfeitures, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.210 - Circuit Court Criminal - Filing Fees, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.220 - Circuit Court Criminal - Service Charges, , ,0,114709,,0,,0,0,,,,,0
+100052,Pinellas,348.230 - Circuit Court Criminal - Court Costs, , ,0,582920,,0,,0,0,,,,,0
+100052,Pinellas,348.240 - Circuit Court Criminal - Non-Local Fines And Forfeitures, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.310 - County Court Civil - Filing Fees, , ,0,4587053,,0,,0,0,,,,,0
+100052,Pinellas,348.320 - County Court Civil - Service Charges, , ,0,2392,,0,,0,0,,,,,0
+100052,Pinellas,348.330 - County Court Civil - Court Costs, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.410 - Circuit Court Civil - Filing Fees, , ,0,2867566,,0,,0,0,,,,,0
+100052,Pinellas,348.420 - Circuit Court Civil - Service Charges, , ,113163,587434,,0,,0,0,30648967,,,,0
+100052,Pinellas,348.430 - Circuit Court Civil - Court Costs, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.480 - Circuit Court Civil - Fees And Service Charges, , ,0,135976,,0,,0,0,,,,,0
+100052,Pinellas,348.510 - Traffic Court - Filing Fees, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.520 - Traffic Court - Service Charges, , ,168539,730877,,0,,0,0,,,,,0
+100052,Pinellas,348.530 - Traffic Court - Court Costs, , ,0,2207450,,0,,0,0,,,,,0
+100052,Pinellas,348.540 - Traffic Court - Non-Local Fines And Forfeitures, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.610 - Juvenile Court - Filing Fees, , ,0,210,,0,,0,0,,,,,0
+100052,Pinellas,348.620 - Juvenile Court - Service Charges, , ,0,170,,0,,0,0,,,,,0
+100052,Pinellas,348.630 - Juvenile Court - Court Costs, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.640 - Juvenile Court - Non-Local Fines And Forfeitures, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.710 - Probate Court - Filing Fees, , ,0,1070934,,0,,0,0,,,,,0
+100052,Pinellas,348.720 - Probate Court - Service Charges, , ,0,154306,,0,,0,0,,,,,0
+100052,Pinellas,348.730 - Probate Court - Court Costs, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.740 - Probate Court - Non-Local Fines And Forfeitures, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.820 - Circuit-Wide Judicial Reimbursement-Other Counties, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.850 - State Reimbursement, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.860 - Mediation And Arbitration (Alternative Dispute Resolution), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.870 - Public Defender Liens, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.880 - Probation/Alternatives, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.921 - Court Innovations/Local Requirements, , ,216416,0,,0,,0,0,,,,,0
+100052,Pinellas,348.922 - Legal Aid, , ,216413,0,,0,,0,0,,,,,0
+100052,Pinellas,348.923 - Law Library, , ,216474,0,,0,,0,0,,,,,0
+100052,Pinellas,348.924 - Juvenile Alternative Programs, , ,216434,0,,0,,0,0,,,,,0
+100052,Pinellas,348.930 - State Court Facility Surcharge ($30), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.931 - Traffic Surcharge, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.932 - Domestic Violence Surcharge, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,348.933 - Animal Control Surcharge, , ,1057,0,,0,,0,0,,,,,0
+100052,Pinellas,348.990 - Other Court Collections Transferred To BOCC, , ,2772121,34365,,0,,0,0,,,,,0
+100052,Pinellas,349.000 - Other Charges For Services, , ,849,0,,0,,0,10758390,,,,,3057291
+100052,Pinellas,351.100 - Judgments And Fines - As Decided By County Court Criminal, , ,68184,612143,,0,,0,0,,,,,0
+100052,Pinellas,351.200 - Judgments And Fines - As Decided By Circuit Court Criminal, , ,23398,87368,,0,,0,0,,,,,0
+100052,Pinellas,351.300 - Judgments And Fines - As Decided By County Court Civil, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,351.400 - Judgments And Fines - As Decided By Circuit Court Civil, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,351.500 - Judgments And Fines - As Decided By Traffic Court, , ,143736,3222833,,0,,0,0,,,,,0
+100052,Pinellas,351.600 - Judgments And Fines - As Decided By Juvenile Court, , ,230,416,,0,,0,0,,,,,0
+100052,Pinellas,351.700 - Intergovernmental Radio Communication Program, , ,0,570115,,0,,0,0,,,,,0
+100052,Pinellas,351.800 - 10% Of Fines To Public Records Modernization Fund, , ,0,956226,,0,,0,0,,,,,0
+100052,Pinellas,351.900 - Judgments And Fines - Other Court Ordered, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,352.000 - Fines - Library, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,353.000 - Fines - Pollution Control Violation, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,354.000 - Fines - Local Ordinance Violation, , ,811834,2861034,,0,,0,0,,,,,0
+100052,Pinellas,355.000 - Federal Fines And Forfeits, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,356.000 - State Fines And Forfeits, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,358.100 - Confiscation Of Deposits Or Bonds Held As Performance Guarantees, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,358.200 - Sale Of Contraband Property Seized By Law Enforcement Include Proceeds From Assets Seized By Law Enforcement Agencies, , ,991432,0,,0,,0,0,,,,,0
+100052,Pinellas,"359.000 - Other Judgments, Fines And Forfeits", , ,0,147782,,0,,0,0,,,,,0
+100052,Pinellas,361.100 - Interest, , ,28910716,24422625,,14805334,,38026246,9171878,,,,,10250857
+100052,Pinellas,361.200 - Dividends, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,361.300 - Net Increase (Decrease) In Fair Value Of Investments, , ,5241496,8184271,,6483053,,13083230,3044145,,,,,0
+100052,Pinellas,361.400 - Gain Or Loss On Sale Of Investments, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,362.000 - Rents And Royalties, , ,2926434,3363442,,0,,361583,0,,,,,0
+100052,Pinellas,364.000 - Disposition Of Fixed Assets, , ,118329,0,,1195000,,567004,339385,,,,,0
+100052,Pinellas,365.000 - Sale Of Surplus Materials And Scrap, , ,249047,155390,,0,,100674,9620,,,,,0
+100052,Pinellas,366.000 - Contributions And Donations From Private Sources, , ,1270322,161863,,0,,0,0,,,,,0
+100052,Pinellas,367.000 - Licenses, , ,45189,451388,,0,,0,0,157242880,,,,0
+100052,Pinellas,368.000 - Pension Fund Contributions, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,369.300 - Settlements, , ,6779886,8979193,,0,,0,782,,,,,0
+100052,Pinellas,369.350 - Settlements - Opioid Settlement Trust Fund, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,369.410 - Slot Machine Proceeds County, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,369.700 - Deferred Compensation Contributions, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,369.900 - Other Miscellaneous Revenues, , ,26368186,35198841,,899595,,8678536,708854,49743927,,,,0
+100052,Pinellas,381.000 - Inter-Fund Group Transfers In, , ,10843874,64376982,,87278890,,0,155995,,,,,0
+100052,Pinellas,382.000 - Contributions From Enterprise Operations, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,383.100 - Lease Proceeds, , ,515591,1904769,,0,,0,0,,,,,0
+100052,Pinellas,383.200 - Installment Purchase Proceeds, , ,71602,2339641,,0,,0,0,,,,,0
+100052,Pinellas,384.000 - Debt Proceeds, , ,0,0,,0,,,,,,,,
+100052,Pinellas,385.000 - Proceeds From Refunding Bonds, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,386.100 - Transfer From - Clerk To The BOCC, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,386.300 - Transfer From - County Comptroller To The BOCC, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,386.400 - Transfer From - Sheriff To The BOCC, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,386.600 - Transfer From - Property Appraiser To The BOCC, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,386.700 - Transfer From - Tax Collector To The BOCC, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,386.800 - Transfer From - Supervisor Of Elections To The BOCC, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,388.100 - Sale Of General Capital Asset, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,388.200 - Compensation For Loss Of General Capital Asset, , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,389.100 - Proprietary - Interest, , ,,,,,,0,0,,,,,0
+100052,Pinellas,389.200 - Proprietary - Federal Grants And Donations, , ,,,,,,0,0,,,,,0
+100052,Pinellas,389.300 - Proprietary - State Grants And Donations, , ,,,,,,0,0,,,,,0
+100052,Pinellas,389.400 - Proprietary - Other Grants And Donations, , ,,,,,,102855,37399,,,,,0
+100052,Pinellas,389.500 - Proprietary - Capital Contributions From Federal Government, , ,,,,,,0,0,,,,,0
+100052,Pinellas,389.600 - Proprietary - Capital Contributions From State Government, , ,,,,,,3488335,0,,,,,0
+100052,Pinellas,389.700 - Proprietary - Capital Contributions From Other Public Source, , ,,,,,,5692106,0,,,,,0
+100052,Pinellas,389.800 - Proprietary - Capital Contributions From Private Source, , ,,,,,,2643228,60216,,,,,0
+100052,Pinellas,389.900 - Proprietary - Other Non-Operating Sources, , ,,,,,,0,0,,,,,0
+100052,Pinellas,392.000 - Extraordinary Items (Gain), , ,0,0,,0,,0,0,,,,,0
+100052,Pinellas,393.000 - Special Items(Gain), , ,0,0,,0,,0,0,,,,,0

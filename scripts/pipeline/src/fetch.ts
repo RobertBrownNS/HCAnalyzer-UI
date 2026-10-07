@@ -5,13 +5,17 @@
  *
  *   npm run fetch                      every raw file
  *   npm run fetch -- --county pinellas  only that county's files (shared files untouched)
+ *   npm run fetch -- --logerx           only the DFS LOGERX reports and per-county extracts
+ *   npm run fetch -- --logerx --use-cache  rebuild the extracts from data/cache/logerx (no network)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { COUNTIES } from '../config/counties.js';
 import { CPI_SERIES, type BlsResponse } from './bls/cpi.js';
 import { sha256, stableStringify } from './lib/hash.js';
-import { blsPath, countyAfrPath, edrAfrPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE } from './lib/paths.js';
+import ExcelJS from 'exceljs';
+import { blsPath, countyAfrPath, edrAfrPath, LOGERX_CACHE_DIR, logerxCachePath, logerxExtractPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE } from './lib/paths.js';
+import { extractEntityCsv, LOGERX_PUBLIC_PAGE, LOGERX_REPORT_ENDPOINT, LOGERX_REPORTS, LOGERX_YEARS_ENDPOINT, parseStatewideReport } from './logerx/logerx.js';
 import { EDR, EDR_AFR_BASE, EDR_COUNTY_FISCAL_PAGE, EDR_COUNTY_FISCAL_PAGE_FILE, EDR_POPULATION_URL, type RetrievalRecord, type RetrievalLog } from './sources.js';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; fl-county-finance-explorer data pipeline)';
@@ -70,6 +74,67 @@ function saveLog(log: RetrievalLog) {
  * later download fails, so data/raw/ never holds bytes the manifest doesn't describe. A failed
  * download leaves the previous file and entry untouched and makes the command exit non-zero.
  */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Pause between LOGERX requests (each report takes the server about 10 s to build). */
+const LOGERX_PAUSE_MS = 15_000;
+
+async function fetchLogerxReport(reportName: string, fiscalYear: number): Promise<Buffer> {
+  const res = await fetch(LOGERX_REPORT_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': USER_AGENT },
+    body: JSON.stringify({ afrYear: fiscalYear, reportFormat: 'EXCEL', reportName }),
+  });
+  if (res.status !== 200) throw new Error(`LOGERX ${reportName} ${fiscalYear}: HTTP ${res.status} (stopping; possible rate limit)`);
+  const body = (await res.json()) as { content?: string; mimeType?: string };
+  if (!body?.content || !String(body.mimeType).includes('spreadsheetml')) throw new Error(`LOGERX ${reportName} ${fiscalYear}: no spreadsheet in response (stopping)`);
+  return Buffer.from(body.content, 'base64');
+}
+
+/**
+ * Downloads (or reads from the cache) each LOGERX statewide report, keeps the full file in the
+ * gitignored cache, and writes one committed CSV extract per configured county. Stops at the first
+ * failed request rather than retrying.
+ */
+async function fetchLogerx(log: RetrievalLog, useCache: boolean) {
+  const counties = COUNTIES.filter((c) => c.logerxEntityCode);
+  const yearsRes = await fetch(LOGERX_YEARS_ENDPOINT, { headers: { Accept: 'application/json', 'User-Agent': USER_AGENT } });
+  if (yearsRes.status !== 200) throw new Error(`LOGERX reportYears: HTTP ${yearsRes.status}`);
+  const years = ((await yearsRes.json()) as number[]).filter((y) => Number.isInteger(y)).sort((a, b) => a - b);
+  console.log(`LOGERX report years: ${years.join(', ')}`);
+  mkdirSync(LOGERX_CACHE_DIR, { recursive: true });
+  let first = true;
+  for (const year of years) {
+    for (const report of LOGERX_REPORTS) {
+      const cache = logerxCachePath(report.name, year);
+      let xlsx: Buffer;
+      if (useCache && existsSync(cache)) xlsx = readFileSync(cache);
+      else {
+        if (!first) await sleep(LOGERX_PAUSE_MS);
+        first = false;
+        xlsx = await fetchLogerxReport(report.name, year);
+        writeFileSync(cache, xlsx);
+      }
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(xlsx as unknown as ArrayBuffer);
+      const statewide = parseStatewideReport(wb, year, report.flow);
+      for (const county of counties) {
+        const { csv, rows } = extractEntityCsv(statewide, county.logerxEntityCode!);
+        if (!rows) throw new Error(`LOGERX ${report.name} ${year}: no rows for ${county.name} (entity ${county.logerxEntityCode})`);
+        record(log, logerxExtractPath(county.slug, report.flow, year), Buffer.from(csv), {
+          url: LOGERX_PUBLIC_PAGE,
+          publisher: 'Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)',
+          method: `Public LOGERX "${report.label}" report (verified data), statewide, Excel; rows for entity ${county.logerxEntityCode} extracted verbatim, sorted, as CSV`,
+          request: { endpoint: LOGERX_REPORT_ENDPOINT, body: { afrYear: year, reportFormat: 'EXCEL', reportName: report.name } },
+          fullDownload: { cachePath: rel(cache), bytes: xlsx.length, sha256: sha256(xlsx) },
+          entityCode: county.logerxEntityCode,
+          rows,
+          reportAsOf: statewide.asOf,
+        });
+      }
+    }
+  }
+}
+
 async function main() {
   const log = loadLog();
   mkdirSync(RAW_DIR, { recursive: true });
@@ -83,7 +148,8 @@ async function main() {
     }
   };
   try {
-    await downloadAll(log, attempt);
+    if (process.argv.includes('--logerx')) await fetchLogerx(log, process.argv.includes('--use-cache'));
+    else await downloadAll(log, attempt);
   } finally {
     saveLog(log);
   }

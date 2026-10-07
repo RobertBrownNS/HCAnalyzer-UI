@@ -1,0 +1,3 @@
+# Local download cache (e.g. full LOGERX statewide reports). Never committed.
+*
+!.gitignore

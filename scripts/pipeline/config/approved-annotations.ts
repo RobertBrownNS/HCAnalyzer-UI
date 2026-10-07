@@ -2,8 +2,8 @@ import type { ApprovedTransferImbalance, ResearchNote } from '../src/edr/anomali
 
 /**
  * Transfer-imbalance annotations that have been reviewed and approved. A year is flagged when
- * |581 transfers out - 381 transfers in|, summed over all funds except custodial, exceeds
- * TRANSFER_IMBALANCE_THRESHOLD ($1,000,000). The build fails if a flagged year is not listed here,
+ * |581 transfers out - 381 transfers in|, summed over all funds except custodial, is greater than
+ * TRANSFER_IMBALANCE_THRESHOLD ($1,000,000) (DR-40: strictly greater). The build fails if a flagged year is not listed here,
  * or if a listed year is no longer flagged.
  */
 export const APPROVED_TRANSFER_IMBALANCES: ApprovedTransferImbalance[] = [

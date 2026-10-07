@@ -116,6 +116,1306 @@
       "retrieved": "2026-10-07",
       "sha256": "370f27c0e27099859a4572ae45ba14b5551bc78affbb8bbdc1700018ac733327",
       "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/pinellascountyrevenues.xlsx"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2013.csv": {
+      "bytes": 21101,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1913147,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2013.xlsx",
+        "sha256": "2cc8f874b36cc2b868d1d3da4f2589defd34f9784a0bf1758debb1ab9f51ebcd"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2013,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 199,
+      "sha256": "8578194c6a8d11a07e59581c36d4452386363394c8c6259cc4f622390788cd74",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2014.csv": {
+      "bytes": 21021,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1915428,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2014.xlsx",
+        "sha256": "d22cad34926864ab4810e70d5e5ae99675a073ce086aa35ffb6e24f811e6f884"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2014,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 197,
+      "sha256": "c4aafade049acdfc2b7efda892a32aa41c2757d72178777dc3d2d9ecea5b9030",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2015.csv": {
+      "bytes": 20634,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1928828,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2015.xlsx",
+        "sha256": "556a6e4f0dd2a2c0e634f25958e6598c0ca98d1260be70b210892d50d505a9c1"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2015,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 193,
+      "sha256": "90ccd04172f007b2c2d688bf2777b4aad0aacf5f24fac57d334bc3f386db14ab",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2016.csv": {
+      "bytes": 20443,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1944055,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2016.xlsx",
+        "sha256": "b806f55e8a4b7236cb423807cdb590845e3caf2597dee9cc9136ba73cce20103"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2016,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 191,
+      "sha256": "242ab1f0be36b9261646fc9a4e6de326e7cd34736ea4a4077d6477e94caaf0bb",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2017.csv": {
+      "bytes": 19602,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1956249,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2017.xlsx",
+        "sha256": "62e37b59f828ecfb9ca3402ae0602831ce838751783acb44db6079b40154c507"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2017,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 182,
+      "sha256": "7b5545f996790597a88405887f85918d434459db7dc7da3b8a7df89e0ff71502",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2018.csv": {
+      "bytes": 20366,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1962358,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2018.xlsx",
+        "sha256": "ca94883f1e5aa93fb4009c6dfbcdd9655d2247f966c970e76ed945341d00ead8"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2018,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 189,
+      "sha256": "2ccb9ceaa595fe359677607839aa65bc7f6867d255947d5dbc0c0b7f0579a353",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2019.csv": {
+      "bytes": 20296,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1983407,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2019.xlsx",
+        "sha256": "4a0e30c3ec598f5d5855c2e3f846fd570326ab1b5ee39220b7ca1bb970d02763"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2019,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 188,
+      "sha256": "af4d422a5f6714632fa323a053cc5c2cf18ed1f21a44558654a004bfaabfe15c",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2020.csv": {
+      "bytes": 18578,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1990426,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2020.xlsx",
+        "sha256": "31af83700709a55fb1c1db6cf7cccac92ff1ec33e9617b48713f1427530299f3"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2020,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 175,
+      "sha256": "adb8de6b7d017ca79e6d5835c327360c0c7405fb41235a4bcb640fcd0fe7d302",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2021.csv": {
+      "bytes": 20359,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2006116,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2021.xlsx",
+        "sha256": "fbca3f5079ce6619934b5f38bb7e7a7d2c7165504555ad6adf56206a039d61be"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2021,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 189,
+      "sha256": "d7b19a807965b88c419bdcbdc12cd68e94d95ed750c40cb9e606b77f48595392",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2022.csv": {
+      "bytes": 20376,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2065583,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2022.xlsx",
+        "sha256": "654dc5933f24e5340377943dabbc8c86415a67d9987655f3f0ca28cdf444fb48"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2022,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 190,
+      "sha256": "547ebd7850bc9b794525bc08c905cc9c7d8504163c66c3cd841af2bea08942b6",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2023.csv": {
+      "bytes": 18262,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2113797,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2023.xlsx",
+        "sha256": "89ff5bc69cf552cfad3ec019b8e40f1e2f96fe78119f1c3894532ff2cc937b78"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2023,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 173,
+      "sha256": "887fee9a3cb6c7942a502d82179a2757e138e8b8293148ab2a7d2f76642c6404",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2024.csv": {
+      "bytes": 17439,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2200243,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2024.xlsx",
+        "sha256": "01c115b3ccaca40cf06580667bfa5093e43384f2e99988937cf1b99b76af2ea5"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2024,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 167,
+      "sha256": "c3c2e6c80a9c07ef8fc6e761ff78d5b5704712244de26a87631c844a33eb09b0",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/expenditures-fy2025.csv": {
+      "bytes": 17729,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1604480,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2025.xlsx",
+        "sha256": "9b9ee8c05087b160728779714c1871e55902331e7c5c8206b5609f1d6deeb9ba"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2025,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 166,
+      "sha256": "304a7379dffabc9f031d8c1857d3f5b1d36963cb43cefb17cbabf4d3f55a5caa",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2013.csv": {
+      "bytes": 12566,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2011644,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2013.xlsx",
+        "sha256": "9cf7dcf0702efa3a9338805ee2981170af5c7e717ed63edbaaa272abc525e22d"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2013,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 128,
+      "sha256": "c4aecc70cb11480e86cc1247a5810c917699f571ac5b8fe114b6b6c8f86b6c8d",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2014.csv": {
+      "bytes": 13204,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2024900,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2014.xlsx",
+        "sha256": "99cb91e4cef5a84eb08999accda50184b6c362b93dafb735a506647c01deb279"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2014,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 138,
+      "sha256": "0c97613e9746936261bf620fd7dd8e73b00223ae6d2b898cebdb89f091708c60",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2015.csv": {
+      "bytes": 13695,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2047331,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2015.xlsx",
+        "sha256": "b0925a515797485ecd99ace8252bfad5676fd4f8d4abe461ff195ed84c68d731"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2015,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 143,
+      "sha256": "b8eb5945a03e62957be13a97887a38b558ea2843564555896c29ee59830943ce",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2016.csv": {
+      "bytes": 13559,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2053165,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2016.xlsx",
+        "sha256": "7f3c9f41ea2156a794193be7349703df79d3c437287f559bf381ea4902b5dc07"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2016,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 141,
+      "sha256": "79a5bbff5fecaa89bc005dd360915e1a42e3270133e4aeade857e82ffd793bb2",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2017.csv": {
+      "bytes": 13877,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2071329,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2017.xlsx",
+        "sha256": "022cc357973719ebd6c9cd0e3c685624ed7ced6f01b175108af2c2c20dc7d8d9"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2017,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 145,
+      "sha256": "0cb333ab04d6942e9140091f16b482e83d58014f0e3ced375d911be89e93e405",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2018.csv": {
+      "bytes": 13821,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2080502,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2018.xlsx",
+        "sha256": "f40993cbf4c578d006225beb14337bacaaa25ff4f7c9111d54f93c825fab77c4"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2018,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 144,
+      "sha256": "1b81fadc8bf966e72668e062de4ec00a5b970487b70f66c410889ee1e13331ec",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2019.csv": {
+      "bytes": 13302,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2126841,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2019.xlsx",
+        "sha256": "6617b3ac4780e6d6199d6cf74689128a3678927ce07d2572394847f4ff3d85b9"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2019,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 138,
+      "sha256": "bec7d391b8321fe0222c973e8b07090f2abaf34349728edad071fb175ccf02cd",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2020.csv": {
+      "bytes": 14593,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2219120,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2020.xlsx",
+        "sha256": "8a7dcebf8916cb0381f92993e748f2de85f51a215bc487cacc86db01fcea7552"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2020,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 140,
+      "sha256": "854e913bde78d64bfd31a1e495dc96aeb55f25e1b3c85b51dd1a21af2584c2ab",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2021.csv": {
+      "bytes": 16454,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2230650,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2021.xlsx",
+        "sha256": "26dc05aa96968891aca143ad35c8d3bdeae673a6a62cd9d0a36dee0cd27fb717"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2021,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 162,
+      "sha256": "30e02a5ac54140fea87d7739a280273685ebcf51ca637e6d759b80991501dbbb",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2022.csv": {
+      "bytes": 16557,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2441684,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2022.xlsx",
+        "sha256": "a9a7c5206bcb46b00221254468f6a1da309deb1123e38921499d87269701f700"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2022,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 162,
+      "sha256": "2ecb8989b9b8f1ca0d6627a5a4eacb8a31f344c7237653e99973e852d61c4a80",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2023.csv": {
+      "bytes": 15040,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2507598,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2023.xlsx",
+        "sha256": "8e4cf138846cb375e0c6f9832584b45f70609ee910d5c97d0a18b576a1229df0"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2023,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 143,
+      "sha256": "f03e995f7926d2eb7b3e000124d490bda137b01a5bfb0168355ee075e1f81054",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2024.csv": {
+      "bytes": 14142,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 2732895,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2024.xlsx",
+        "sha256": "79c471b04976c42d62b6a1a084f9b0cc3d057a815eb9f52853d7a495008b11af"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2024,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 135,
+      "sha256": "13b03bd7497c4599e6f92defdea158bc7d80c4f4df2db1260eb4df8d51a4f620",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/hillsborough/revenues-fy2025.csv": {
+      "bytes": 15305,
+      "entityCode": "100029",
+      "fullDownload": {
+        "bytes": 1967227,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2025.xlsx",
+        "sha256": "8abc3b6a6d3fe1549c94048ce451ece2fe8bc86d6ee49aeae6a4867fa7b3b997"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2025,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 149,
+      "sha256": "7ae90391dcd44b5236c3b9d0815e41d74606686b9cb8c02892dcab3828c25958",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2013.csv": {
+      "bytes": 16445,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1913147,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2013.xlsx",
+        "sha256": "2cc8f874b36cc2b868d1d3da4f2589defd34f9784a0bf1758debb1ab9f51ebcd"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2013,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 161,
+      "sha256": "dd37f2f7964d95bd1ef23908c596ad163b86549bd543f8f8291eec3ead2e4b2b",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2014.csv": {
+      "bytes": 16540,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1915428,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2014.xlsx",
+        "sha256": "d22cad34926864ab4810e70d5e5ae99675a073ce086aa35ffb6e24f811e6f884"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2014,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 162,
+      "sha256": "3f1160704ef383a9317531db1f726647315e901c7d7a41eafa56954b52d33945",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2015.csv": {
+      "bytes": 16485,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1928828,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2015.xlsx",
+        "sha256": "556a6e4f0dd2a2c0e634f25958e6598c0ca98d1260be70b210892d50d505a9c1"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2015,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 163,
+      "sha256": "93363310135639a4d4236ab4624d22d30712d3d80ae9128e523f3f7c93debec2",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2016.csv": {
+      "bytes": 16966,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1944055,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2016.xlsx",
+        "sha256": "b806f55e8a4b7236cb423807cdb590845e3caf2597dee9cc9136ba73cce20103"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2016,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 167,
+      "sha256": "744e325b5575f87526521f9d51b5adf80f24e9755b3dca28dcb412d2c5d1680a",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2017.csv": {
+      "bytes": 16992,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1956249,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2017.xlsx",
+        "sha256": "62e37b59f828ecfb9ca3402ae0602831ce838751783acb44db6079b40154c507"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2017,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 167,
+      "sha256": "f90e92ccc8593bdc2bd1fab8deb6b47b24e6add16c0dfd5e3a7b783d70452b50",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2018.csv": {
+      "bytes": 16998,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1962358,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2018.xlsx",
+        "sha256": "ca94883f1e5aa93fb4009c6dfbcdd9655d2247f966c970e76ed945341d00ead8"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2018,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 167,
+      "sha256": "f30265065996d5b6f134995444d3c107dd9dc66c128f7470d98302daaeed0a8e",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2019.csv": {
+      "bytes": 17051,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1983407,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2019.xlsx",
+        "sha256": "4a0e30c3ec598f5d5855c2e3f846fd570326ab1b5ee39220b7ca1bb970d02763"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2019,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 168,
+      "sha256": "3f7813fde591f968f5bd53cb6d61bd1ffe6cb72656d06bc2e0a5f0fc9694be5e",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2020.csv": {
+      "bytes": 17310,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1990426,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2020.xlsx",
+        "sha256": "31af83700709a55fb1c1db6cf7cccac92ff1ec33e9617b48713f1427530299f3"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2020,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 171,
+      "sha256": "2631e398b228390bab299b8a441fb79731f926ee41bb79bc7a97977b148d44e7",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2021.csv": {
+      "bytes": 16048,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2006116,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2021.xlsx",
+        "sha256": "fbca3f5079ce6619934b5f38bb7e7a7d2c7165504555ad6adf56206a039d61be"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2021,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 157,
+      "sha256": "55a1cc9ea4f1dfc880265d148d4c71dde5c606980e6068e17592fcadff1c4105",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2022.csv": {
+      "bytes": 15910,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2065583,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2022.xlsx",
+        "sha256": "654dc5933f24e5340377943dabbc8c86415a67d9987655f3f0ca28cdf444fb48"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2022,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 155,
+      "sha256": "abdbe0b14294cc23420199c787be1bee4a52182c6beb1c2da7c1241de86012f2",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2023.csv": {
+      "bytes": 16812,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2113797,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2023.xlsx",
+        "sha256": "89ff5bc69cf552cfad3ec019b8e40f1e2f96fe78119f1c3894532ff2cc937b78"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2023,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 166,
+      "sha256": "4dd8b9e14253a68759f4e0ee546b874f26fcf9a3f2de60151f3d53357e35a556",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2024.csv": {
+      "bytes": 91773,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2200243,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2024.xlsx",
+        "sha256": "01c115b3ccaca40cf06580667bfa5093e43384f2e99988937cf1b99b76af2ea5"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2024,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 952,
+      "sha256": "13d71781427260561beb1c01f973da229ac34e2814bfe44d8f3ded011b6974e3",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/expenditures-fy2025.csv": {
+      "bytes": 92434,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1604480,
+        "cachePath": "data/cache/logerx/EXPENDITUREDETAILREPORT-2025.xlsx",
+        "sha256": "9b9ee8c05087b160728779714c1871e55902331e7c5c8206b5609f1d6deeb9ba"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2025,
+          "reportFormat": "EXCEL",
+          "reportName": "EXPENDITUREDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 958,
+      "sha256": "86ae5e6870fc21a023df3de9592218b776f81482f509e8dcc7f14310ac410c54",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2013.csv": {
+      "bytes": 10685,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2011644,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2013.xlsx",
+        "sha256": "9cf7dcf0702efa3a9338805ee2981170af5c7e717ed63edbaaa272abc525e22d"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2013,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 113,
+      "sha256": "a5e86c1d1cc8696c274dd8e32ce1d52328c721f28212a04295d88ba3df4c5848",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2014.csv": {
+      "bytes": 10795,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2024900,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2014.xlsx",
+        "sha256": "99cb91e4cef5a84eb08999accda50184b6c362b93dafb735a506647c01deb279"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2014,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 115,
+      "sha256": "d7c5911a20e9dfd5c0cf7fe732f955e753db17501ccb204325734d2102ff60eb",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2015.csv": {
+      "bytes": 10482,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2047331,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2015.xlsx",
+        "sha256": "b0925a515797485ecd99ace8252bfad5676fd4f8d4abe461ff195ed84c68d731"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2015,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 111,
+      "sha256": "43bd32f99c9003ba41197924d7d154ef9ea6aa942b1893742fc6ccf28e78d613",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2016.csv": {
+      "bytes": 10680,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2053165,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2016.xlsx",
+        "sha256": "7f3c9f41ea2156a794193be7349703df79d3c437287f559bf381ea4902b5dc07"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2016,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 114,
+      "sha256": "a8aac6dd3a6df51b4c37278eebecd2cca1bf7afa468131c05d935f9b872bd4c9",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2017.csv": {
+      "bytes": 10710,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2071329,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2017.xlsx",
+        "sha256": "022cc357973719ebd6c9cd0e3c685624ed7ced6f01b175108af2c2c20dc7d8d9"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2017,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 115,
+      "sha256": "0bc083d1d8e17e81a1414d376021f83eb9b4d07a6b0690a1e860f2581ac2b0a5",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2018.csv": {
+      "bytes": 10667,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2080502,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2018.xlsx",
+        "sha256": "f40993cbf4c578d006225beb14337bacaaa25ff4f7c9111d54f93c825fab77c4"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2018,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 114,
+      "sha256": "a5d5e3edd4cbbbdd775ba88ed4c9035ac73fac9e6f5bc2b4f5bdc7261cb7e63f",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2019.csv": {
+      "bytes": 10527,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2126841,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2019.xlsx",
+        "sha256": "6617b3ac4780e6d6199d6cf74689128a3678927ce07d2572394847f4ff3d85b9"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2019,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 112,
+      "sha256": "c571d9f955ca59af40be7f5584d8492b8932d45660663c0e550a40588865319c",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2020.csv": {
+      "bytes": 12233,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2219120,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2020.xlsx",
+        "sha256": "8a7dcebf8916cb0381f92993e748f2de85f51a215bc487cacc86db01fcea7552"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2020,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 123,
+      "sha256": "9a1614219763d4eab034e2ce2b30bc9e7f8c41d899f6ef63c2c5e599be23cfcf",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2021.csv": {
+      "bytes": 12519,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2230650,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2021.xlsx",
+        "sha256": "26dc05aa96968891aca143ad35c8d3bdeae673a6a62cd9d0a36dee0cd27fb717"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2021,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 124,
+      "sha256": "133f4c8da146175d733352592afe6807b0c25af679df33ee0483a63a0635784c",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2022.csv": {
+      "bytes": 12132,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2441684,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2022.xlsx",
+        "sha256": "a9a7c5206bcb46b00221254468f6a1da309deb1123e38921499d87269701f700"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2022,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 124,
+      "sha256": "bf5b235233a70874dda3c9b5d27ed03c4ecdd47acb0d317ff3b56c46b3e3bac3",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2023.csv": {
+      "bytes": 13557,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2507598,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2023.xlsx",
+        "sha256": "8e4cf138846cb375e0c6f9832584b45f70609ee910d5c97d0a18b576a1229df0"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2023,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 134,
+      "sha256": "c2ab1cfd14960c01c3f4c8842550b2723ddfdb9f9dc1de54e3711267e58d06d1",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2024.csv": {
+      "bytes": 27755,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 2732895,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2024.xlsx",
+        "sha256": "79c471b04976c42d62b6a1a084f9b0cc3d057a815eb9f52853d7a495008b11af"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2024,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 296,
+      "sha256": "d6e4deec051fddf066baeb13150c33ce85a9662ccaf2fec71d049b593b53add2",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
+    },
+    "data/raw/logerx/pinellas/revenues-fy2025.csv": {
+      "bytes": 26961,
+      "entityCode": "100052",
+      "fullDownload": {
+        "bytes": 1967227,
+        "cachePath": "data/cache/logerx/REVENUEDETAILREPORT-2025.xlsx",
+        "sha256": "8abc3b6a6d3fe1549c94048ce451ece2fe8bc86d6ee49aeae6a4867fa7b3b997"
+      },
+      "lastVerified": "2026-10-07",
+      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
+      "reportAsOf": "Wednesday, October 7, 2026",
+      "request": {
+        "body": {
+          "afrYear": 2025,
+          "reportFormat": "EXCEL",
+          "reportName": "REVENUEDETAILREPORT"
+        },
+        "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport"
+      },
+      "retrieved": "2026-10-07",
+      "rows": 290,
+      "sha256": "a493fd1fbd09d7f89b8f5221c8eec019bf92fa0f8f89bf61dfe3714f46e1825b",
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu"
     }
   }
 }

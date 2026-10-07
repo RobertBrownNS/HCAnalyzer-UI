@@ -47,7 +47,7 @@ export interface Annotation {
   refs?: string[];
 }
 
-/** |transfers out - transfers in| above this is reported. In other years the gap is at most a few hundred dollars. */
+/** |transfers out - transfers in| strictly above this is reported (DR-40: one rule for pipeline and transform). */
 export const TRANSFER_IMBALANCE_THRESHOLD = 1_000_000;
 /** A fiscal year/flow counts as "reported rounded" when more than this share of amounts are whole thousands. */
 export const ROUNDED_SHARE = 0.9;
