@@ -13,15 +13,15 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
-| P1-01 | Inspect EDR xlsx structure, document in `docs/data-layout.md` | DE | none | review |
-| P1-02 | Set up `data/raw/` and source manifest | DE | none | review |
-| P1-03 | Fetch population (EDR) and CPI (BLS CPI-U + Tampa) raw files | DE | P1-02 | review |
-| P1-04 | Parse revenue/expenditure xlsx to `Observation[]` | DE | P1-01, P1-02 | review |
-| P1-05 | Population and CPI series to year-keyed JSON | DE | P1-03 | review |
-| P1-06 | Emit versioned `src/assets/data/*.json` + `Source` records | DE | P1-04, P1-05 | review |
-| P1-07 | Validation report `data/validation.md` | DE | P1-06 | review |
-| P1-08 | Pipeline unit tests | DE | P1-04 | review |
-| P1-09 | QA review of Phase 1 (hand re-derivation) | QA | P1-07 | todo |
+| P1-01 | Inspect EDR xlsx structure, document in `docs/data-layout.md` | DE | none | done |
+| P1-02 | Set up `data/raw/` and source manifest | DE | none | done |
+| P1-03 | Fetch population (EDR) and CPI (BLS CPI-U + Tampa) raw files | DE | P1-02 | done |
+| P1-04 | Parse revenue/expenditure xlsx to `Observation[]` | DE | P1-01, P1-02 | done |
+| P1-05 | Population and CPI series to year-keyed JSON | DE | P1-03 | done |
+| P1-06 | Emit versioned `src/assets/data/*.json` + `Source` records | DE | P1-04, P1-05 | done |
+| P1-07 | Validation report `data/validation.md` | DE | P1-06 | done |
+| P1-08 | Pipeline unit tests | DE | P1-04 | done |
+| P1-09 | QA review of Phase 1 (hand re-derivation) | QA | P1-07 | done |
 
 ### Acceptance criteria
 
@@ -79,11 +79,13 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 - [ ] Findings are logged in the Findings log below. Phase 1 is not done while there are open blocker findings.
 
 ### Phase 1 Definition of Done
-- [ ] All P1 tasks `done`. P1-09 has no open blocker findings.
-- [ ] `npm run pipeline` is green and deterministic (checksums stable across 2 runs).
-- [ ] `data/validation.md` is all-pass (or each exception is allowlisted with a reason).
-- [ ] Every emitted number traces to publisher, file, account code, fiscal year, and retrieval date.
-- [ ] `docs/data-layout.md` is complete. decisions.md is updated with any choices made during parsing.
+- [x] All P1 tasks `done`. P1-09 has no open blocker findings.
+- [x] `npm run pipeline` is green and deterministic (checksums stable across 2 runs).
+- [x] `data/validation.md` is all-pass (or each exception is allowlisted with a reason).
+- [x] Every emitted number traces to publisher, file, account code, fiscal year, and retrieval date.
+- [x] `docs/data-layout.md` is complete. decisions.md is updated with any choices made during parsing.
+
+**Phase 1 approved by QA** (2026-10-06, tag `phase-1-approved`). Deferred: QA-07 (all-funds scope includes pension, trust and component units) moves to Phase 3 under O-07.
 
 ---
 
