@@ -449,7 +449,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 - [ ] The mapping comes from the DFS Uniform Accounting System chart of accounts. The UAS manual edition(s) are stored in `data/raw/` with sha256, URL and retrieval date. Each mapping row cites the edition and section.
 - [ ] Every revenue and expenditure account code that appears in either county, in any year, maps to exactly one category. Unmapped codes fail the build.
 - [ ] Ad Valorem (311) is its own category, separate from Other Taxes (D-19).
-- [ ] Changes in UAS codes over the years (R-08) are handled with year-ranged mapping rows, each with a source. The validation report lists every code that appears or disappears across years.
+- [ ] Changes in UAS codes over the years (R-08) are handled with year-ranged mapping rows, each with a source. (Done per DR-48. FY 2004-05 to FY 2009-10 use the 2011 edition's classes, a deviation accepted by DR-51 provided the categories source carries a caveat.) The validation report lists every code that appears or disappears across years.
 - [ ] The mapping table is emitted as JSON for the site (code, name, category, years, source). It agrees with the existing prefix-based `category` field (DR-04, DR-36); any difference is listed and resolved, not silently overridden.
 - [ ] The validation report shows that, for every county, FY and flow, the category sums equal the EDR total, to the dollar.
 
@@ -557,6 +557,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
   - population basis;
   - known source anomalies (QA-01/QA-03);
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
+  - **UAS edition coverage (DR-51):** categories follow the DFS UAS Manual. FY 2004-05 to FY 2009-10 use the 2011 edition's classes because the earlier editions were not checked. 39x is year-ranged (DR-48).
   - **what the LOGERX cross-check means (QA-30):** a cross-check that EDR matches the county's DFS filing; not an audit. LOGERX is the DFS system EDR compiles from, so a match shows EDR transcribed the filing faithfully. It does not show the county's figures are correct, complete or audited. The page states the covered years (FY 2012-13 onward), the match counts, and the uncovered years.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - **Phase 5 export (D-17):** CSV/PNG export and its header Export button ship together, in the same change. No placeholder or disabled Export control is shown before then. The button gets the usual criteria: 44 px, keyboard focus, light/dark, and a visible error if export fails.

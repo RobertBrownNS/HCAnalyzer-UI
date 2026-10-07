@@ -2,6 +2,7 @@ import path from 'node:path';
 import type { CountyConfig } from '../config/counties.js';
 import type { CpiSeriesConfig } from './bls/cpi.js';
 import type { CoverageRange, CrossCheckStatus, FlowCrossCheck } from './logerx/crosscheck.js';
+import { fiscalYearLabel } from './lib/fiscal.js';
 import { RAW_DIR } from './lib/paths.js';
 
 export const EDR_AFR_BASE = 'https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/';
@@ -166,7 +167,10 @@ export function countyAfrSource(county: CountyConfig, fiscalYear: number, rawFil
 export const FUND_GROUPS_CAVEAT =
   'Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.';
 
-export function uasManualSource(edition: UasEdition, rawFile: string, r: RetrievalRecord): Source {
+/** First fiscal year (year ending) covered by the oldest edition compared, the 2011 county edition. */
+export const FIRST_COMPARED_EDITION_FISCAL_YEAR = 2011;
+
+export function uasManualSource(edition: UasEdition, rawFile: string, r: RetrievalRecord, earliestFiscalYear: number): Source {
   const latest = edition.key === '2025';
   return {
     id: sourceIds.uasEdition(edition.key),
@@ -180,7 +184,10 @@ export function uasManualSource(edition: UasEdition, rawFile: string, r: Retriev
     caveats: latest
       ? [
           'Categories are the manual\'s major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as this edition names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.',
-          'Class boundaries were compared with the 2011 (county), 2019-20, 2021-22 and 2022-23 editions. They are the same except 39x, which the 2011 and 2019-20 editions print as "Other Sources, Continued"; it is grouped with Other Sources for fiscal years before FY 2021-22. Editions in force before 2011 were not compared.',
+          'Class boundaries were compared with the 2011 (county), 2019-20, 2021-22 and 2022-23 editions. They are the same except 39x, which the 2011 and 2019-20 editions print as "Other Sources, Continued"; it is grouped with Other Sources for fiscal years before FY 2021-22.',
+          ...(earliestFiscalYear < FIRST_COMPARED_EDITION_FISCAL_YEAR
+            ? [`UAS editions in force for ${fiscalYearLabel(earliestFiscalYear)} to ${fiscalYearLabel(FIRST_COMPARED_EDITION_FISCAL_YEAR - 1)} were not available to compare; those years use the 2011 edition's account classes.`]
+            : []),
           'Fund groups follow the manual\'s Fund Groups and Fund Types table (p. 6).',
         ]
       : [

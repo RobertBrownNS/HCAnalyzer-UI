@@ -541,7 +541,8 @@ async function main() {
       !a.topic ||
       !(ANNOTATION_TOPICS as readonly string[]).includes(a.topic) ||
       (a.funds ?? []).some((f) => !FUND_METADATA.some((m) => m.id === f)) ||
-      (a.categories ?? []).some((c) => !CATEGORIES.some((d) => d.id === c)),
+      (a.categories ?? []).some((c) => !CATEGORIES.some((d) => d.id === c)) ||
+      (a.cells ?? []).some((c) => !c.account || !FUND_METADATA.some((m) => m.id === c.fundType)),
   );
   add('Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed', !badAnnotations.length,
     badAnnotations.length ? badAnnotations.map((a) => `${a.fiscalYear} ${a.label}`).join('; ') : `${annotationsJson.length} annotations`);

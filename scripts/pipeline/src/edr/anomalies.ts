@@ -46,8 +46,11 @@ export interface Annotation {
   funds?: string[];
   /** Category views: show when one of these categories is shown. */
   categories?: string[];
-  /** Source drawer: show for a point whose observations include one of these account codes (same jurisdiction, flow and year). */
-  accounts?: string[];
+  /**
+   * Source drawer: show for a point whose underlying observations include one of these EDR cells
+   * (account + fund), same jurisdiction, flow and fiscal year.
+   */
+  cells?: Array<{ account: string; fundType: string }>;
   /** Longer factual text for the source drawer. */
   detail?: string;
   /** Workbook cells ("2023!D16") the annotation's figures come from. */

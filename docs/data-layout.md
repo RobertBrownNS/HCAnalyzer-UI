@@ -362,7 +362,7 @@ Differences from the earlier prefix rules:
 `reconciliation-difference` annotations (DR-47, DR-50): the two LOGERX/EDR classification differences are annotated from `APPROVED_RECLASSIFICATIONS`, with scope fields:
 - `funds`: show in fund-scope views when the selected funds include some, but not all, of the listed funds. Hillsborough FY 2014-15, $1,164,281, account 559: Internal Service in EDR, Component Units in LOGERX.
 - `categories`: show in category views showing that category, not on total charts. Pinellas FY 2013-14, $2,309,587: account 335.8 in EDR, 335.9 in LOGERX, both intergovernmental.
-- `accounts`: show in the source drawer for points whose observations include one of these accounts (Hillsborough [559]; Pinellas [335.8, 335.9]).
+- `cells`: show in the source drawer for points whose observations include one of these EDR cells, matched by account and fund (Hillsborough [559 Internal Service]; Pinellas [335.8 Special Revenue]).
 The build fails if an approved difference is not found; validation fails if any difference is not approved.
 
 ## Annotation approvals

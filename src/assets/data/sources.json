@@ -164,7 +164,8 @@
     "accessUrl": "https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf",
     "caveats": [
       "Categories are the manual's major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as this edition names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.",
-      "Class boundaries were compared with the 2011 (county), 2019-20, 2021-22 and 2022-23 editions. They are the same except 39x, which the 2011 and 2019-20 editions print as \"Other Sources, Continued\"; it is grouped with Other Sources for fiscal years before FY 2021-22. Editions in force before 2011 were not compared.",
+      "Class boundaries were compared with the 2011 (county), 2019-20, 2021-22 and 2022-23 editions. They are the same except 39x, which the 2011 and 2019-20 editions print as \"Other Sources, Continued\"; it is grouped with Other Sources for fiscal years before FY 2021-22.",
+      "UAS editions in force for FY 2004-05 to FY 2009-10 were not available to compare; those years use the 2011 edition's account classes.",
       "Fund groups follow the manual's Fund Groups and Fund Types table (p. 6)."
     ],
     "id": "dfs-uas-manual-2025",

@@ -178,7 +178,7 @@ Inputs (sha256 verified against `data/raw/manifest.json`):
 | NOTE | pinellas: Drop-and-recover gaps: fund type or section falls more than 50% and recovers within 2 years (non-custodial, baseline at least $1,000,000) | 5 found; 0 annotated (config/approved-gaps.ts), 5 listed for reference only. Listed under "Drop-and-recover gaps" |
 | PASS | Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed | 39 annotations |
 | PASS | Annotation refs resolve to a non-empty cell in the named workbook (format workbook:sheet!cell) | 102 refs resolved |
-| PASS | User-facing text has no file names, paths, JSON keys or code identifiers | 305 strings checked in cpi, annotations, sources and population |
+| PASS | User-facing text has no file names, paths, JSON keys or code identifiers | 306 strings checked in cpi, annotations, sources and population |
 | PASS | UAS categories: every account row in every county maps to exactly one category | 7,847 account rows, 19 categories |
 | PASS | manifest: defaultJurisdiction is the one county marked default in config, and is one of jurisdictions | defaultJurisdiction = "hillsborough"; jurisdictions = hillsborough, pinellas |
 | PASS | Shared sources: county-specific caveats are in caveatsByJurisdiction (no county-name prefixes in shared caveats) | ok |

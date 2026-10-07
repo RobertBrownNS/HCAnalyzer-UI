@@ -209,7 +209,8 @@ function reclassificationAnnotations(c: Inputs['counties'][number], rev: FlowCro
       flow: a.flow,
       ...(a.funds ? { funds: a.funds } : {}),
       ...(a.categories ? { categories: a.categories } : {}),
-      accounts: [...new Set([pair.edr.account, pair.logerx.account])].sort((x, y) => Number(x) - Number(y)),
+      // The EDR cell the drawer lists for this point (the LOGERX side has no EDR observation).
+      cells: [{ account: pair.edr.account, fundType: pair.edr.fundType }],
       detail:
         `${fiscalYearLabel(a.fiscalYear)} ${a.flow}s: ${amount} is in ${where(pair.edr)} in the EDR workbook (${pair.edr.ref}) and in ${where(pair.logerx)} in the Annual Financial Report data the county filed with the Florida Department of Financial Services (LOGERX). ` +
         'Yearly totals are equal in both sources; the explorer shows the EDR classification.',
@@ -289,7 +290,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
 
   sources.push(populationSource(rel(inputs.populationFile), retrievalFor(inputs.retrieval, inputs.populationFile)));
   for (const { key, file } of inputs.uasManualFiles) {
-    sources.push(uasManualSource(UAS_EDITIONS.find((e) => e.key === key)!, rel(file), retrievalFor(inputs.retrieval, file)));
+    sources.push(uasManualSource(UAS_EDITIONS.find((e) => e.key === key)!, rel(file), retrievalFor(inputs.retrieval, file), Math.min(...inputs.counties.flatMap((c) => [...c.revenues.sheets, ...c.expenditures.sheets].map((s) => s.fiscalYear)))));
   }
   files.set('categories.json', stringifyRows(CATEGORIES.map((c) => ({
     id: c.id,
