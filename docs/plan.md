@@ -432,16 +432,16 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
-| P3-01 | UAS category mapping: source and published table | DE | none | todo |
-| P3-02 | Fund metadata (fund types, groups for presets, what "all funds" includes) | DE | none | todo |
-| P3-03 | DR-47 reclassification annotations, scoped to fund and category views | DE | P3-01, P3-02 | todo |
-| P3-04 | Transform: fund and category filters, category series, net-transfer rule, golden tests | TE | P3-01, P3-02 | todo |
-| P3-05 | Fund multi-select, presets, and category picker | FE | P3-02, P3-04 | todo |
-| P3-06 | Chart-type switch: stacked area, 100% share, bars, category overlay | FE | P3-04 | todo |
-| P3-07 | Source drawer on point tap | FE | P3-03, P3-04 | todo |
-| P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | todo |
-| P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | todo |
-| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer) | QA | P3-05..P3-08, P3-09 | todo |
+| P3-01 | UAS category mapping: source and published table | DE | none | review |
+| P3-02 | Fund metadata (fund types, groups for presets, what "all funds" includes) | DE | none | review |
+| P3-03 | DR-47 reclassification annotations, scoped to fund and category views | DE | P3-01, P3-02 | review |
+| P3-04 | Transform: fund and category filters, category series, net-transfer rule, golden tests | TE | P3-01, P3-02 | review |
+| P3-05 | Fund multi-select, presets, and category picker | FE | P3-02, P3-04 | review |
+| P3-06 | Chart-type switch: stacked area, 100% share, bars, category overlay | FE | P3-04 | review |
+| P3-07 | Source drawer on point tap | FE | P3-03, P3-04 | review |
+| P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | review |
+| P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | in-progress |
+| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer) | QA | P3-05..P3-08, P3-09 | in-progress |
 
 ### Acceptance criteria
 
@@ -512,7 +512,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 - [ ] It is reachable by keyboard and screen reader (a focus trap, Escape to close, focus returns to the point or row). It is a bottom sheet on phone. It meets the 44 px rule.
 
 **P3-08 URL state and multi-series table (FE)**
-- [ ] Fund selection, category selection, chart type and drawer-independent settings are all in the URL (DR-32: every setting written; unknown params preserved).
+- [ ] Fund selection, category selection, chart type and drawer-independent settings are all in the URL. Every setting is written (DR-32), except `funds` and `cats`, which are omitted when everything is selected; omitted means "all" (DR-52). `chart` is always written. Unknown params are preserved.
 - [ ] Old links with no new params open the Phase 2 / 4a default view, with identical values.
 - [ ] Back/forward works for every new control.
 - [ ] Invalid params (an unknown fund or category, net with a partial scope) fall back to a valid state without crashing.
