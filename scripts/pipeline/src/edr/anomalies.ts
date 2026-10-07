@@ -51,6 +51,8 @@ export interface Annotation {
    * (account + fund), same jurisdiction, flow and fiscal year.
    */
   cells?: Array<{ account: string; fundType: string }>;
+  /** True: never a chart marker; shown only in the source drawer (via `cells`). */
+  drawerOnly?: boolean;
   /** Longer factual text for the source drawer. */
   detail?: string;
   /** Workbook cells ("2023!D16") the annotation's figures come from. */

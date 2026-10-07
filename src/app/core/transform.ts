@@ -180,6 +180,7 @@ export type ChartView = 'total' | 'categories';
  *   when exactly one side is shown; no selection = every fund = hidden.
  * - categories: shown only in the 'categories' view, and only when the
  *   category selection (none = all) includes one of them.
+ * Rows with drawerOnly are never returned (see annotationsForPoint).
  * A condition that is absent applies to every view.
  */
 export function annotationsInRange(
@@ -195,6 +196,7 @@ export function annotationsInRange(
   return data.annotations
     .filter(
       (a) =>
+        a.drawerOnly !== true &&
         a.fiscalYear >= lo &&
         a.fiscalYear <= hi &&
         (a.jurisdiction === undefined || a.jurisdiction === jurisdiction) &&

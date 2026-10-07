@@ -33,6 +33,7 @@ export const RESEARCH_NOTES: ResearchNote[] = [
 export const APPROVED_RECLASSIFICATIONS: ApprovedReclassification[] = [
   // Fund difference: matters when exactly one of the two funds is in the selected fund scope.
   { jurisdiction: 'hillsborough', flow: 'expenditure', fiscalYear: 2015, amount: 1_164_281, funds: ['component_unit', 'internal_service'] },
-  // Account difference within one category (335.8 vs 335.9, both intergovernmental): category views.
-  { jurisdiction: 'pinellas', flow: 'revenue', fiscalYear: 2014, amount: 2_309_587, categories: ['intergovernmental'] },
+  // Account difference within one category (335.8 vs 335.9, both intergovernmental): no category or fund
+  // total changes, so no chart marker; shown in the source drawer via the EDR cell (DR-50).
+  { jurisdiction: 'pinellas', flow: 'revenue', fiscalYear: 2014, amount: 2_309_587 },
 ];

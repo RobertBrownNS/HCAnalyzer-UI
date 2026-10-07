@@ -79,6 +79,8 @@ export interface AnnotationRecord extends Annotation {
    * cells. Doesn't affect chart markers.
    */
   cells?: readonly { account: string; fundType: string }[];
+  /** Never a chart marker; shown only in the source drawer via `cells`. */
+  drawerOnly?: boolean;
 }
 
 export type AnnotationTopic =

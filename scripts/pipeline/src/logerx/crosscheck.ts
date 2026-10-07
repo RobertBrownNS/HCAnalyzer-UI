@@ -207,7 +207,7 @@ export interface ApprovedReclassification {
   fiscalYear: number;
   /** The amount that sits under a different account or fund in the two sources. */
   amount: number;
-  /** Annotation scope (see Annotation.funds / Annotation.categories). */
+  /** Annotation scope (see Annotation.funds / Annotation.categories). Neither: drawer only. */
   funds?: string[];
   categories?: string[];
 }

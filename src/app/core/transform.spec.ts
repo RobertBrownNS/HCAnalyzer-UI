@@ -1295,8 +1295,14 @@ describe.each(JURISDICTIONS)('golden: %s', (jurisdiction) => {
             for (const funds of [undefined, ...availableFunds(data, jurisdiction).map((f) => [f])])
               for (const a of annotationsInRange(data, full({ flow, includeCustodial, measure, funds }), view)) {
                 expect(ownOrStatewide(a)).toBe(true);
+                expect(a.drawerOnly).not.toBe(true);
                 seen.add(a);
               }
+    // drawerOnly rows are reachable through the drawer instead.
+    for (const a of data.annotations.filter((x) => ownOrStatewide(x) && x.drawerOnly === true)) {
+      expect(annotationsForPoint(data, full({ flow: a.flow! }), a.fiscalYear)).toContain(a);
+      seen.add(a);
+    }
     expect(seen.size).toBe(data.annotations.filter(ownOrStatewide).length);
   });
 
@@ -1730,32 +1736,45 @@ describe('annotationsInRange: funds and categories (DR-47)', () => {
       ann('no-funds', { funds: [] }),
       ann('ad-valorem', { categories: ['ad_valorem'] }),
       ann('both', { funds: ['general', 'enterprise'], categories: ['charges_for_services'] }),
+      ann('drawer-only', { drawerOnly: true }),
+      ann('drawer-false', { drawerOnly: false }),
     ],
   });
   const labels = (s: Partial<TransformSettings>, view?: ChartView) =>
     annotationsInRange(d(), p3(s), view).map((a) => a.label);
 
   it('funds: shown only when the selection includes some but not all of the listed funds', () => {
-    expect(labels({})).toEqual(['plain']);
-    expect(labels({ funds: [] })).toEqual(['plain']);
-    expect(labels({ funds: ['general'] })).toEqual(['gen+sr', 'plain']);
-    expect(labels({ funds: ['general', 'special_revenue'] })).toEqual(['plain']);
-    expect(labels({ funds: ['internal_service', 'capital'] })).toEqual(['ci+is', 'plain']);
-    expect(labels({ funds: ['capital'] })).toEqual(['plain']);
+    expect(labels({})).toEqual(['drawer-false', 'plain']);
+    expect(labels({ funds: [] })).toEqual(['drawer-false', 'plain']);
+    expect(labels({ funds: ['general'] })).toEqual(['drawer-false', 'gen+sr', 'plain']);
+    expect(labels({ funds: ['general', 'special_revenue'] })).toEqual(['drawer-false', 'plain']);
+    expect(labels({ funds: ['internal_service', 'capital'] })).toEqual(['ci+is', 'drawer-false', 'plain']);
+    expect(labels({ funds: ['capital'] })).toEqual(['drawer-false', 'plain']);
     // A single listed fund can never be split; an empty list never applies.
-    expect(labels({ funds: ['enterprise'] })).toEqual(['plain']);
+    expect(labels({ funds: ['enterprise'] })).toEqual(['drawer-false', 'plain']);
   });
 
   it('categories: hidden in the total view; shown in a category view that shows one of them', () => {
-    expect(labels({}, 'total')).toEqual(['plain']);
-    expect(labels({}, 'categories')).toEqual(['ad-valorem', 'plain']);
-    expect(labels({ categories: ['ad_valorem'] }, 'categories')).toEqual(['ad-valorem', 'plain']);
-    expect(labels({ categories: ['charges_for_services'] }, 'categories')).toEqual(['plain']);
-    expect(labels({ categories: ['charges_for_services'], funds: ['general'] }, 'categories')).toEqual(['both', 'gen+sr', 'plain']);
-    expect(labels({ categories: ['charges_for_services'], funds: ['general', 'enterprise'] }, 'categories')).toEqual([
+    expect(labels({}, 'total')).toEqual(['drawer-false', 'plain']);
+    expect(labels({}, 'categories')).toEqual(['ad-valorem', 'drawer-false', 'plain']);
+    expect(labels({ categories: ['ad_valorem'] }, 'categories')).toEqual(['ad-valorem', 'drawer-false', 'plain']);
+    expect(labels({ categories: ['charges_for_services'] }, 'categories')).toEqual(['drawer-false', 'plain']);
+    expect(labels({ categories: ['charges_for_services'], funds: ['general'] }, 'categories')).toEqual([
+      'both',
+      'drawer-false',
       'gen+sr',
       'plain',
     ]);
+    expect(labels({ categories: ['charges_for_services'], funds: ['general', 'enterprise'] }, 'categories')).toEqual([
+      'drawer-false',
+      'gen+sr',
+      'plain',
+    ]);
+  });
+
+  it('drawerOnly rows are never chart markers, in any view or selection', () => {
+    for (const view of ['total', 'categories'] as const)
+      for (const funds of [undefined, ['general']]) expect(labels({ funds }, view)).not.toContain('drawer-only');
   });
 });
 
@@ -1985,6 +2004,29 @@ describe('golden: annotationsForPoint', () => {
         expect(annotationsForPoint(realData, { ...s, funds: others }, a.fiscalYear)).not.toContain(a);
         expect(annotationsForPoint(realData, s, a.fiscalYear - 1)).not.toContain(a);
       }
+    },
+  );
+});
+
+describe('golden: drawerOnly annotations', () => {
+  const rows = realData.annotations.filter((a) => a.drawerOnly === true);
+
+  it('exist (today: Pinellas FY 2013-14 revenue, 335.8 special_revenue) and all carry cells', () => {
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows).toContainEqual(expect.objectContaining({ jurisdiction: 'pinellas', fiscalYear: 2014, flow: 'revenue' }));
+    for (const a of rows) expect(a.cells!.length).toBeGreaterThan(0);
+  });
+
+  it.each(rows.map((a) => [`${a.jurisdiction} ${a.flow} FY ${a.fiscalYear}`, a] as const))(
+    '%s: never a chart marker in any view or fund selection; shown in its own point drawer',
+    (_, a) => {
+      const s = goldenFull({ jurisdiction: a.jurisdiction!, flow: a.flow! });
+      const selections = [undefined, ...availableFunds(realData, s.jurisdiction).map((f) => [f])];
+      for (const view of ['total', 'categories'] as const)
+        for (const funds of selections)
+          for (const includeCustodial of [false, true])
+            expect(annotationsInRange(realData, { ...s, funds, includeCustodial }, view)).not.toContain(a);
+      expect(annotationsForPoint(realData, s, a.fiscalYear)).toContain(a);
     },
   );
 });
