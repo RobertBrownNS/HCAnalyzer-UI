@@ -1,6 +1,6 @@
 {
   "national": {
-    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the value is null and the reason is in fiscalYearUnavailable (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (see calendarYearNotes). No values from another series are spliced in.",
+    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average. Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the year has no value and the reason is given (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (noted for that year). No values from another series are spliced in.",
     "area": "U.S. city average",
     "basePeriod": "1982-84=100",
     "calendarYear": {
@@ -37,7 +37,7 @@
       "2025": "BLS-published annual average, used as published; months not published: 2025-10 (Data unavailable due to the 2025 lapse in appropriations)"
     },
     "calendarYearUnavailable": {
-      "2026": "BLS annual average not published for this series; missing 2026-09 (not in source), 2026-10 (not in source), 2026-11 (not in source), 2026-12 (not in source)"
+      "2026": "BLS annual average not published for this series; missing 2026-09 (not in the downloaded BLS data), 2026-10 (not in the downloaded BLS data), 2026-11 (not in the downloaded BLS data), 2026-12 (not in the downloaded BLS data)"
     },
     "defaultAlignment": "fiscalYear",
     "endPeriod": "2026-08",
@@ -72,8 +72,8 @@
     },
     "fiscalYearBasis": "Mean of the 12 monthly BLS values from October of the prior year through September, rounded to 3 decimals (computed by this pipeline).",
     "fiscalYearUnavailable": {
-      "2000": "incomplete fiscal year, not averaged: missing 1999-10 (not in source), 1999-11 (not in source), 1999-12 (not in source)",
-      "2026": "incomplete fiscal year, not averaged: missing 2025-10 (Data unavailable due to the 2025 lapse in appropriations), 2026-09 (not in source)"
+      "2000": "incomplete fiscal year, not averaged: missing 1999-10 (not in the downloaded BLS data), 1999-11 (not in the downloaded BLS data), 1999-12 (not in the downloaded BLS data)",
+      "2026": "incomplete fiscal year, not averaged: missing 2025-10 (Data unavailable due to the 2025 lapse in appropriations), 2026-09 (not in the downloaded BLS data)"
     },
     "frequency": "monthly",
     "missingMonths": {
@@ -407,7 +407,7 @@
     "title": "All items in U.S. city average, all urban consumers, not seasonally adjusted"
   },
   "tampa": {
-    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the value is null and the reason is in fiscalYearUnavailable (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (see calendarYearNotes). No values from another series are spliced in.",
+    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average. Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the year has no value and the reason is given (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (noted for that year). No values from another series are spliced in.",
     "area": "Tampa-St. Petersburg-Clearwater, FL",
     "basePeriod": "1987=100",
     "calendarYear": {
@@ -437,20 +437,20 @@
     "calendarYearBasis": "BLS-published annual average (period M13)",
     "calendarYearNotes": {},
     "calendarYearUnavailable": {
-      "2005": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2005 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2006": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2006 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2007": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2007 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2008": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2008 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2009": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2009 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2010": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2010 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2011": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2011 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2012": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2012 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2013": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2013 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2014": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2014 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2015": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2015 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2016": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2016 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2017": "BLS annual average not published for this series; missing 2017-01 (not in source), 2017-03 (not in source), 2017-05 (not in source), 2017-07 (not in source), 2017-09 (not in source); the BLS calendar-year average for 2017 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2026": "BLS annual average not published for this series; missing 2026-09 (not in source), 2026-11 (not in source)"
+      "2005": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2006": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2007": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2008": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2009": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2010": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2011": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2012": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2013": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2014": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2015": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2016": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2017": "BLS annual average not published for this series; missing 2017-01 (not in the downloaded BLS data), 2017-03 (not in the downloaded BLS data), 2017-05 (not in the downloaded BLS data), 2017-07 (not in the downloaded BLS data), 2017-09 (not in the downloaded BLS data). BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2026": "BLS annual average not published for this series; missing 2026-09 (not in the downloaded BLS data), 2026-11 (not in the downloaded BLS data)"
     },
     "defaultAlignment": "fiscalYear",
     "endPeriod": "2026-07",
@@ -478,22 +478,22 @@
       "2025": 305.761,
       "2026": null
     },
-    "fiscalYearBasis": "Mean of the 6 published bimonthly BLS values (Nov, Jan, Mar, May, Jul, Sep) in the fiscal year, rounded to 3 decimals (computed by this pipeline). The same method applied to calendar years does not reproduce the BLS-published annual averages for this area (it runs 0.06-0.29% lower in 2018-2025; see data/validation.md).",
+    "fiscalYearBasis": "Mean of the 6 published bimonthly BLS values (Nov, Jan, Mar, May, Jul, Sep) in the fiscal year, rounded to 3 decimals (computed by this pipeline). The same method applied to calendar years does not reproduce the BLS-published annual averages for this area (it runs 0.06-0.29% lower in 2018-2025).",
     "fiscalYearUnavailable": {
-      "2005": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2005 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2006": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2006 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2007": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2007 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2008": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2008 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2009": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2009 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2010": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2010 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2011": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2011 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2012": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2012 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2013": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2013 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2014": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2014 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2015": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2015 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2016": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2016 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2017": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2017 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2026": "incomplete fiscal year, not averaged: missing 2026-09 (not in source)"
+      "2005": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2006": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2007": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2008": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2009": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2010": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2011": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2012": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2013": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2014": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2015": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2016": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2017": "no fiscal-year value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07. BLS publishes a calendar-year average for this area (series CUUSS35DSA0); select the calendar-year CPI period to use it",
+      "2026": "incomplete fiscal year, not averaged: missing 2026-09 (not in the downloaded BLS data)"
     },
     "frequency": "bimonthly",
     "missingMonths": {},
@@ -559,7 +559,7 @@
     "title": "All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted"
   },
   "tampa_semiannual": {
-    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the value is null and the reason is in fiscalYearUnavailable (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (see calendarYearNotes). No values from another series are spliced in.",
+    "alignmentRule": "Default deflator is the fiscal-year (Oct-Sep) average. Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the year has no value and the reason is given (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (noted for that year). No values from another series are spliced in.",
     "area": "Tampa-St. Petersburg-Clearwater, FL",
     "basePeriod": "1987=100",
     "calendarYear": {

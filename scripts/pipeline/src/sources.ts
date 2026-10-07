@@ -73,7 +73,7 @@ export function afrSource(county: CountyConfig, flow: 'revenue' | 'expenditure',
       EDR_CUSTODIAL_NOTICE,
       'The workbook "Total Account" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.',
       `Amounts are as reported by the county in its Annual Financial Report; ${years} include inter-fund transfers (${flow === 'revenue' ? 'account 381' : 'account 581'}), so summing across funds counts money moved between county funds in both the sending and receiving fund.`,
-      'Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (e.g. 312.30 appears as 312.3).',
+      'Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (312.30 appears as 312.3, for example).',
       'Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.',
     ],
   };
@@ -91,7 +91,7 @@ export function countyAfrSource(county: CountyConfig, fiscalYear: number, rawFil
     rawFile,
     caveats: [
       'Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.',
-      'Values were read from text extracted from the PDF; the lines checked are listed in scripts/pipeline/src/edr/county-afr-checks.ts and verified in data/validation.md.',
+      'Values were read from text extracted from the PDF. Each value read is checked against the EDR workbook, and the comparison is published in the project validation report.',
       ...(county.countyAfr!.files.find((f) => f.fiscalYear === fiscalYear)?.caveats ?? []),
     ],
   };
@@ -101,7 +101,7 @@ export function populationSource(rawFile: string, r: RetrievalRecord): Source {
   return {
     id: sourceIds.population,
     publisher: `${EDR}; estimates by the Bureau of Economic and Business Research (BEBR), University of Florida`,
-    title: 'Countywide, Unincorporated and Incorporated Totals - Census Counts and Population Estimates (FLcopops.xlsx)',
+    title: 'Countywide, Unincorporated and Incorporated Totals - Census Counts and Population Estimates',
     url: EDR_POPULATION_PAGE,
     accessUrl: r.url,
     retrieved: r.retrieved,

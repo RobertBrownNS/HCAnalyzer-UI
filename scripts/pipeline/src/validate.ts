@@ -66,6 +66,49 @@ interface CpiJson {
 
 const tag2 = (slug: string, s: string) => `${slug}: ${s}`;
 
+/**
+ * Patterns that must not appear in text shown to users (QA-19): file names, repository paths,
+ * dotted key paths, and snake_case / camelCase identifiers.
+ */
+export const INTERNAL_TEXT_PATTERNS: Array<[string, RegExp]> = [
+  ['.json', /\.json\b/i],
+  ['file extension', /\.(ts|md|xlsx|xls|pdf|html|cfm|csv)\b/i],
+  ['repository path', /\b(scripts|src|data|docs|config|test)\//],
+  ['dotted key path', /\b[a-z][A-Za-z0-9_]*\.[a-z][A-Za-z0-9_]*\b/],
+  ['snake_case identifier', /\b[a-z]+_[a-z0-9_]+\b/],
+  ['camelCase identifier', /\b[a-z]+[A-Z][A-Za-z]*\b/],
+];
+
+/** Text fields of the published JSON that the UI shows to users. */
+function userFacingStrings(outDir: string): Array<{ where: string; text: string }> {
+  const out: Array<{ where: string; text: string }> = [];
+  const push = (where: string, text: unknown) => {
+    if (typeof text === 'string') out.push({ where, text });
+  };
+  const cpi = JSON.parse(readFileSync(path.join(outDir, 'cpi.json'), 'utf8')) as Record<string, Record<string, unknown>>;
+  for (const [key, e] of Object.entries(cpi)) {
+    for (const f of ['title', 'area', 'basePeriod', 'alignmentRule', 'calendarYearBasis', 'fiscalYearBasis']) push(`cpi ${key} ${f}`, e[f]);
+    for (const f of ['fiscalYearUnavailable', 'calendarYearUnavailable', 'calendarYearNotes', 'missingMonths']) {
+      for (const [y, t] of Object.entries((e[f] ?? {}) as Record<string, string>)) push(`cpi ${key} ${f} ${y}`, t);
+    }
+  }
+  for (const a of JSON.parse(readFileSync(path.join(outDir, 'annotations.json'), 'utf8')) as Annotation[]) {
+    push(`annotation ${a.fiscalYear} ${a.topic} label`, a.label);
+    push(`annotation ${a.fiscalYear} ${a.topic} detail`, a.detail);
+  }
+  for (const src of JSON.parse(readFileSync(path.join(outDir, 'sources.json'), 'utf8')) as Array<{ id: string; title: string; publisher: string; caveats: string[] }>) {
+    push(`source ${src.id} title`, src.title);
+    push(`source ${src.id} publisher`, src.publisher);
+    src.caveats.forEach((c, i) => push(`source ${src.id} caveat ${i + 1}`, c));
+  }
+  const pop = JSON.parse(readFileSync(path.join(outDir, 'population.json'), 'utf8')) as Record<string, Record<string, unknown>>;
+  for (const [key, e] of Object.entries(pop)) {
+    push(`population ${key} reference`, e['reference']);
+    push(`population ${key} fiscalYearAlignment`, e['fiscalYearAlignment']);
+  }
+  return out;
+}
+
 /** Annotation refs: "revenues:2023!P124", "expenditures:2024!I29", "population:2010 Census!B31". */
 const REF_PATTERN = /^(revenues|expenditures|population):([^!]+)!([A-Z]+\d+)$/;
 
@@ -482,6 +525,17 @@ async function main() {
   }
   add('Annotation refs resolve to a non-empty cell in the named workbook (format workbook:sheet!cell)', !unresolved.length,
     unresolved.length ? unresolved.join('; ') : `${refCount} refs resolved`);
+  // User-facing text must not mention files, paths or JSON keys (QA-19).
+  const leaks: string[] = [];
+  const texts = userFacingStrings(OUT_DIR);
+  for (const { where, text } of texts) {
+    for (const [what, re] of INTERNAL_TEXT_PATTERNS) {
+      const m = re.exec(text);
+      if (m) leaks.push(`${where}: ${what} "${m[0]}"`);
+    }
+  }
+  add('User-facing text has no file names, paths, JSON keys or code identifiers', !leaks.length,
+    leaks.length ? leaks.slice(0, 10).join('; ') + (leaks.length > 10 ? `; and ${leaks.length - 10} more` : '') : `${texts.length} strings checked in cpi, annotations, sources and population`);
   const gasb = annotationsJson.find((a) => a.fiscalYear === 2021 && a.label === 'Custodial fund reporting begins (GASB 84).' && a.kind === 'methodology');
   add('GASB 84 annotation present at FY 2020-21', !!gasb, gasb ? `sourceId ${gasb.sourceId}` : 'missing');
 

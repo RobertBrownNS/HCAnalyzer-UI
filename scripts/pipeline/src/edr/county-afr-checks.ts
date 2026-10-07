@@ -80,7 +80,8 @@ export function countyAfrNote(
   jurisdiction: string,
   fiscalYear: number,
   topic: CountyAfrCheck['topic'],
-  sourceId: string,
+  /** Plain-language name of the filing, e.g. "Hillsborough County Annual Financial Report for FY 2023-24". */
+  filingName: string,
 ): string | undefined {
   const checks = COUNTY_AFR_CHECKS.filter((c) => c.jurisdiction === jurisdiction && c.fiscalYear === fiscalYear && c.topic === topic);
   if (!checks.length) return undefined;
@@ -90,5 +91,5 @@ export function countyAfrNote(
       ? `${what} $${c.lines.reduce((s, l) => s + l.amount, 0).toLocaleString('en-US')} (page ${c.page})`
       : `${what}: no line (page ${c.page})`;
   });
-  return `The county's own Annual Financial Report filed with the Florida CFO (source ${sourceId}) shows the same values: ${parts.join('; ')}.`;
+  return `The ${filingName}, as filed with the Florida Chief Financial Officer, shows the same values: ${parts.join('; ')}.`;
 }

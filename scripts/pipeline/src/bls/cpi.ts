@@ -118,7 +118,7 @@ export function averageOf(cpi: ParsedCpi, config: CpiSeriesConfig, months: strin
   const expected = months.filter((ym) => config.publishedMonths.includes(Number(ym.slice(5))));
   const missing = expected.filter((ym) => !cpi.monthly.has(ym));
   if (missing.length) {
-    const reasons = missing.map((ym) => (cpi.missing.has(ym) ? `${ym} (${cpi.missing.get(ym)})` : `${ym} (not in source)`));
+    const reasons = missing.map((ym) => (cpi.missing.has(ym) ? `${ym} (${cpi.missing.get(ym)})` : `${ym} (not in the downloaded BLS data)`));
     return { ok: false, reason: `missing ${reasons.join(', ')}`, months: expected };
   }
   const sum = expected.reduce((acc, ym) => acc + cpi.monthly.get(ym)!, 0);

@@ -15,7 +15,7 @@ import { countyAfrNote } from './edr/county-afr-checks.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import { toAccounts, toObservations } from './edr/observations.js';
 import { selectPopulation } from './edr/population.js';
-import { fiscalYearMonths } from './lib/fiscal.js';
+import { fiscalYearLabel, fiscalYearMonths } from './lib/fiscal.js';
 import { sha256, stableStringify } from './lib/hash.js';
 import { OUT_DIR, rel } from './lib/paths.js';
 import { loadInputs, retrievalFor, type Inputs } from './inputs.js';
@@ -55,8 +55,8 @@ function cpiEntry(
   config: CpiSeriesConfig,
   parsed: ParsedCpi,
   coverYears: [number, number],
-  /** Calendar years with a value in another series of the same area, and that series' cpi.json key. */
-  sibling?: { key: string; years: Set<number> },
+  /** Calendar years with a value in another BLS series for the same area, and that series' id. */
+  sibling?: { seriesId: string; years: Set<number> },
 ): { entry: Record<string, unknown>; caveats: string[] } {
   const months = [...parsed.monthly.keys()].sort();
   const halves = [...parsed.semiannual.keys()].sort();
@@ -68,7 +68,9 @@ function cpiEntry(
   const fromYear = Math.min(firstYear, coverYears[0]);
   const coverage = `this series (${config.id}) has data from ${first} to ${last}`;
   const siblingHint = (y: number) =>
-    sibling?.years.has(y) ? `; the BLS calendar-year average for ${y} for this area is in cpi.json ${sibling.key}.calendarYear` : '';
+    sibling?.years.has(y)
+      ? `. BLS publishes a calendar-year average for this area (series ${sibling.seriesId}); select the calendar-year CPI period to use it`
+      : '';
 
   // Fiscal-year averages need sub-annual values that line up with Oct-Sep; only the monthly and
   // bimonthly series have them.
@@ -122,7 +124,7 @@ function cpiEntry(
     config.frequency === 'monthly'
       ? 'Mean of the 12 monthly BLS values from October of the prior year through September, rounded to 3 decimals (computed by this pipeline).'
       : config.frequency === 'bimonthly'
-        ? 'Mean of the 6 published bimonthly BLS values (Nov, Jan, Mar, May, Jul, Sep) in the fiscal year, rounded to 3 decimals (computed by this pipeline). The same method applied to calendar years does not reproduce the BLS-published annual averages for this area (it runs 0.06-0.29% lower in 2018-2025; see data/validation.md).'
+        ? 'Mean of the 6 published bimonthly BLS values (Nov, Jan, Mar, May, Jul, Sep) in the fiscal year, rounded to 3 decimals (computed by this pipeline). The same method applied to calendar years does not reproduce the BLS-published annual averages for this area (it runs 0.06-0.29% lower in 2018-2025).'
         : 'Not available: semiannual periods (Jan-Jun, Jul-Dec) do not align with the Oct-Sep fiscal year.';
 
   return {
@@ -134,7 +136,7 @@ function cpiEntry(
       endPeriod: last,
       defaultAlignment: 'fiscalYear',
       alignmentRule:
-        'Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the value is null and the reason is in fiscalYearUnavailable (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (see calendarYearNotes). No values from another series are spliced in.',
+        'Default deflator is the fiscal-year (Oct-Sep) average. Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the year has no value and the reason is given (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (noted for that year). No values from another series are spliced in.',
       calendarYearNotes,
       area: config.area,
       basePeriod: config.basePeriod,
@@ -190,7 +192,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       populationSourceId: sourceIds.population,
       population: { selected, alternates },
       countyAfrNote: (fy, topic) =>
-        countyAfrFiles.some((x) => x.fiscalYear === fy) ? countyAfrNote(county.slug, fy, topic, sourceIds.countyAfr(county, fy)) : undefined,
+        countyAfrFiles.some((x) => x.fiscalYear === fy) ? countyAfrNote(county.slug, fy, topic, `${county.name} Annual Financial Report for ${fiscalYearLabel(fy)}`) : undefined,
       approvedGaps: APPROVED_GAPS,
     });
     generatedAnnotations.push(...generated.annotations);
@@ -199,7 +201,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       sourceId: sourceIds.population,
       reference: 'April 1 of the year shown',
       fiscalYearAlignment:
-        'Fiscal year N (Oct 1, N-1 to Sep 30, N) uses the April 1, N value: the same population EDR used for the Per Capita column of each AFR sheet (docs/decisions.md O-05; verified for every sheet in data/validation.md). Basis is the BEBR estimate published for that April 1, except 2010 (census count) and 2020 (revised BEBR estimate).',
+        'Fiscal year N (Oct 1, N-1 to Sep 30, N) uses the April 1, N value: the same population EDR used for the Per Capita column of each AFR sheet (checked for every fiscal year). Basis is the BEBR estimate published for that April 1, except 2010 (census count) and 2020 (revised BEBR estimate).',
       byYear: Object.fromEntries(
         [...selected].map(([year, v]) => [String(year), { value: v.value, basis: v.basis, sheet: v.sheet }]),
       ),
@@ -226,7 +228,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       config,
       parsed,
       financeYears,
-      sib ? { key: sib.config.key, years: new Set(sib.parsed.annual.keys()) } : undefined,
+      sib ? { seriesId: sib.config.id, years: new Set(sib.parsed.annual.keys()) } : undefined,
     );
     cpi[config.key] = entry;
     sources.push(cpiSource(config, rel(file), retrievalFor(inputs.retrieval, file), caveats));

@@ -40,7 +40,7 @@ export const COUNTIES: CountyConfig[] = [
           fiscalYear: 2025,
           url: 'https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true',
           caveats: [
-            'The header of this filing shows no audit-received date: page 1 reads "AUDIT RECEIVED DATE: unresolved: @afr.auditreceiveddate" (AFR received date 6/30/2026). The FY 2021-22, FY 2022-23 and FY 2023-24 filings show audit-received dates of 6/15/2023, 6/28/2024 and 6/30/2025.',
+            'The header of this filing shows no audit-received date: on page 1 the audit-received date field shows an unfilled placeholder instead of a date (AFR received date 6/30/2026). The FY 2021-22, FY 2022-23 and FY 2023-24 filings show audit-received dates of 6/15/2023, 6/28/2024 and 6/30/2025.',
           ],
         },
       ],
