@@ -1107,7 +1107,7 @@ Re-run: `drawer.mjs`, `p3-text.mjs` (0 hits, with and without `idx=1`) and `qa/p
 |---|---|---|---|---|---|
 | QA-46 | P3-06 palette (colour vision) | note | Normal-vision distinctness is fine (above). Under simulated colour-vision deficiency some pairs come close: light **orange #e69f00 / yellow #b8a800** ΔE ≈ 0 for protanopia; light **reddish purple / grey** ΔE 3.0 for deuteranopia; dark **blue #4a9fd8 / deep purple #a68fd9** ΔE 3.7 for protanopia (expenditures only). The orange/yellow pair dates from Phase 3's start. Every band and bar also has its own decal and every line its own marker, so colour is never the only cue (CLAUDE.md "colorblind-safe"). No action needed; noted for the record. | FE | open |
 | QA-47 | P2-15 / P4a-06 (phone chips) | minor | **Small layout shift in the phone chip row during load.** Under Slow 4G with 4× CPU, at about 5.2 s (before data-ready), the county chip changes from "County" to "County: Hillsborough". The Data and Measure chips move right by 83 px, giving CLS 0.0042–0.0049 (`shift-sources.mjs`). It happens at 360 px in light and dark and intermittently at 390 px, and is the same at `a34887f`, so it **predates these fixes**. It is far below 0.1, but the criterion is "CLS ≈ 0". *Suggested fix:* reserve the chip's width, or label it from the URL's county as soon as the registry loads. **Not a Phase 3 condition.** | FE | **verified** (`c92e37b`) |
-| QA-48 | P4a-06 / P3-08 (phone chips, county switch) | minor | **The Funds chip briefly says "General Fund" during a county switch.** When switching from Hillsborough to Pinellas in the phone County sheet (Slow 4G, 4× CPU), the chips read "Fiscal years" and **"General Fund"** for about 1.2 s until the new county loads, then "All funds" again. The scope in the URL is all funds throughout. The same happens at `a34887f`, so it predates QA-47 (`chip-switch.mjs`). *Suggested fix:* keep the previous labels, or a neutral loading label such as "Funds", until the county's data is ready; never name a fund scope that isn't selected. Not a Phase 3 condition. | FE | open |
+| QA-48 | P4a-06 / P3-08 (phone chips, county switch) | minor | **The Funds chip briefly says "General Fund" during a county switch.** When switching from Hillsborough to Pinellas in the phone County sheet (Slow 4G, 4× CPU), the chips read "Fiscal years" and **"General Fund"** for about 1.2 s until the new county loads, then "All funds" again. The scope in the URL is all funds throughout. The same happens at `a34887f`, so it predates QA-47 (`chip-switch.mjs`). *Suggested fix:* keep the previous labels, or a neutral loading label such as "Funds", until the county's data is ready; never name a fund scope that isn't selected. Not a Phase 3 condition. | FE | **verified** (`f6d96be`) |
 
 **Phase 3 final sign-off (`60a642f`): APPROVE.** QA-39, QA-40, QA-41, QA-42 and QA-45 are verified; QA-43 is closed and QA-44 verified. P3-11 analytics and P3-12 favicon are verified live. Remaining items are a note (QA-46) and a pre-existing minor issue (QA-47) for a later phase. Not verifiable here: real devices and browsers' tab-bar rendering of the favicon, screen-reader output, and pointer selection on canvas bands (drawer tested from table cells and rows).
 
@@ -1117,4 +1117,36 @@ Re-run: `drawer.mjs`, `p3-text.mjs` (0 hits, with and without `idx=1`) and `qa/p
 - Across a later county switch (`chip-switch.mjs`), the real chips stay in place; no placeholders return.
 - The one shift recorded (0.0013) is the county chip narrowing in the same frame as the selection in the sheet. In real use that follows user input, so CLS excludes it (`hadRecentInput`); in the script it was a programmatic change.
 - New minor finding QA-48 (pre-existing).
+
+#### P3-13 / P3-14 / QA-48 review (2026-10-07, `f6d96be`)
+
+Method: clean clone at `f6d96be`. 493 app tests pass. The production build was served with gzip and driven in headless Chrome. New scripts: `qa/phase3/pane.mjs` and `qa/phase3/pane2.mjs`; `chip-switch.mjs` was re-run. No QA script asserted the old title; the page and header now read "FL Finance Transparency".
+
+- **P3-14 accordion** (1366×768 and 1920×1080, light and dark):
+  - **Fresh profile:** View open, the other three closed. Headers are buttons with `aria-expanded` and `aria-controls` pointing at an existing `role=region`, which is labelled by the header. Headers are 52–84 px tall.
+  - **One section at a time:** opening Inflation, then Funds, then Categories, then View closes the previous one each time; closing the open one leaves none open. Enter and Space toggle a focused header, which shows a visible 2 px focus outline (`:focus-visible`).
+  - **One scrollbar:** the pane is `overflow: visible`, and no element on the page scrolls internally in any state (each section open, Funds in Advanced, all closed).
+  - **Sticky only when it fits:**
+    - 1366×768: sticky with Inflation open or all closed (720 px); static with View (760), Funds (782), Categories (844) or Funds in Advanced (1084).
+    - 1920×1080: sticky in every state except Funds in Advanced (1084 px > 1032).
+    - When sticky, the pane holds at 48 px after a 300 px scroll. When static, it scrolls with the page (48 → −252).
+    - Opening Funds in Advanced with a real mouse click while scrolled un-sticks the pane and scrolls the page back by the same distance, so the clicked header stays at 254 px. The chart moves down 300 px; that is a scroll, and the layout shift that comes with it has `hadRecentInput`, so CLS stays 0.
+  - **Stored state:** "none" and Advanced survive a reload. Unknown ids (`bogus` / `weird`) fall back to View and Simple. With storage blocked (the `localStorage` getter throws), the page shows View and Simple, and toggles work for the page, with no console errors and no alert.
+  - **Nothing in the URL:** query string and `history.length` are unchanged by every section and mode toggle, and the KPIs are identical.
+  - **Summaries** (non-default URLs): every active setting is readable with all sections collapsed. Example: "Hillsborough · Revenues · Per resident, inflation-adjusted · Base year FY 2014-15 · FY 2014-15 = 100" / "CPI-U Tampa · Calendar-year average" / "All funds as reported by EDR · Custodial included · Transfers: as reported (gross)" / "Ad Valorem Taxes, Intergovernmental Revenues". Other cases: "Custom: 3 funds", "4 categories", "Transfers: excluded (net)", "Not used". Categories is hidden on the line chart only. The strings follow DR-54 as amended (`6d960fb`).
+  - **Contrast:** title 15.9:1 / 13.3:1 and summary 6.0:1 / 6.3:1 (light/dark).
+  - **CLS on load** with each stored state (view/simple, funds/advanced, none, categories, and a custom link over a stored "inflation"), Fast 4G: 0 at 1366×768 and 0.00001 at 1920×1080, the same baseline seen before these changes.
+- **P3-13 Simple / Advanced:**
+  - A fresh profile shows Simple (3 presets only).
+  - Advanced persists across reloads.
+  - `?funds=general,enterprise` with "inflation" and "simple" stored opens Funds & transfers (others closed) with the checkboxes visible, and leaves the stored values untouched. Choosing a preset afterwards returns to the stored section.
+  - The mode toggle has `aria-expanded` and `aria-controls="fund-checkboxes"`, is 44 px tall, and has 6.4:1 / 5.6:1 contrast.
+- **Phone unchanged:** the Funds, Categories, Measure and County sheets have no accordion and no mode toggle. Funds shows all 7 fund checkboxes plus custodial. Every control is at least 44 px, and focus moves into the sheet.
+- **QA-48: verified.** During a Hillsborough → Pinellas switch on phone (Slow 4G, 4× CPU), the chips go straight from the Hillsborough labels to the Pinellas labels. "General Fund" and "Fiscal years" no longer appear.
+
+| ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
+|---|---|---|---|---|---|
+| QA-49 | P3-13 / P3-14 (desktop targets) | note | On desktop, the fund presets and checkboxes are 34 px tall (the same at `a34887f`, so not new), and the "Simple" toggle is 37 × 44 px. That is above WCAG 2.2's 24 px minimum but below the project's 44 px rule (CLAUDE.md, which is about touch). The phone sheets are all ≥ 44 px. Also for the record: opening a taller section while the pane is sticky and the page is scrolled scrolls the page back so the clicked header stays put. That follows D-24's one-scrollbar rule, and CLS is 0. | FE, PM | open |
+
+**P3-13 / P3-14 sign-off (`f6d96be`): APPROVE.** No defects found; QA-48 verified; QA-49 is a note. Phase 3 can ship. Not verifiable here: screen-reader output (checked only through roles, names and `aria-expanded`), and real devices.
 
