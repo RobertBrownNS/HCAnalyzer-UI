@@ -91,6 +91,6 @@ export function countyAfrNote(
       ? `${what} $${c.lines.reduce((s, l) => s + l.amount, 0).toLocaleString('en-US')} (page ${c.page})`
       : `${what}: no line (page ${c.page})`;
   });
-  return `The ${filingName}, as filed with the Florida Chief Financial Officer, shows the same values: ${parts.join('; ')}.`;
+  return `The ${filingName}, as filed with the Florida Department of Financial Services, shows the same values: ${parts.join('; ')}.`;
 }
 
