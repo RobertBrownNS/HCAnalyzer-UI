@@ -196,7 +196,7 @@ export class SeriesChartComponent {
   readonly ariaLabel = computed(() => {
     const pts = this.points();
     if (pts.length === 0) return `${this.valueLabel()}: no data`;
-    return `Line chart of ${this.valueLabel()}, ${pts[0].label} to ${pts[pts.length - 1].label}. A data table is available with "View as table".`;
+    return `Line chart of ${this.valueLabel()}, ${pts[0].label} to ${pts[pts.length - 1].label}. A data table is available with the "Table" button.`;
   });
 
   readonly options = computed<EChartsCoreOption>(() => {
