@@ -51,6 +51,11 @@ describe('DataService', () => {
     }
   }
 
+  it('uses relative data URLs, so they resolve against <base href> (site root or a sub-path)', () => {
+    expect(DATA_BASE_URL.startsWith('/')).toBe(false);
+    expect(DATA_BASE_URL).not.toMatch(/^[a-z]+:/i);
+  });
+
   it('starts idle with no data', () => {
     expect(service.status()).toBe('idle');
     expect(service.data()).toBeNull();

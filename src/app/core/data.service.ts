@@ -13,6 +13,7 @@ export interface ManifestFile {
   outputs: { path: string; sha256: string; bytes: number }[];
 }
 
+/** Relative on purpose: resolves against <base href>, so the site works at a root or a sub-path. */
 export const DATA_BASE_URL = 'assets/data/';
 
 /** manifest.json schemaVersion this build understands. Bump together with the pipeline. */
