@@ -93,19 +93,27 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
-| P2-01 | Upgrade Angular 17.3 to latest (stepwise `ng update`), CLI-default test runner | FE | none | todo |
-| P2-02 | Add `ngx-echarts` + Angular Material; theme tokens, light/dark | FE | P2-01 | todo |
+| P2-01 | Upgrade Angular 17.3 to latest (stepwise `ng update`), CLI-default test runner | FE | none | done |
+| P2-02 | Add `ngx-echarts` + Angular Material; theme tokens, light/dark | FE | P2-01 | review |
 | P2-03 | `src/app/core/models.ts` (Observation, Source, Annotation) | TE | P1-01 | done |
 | P2-04 | Pure `transform.ts` + exhaustive tests | TE | P2-03, P1-05 | done |
-| P2-05 | Data loading service (static JSON, checksum check) | FE | P1-06, P2-01 | todo |
-| P2-06 | URL-state service (query params ↔ signals) | FE | P2-01 | todo |
-| P2-07 | Controls: measure, base year, range, custodial, inflation index | FE | P2-06 | todo |
-| P2-08 | Line chart with GASB 84 annotation, range slider, pinch-zoom | FE | P2-02, P2-04, P2-05 | todo |
-| P2-09 | View-as-table toggle | FE | P2-08 | todo |
-| P2-10 | Mobile-first layout, chip row, bottom sheet | FE | P2-07 | todo |
-| P2-11 | Minimal source/provenance display | FE | P2-05 | todo |
-| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13 | todo |
-| P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | todo |
+| P2-05 | Data loading service (static JSON, checksum check) | FE | P1-06, P2-01 | in-progress |
+| P2-06 | URL-state service (query params ↔ signals) | FE | P2-01 | in-progress |
+| P2-07 | Controls: measure, base year, range, custodial, inflation index | FE | P2-06 | done |
+| P2-08 | Line chart with GASB 84 annotation, range slider, pinch-zoom | FE | P2-02, P2-04, P2-05 | in-progress |
+| P2-09 | View-as-table toggle | FE | P2-08 | done |
+| P2-10 | Mobile-first layout, chip row, bottom sheet | FE | P2-07 | done |
+| P2-11 | Minimal source/provenance display | FE | P2-05 | done |
+| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13, P2-14 | in-progress |
+| P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | review |
+| P2-14 | Deployable static build: GitHub Pages sub-path and IIS (decisions D-12) | FE | P2-05 | todo |
+
+Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
+- **Conditions to close Phase 2:** QA-11 (chart zoom not in view state, P2-08) and QA-12 (Back/forward, P2-06).
+- **Awaiting QA re-verification:** QA-13 (axis label contrast, fixed in `0c67b47`) and QA-16 (manual theme toggle, `0c67b47`). These hold P2-02 and P2-13 in `review`.
+- **Open minors:** QA-14 (no data-version/checksum check, P2-05), QA-18 (KPI test uses hand-made points, P2-13), QA-19 (user-facing notes expose internal paths), QA-20 (Export/Share messages on touch). QA-22 is a note.
+- **Resolved by decision:** QA-17, by DR-30 (URL writes every setting).
+- **Deferred:** QA-15 (tablet side panel) to Phase 6 polish. QA-21 (chart self-description when cropped) to Phase 5, where the PNG export must print the settings. See DR-31.
 
 ### Acceptance criteria
 
@@ -134,7 +142,7 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 **P2-06 URL state**
 - [ ] Every control is a signal mirrored to query params (for example `measure`, `base`, `from`, `to`, `custodial`, `cpi`).
 - [ ] Round-trip: set controls, copy URL, open in a fresh tab, get an identical view (all control values deep-equal). Covered by a test.
-- [ ] Invalid or out-of-range params fall back to defaults and do not crash. Defaults are not written to the URL unnecessarily (stable short links).
+- [ ] Invalid or out-of-range params fall back to defaults and do not crash. Every setting is written to the URL, including defaults, so a shared link keeps its meaning if defaults change. Unknown params are preserved. (Amended by decisions DR-30, resolving QA-17.)
 - [ ] Back/forward navigation restores the previous states.
 
 **P2-07 Controls**
@@ -158,7 +166,7 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 
 **P2-10 Layout**
 - [ ] At phone width (360–430px), the chart is ~60% of viewport height, with a chip row of active settings. Tapping a chip opens a bottom sheet. No horizontal page scroll.
-- [ ] Tablet: collapsible side panel. Desktop: persistent filters pane on the **right** (user decision D-07 overrides CLAUDE.md's "left").
+- [ ] Tablet: collapsible side panel (deferred to Phase 6, QA-15 / DR-31). Desktop: persistent filters pane on the **right** (user decision D-07 overrides CLAUDE.md's "left").
 - [ ] All touch targets are ≥ 44×44 CSS px (verified by measuring in devtools for chips, toggles, slider handles, and table toggle).
 
 **P2-11 Provenance display**
@@ -173,6 +181,18 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 - [ ] **KPI neutrality:** every KPI value derives only from the user's current range, base year, measure and index settings. There are no comparison periods we pick, and no green/red or up/down good/bad coloring. Change values use the same neutral color whatever their sign. A test asserts that KPI values equal `transform.ts` outputs for the current settings.
 - [ ] IBM Plex Sans and IBM Plex Mono are self-hosted from `src/assets`. The network tab shows no requests to Google Fonts or any other third-party font host.
 
+**P2-14 Deployable static build**
+- [ ] The base href is configurable at build time (for example `ng build --base-href /<repo>/` for a GitHub Pages sub-path, `/` or a virtual directory for IIS). The app, deep links and query-param URLs work under each.
+- [ ] Data files (`assets/data/*.json`) and fonts load relative to the base href. There are no root-absolute `/assets/...` paths, and nothing 404s under a sub-path (checked in the network tab).
+- [ ] IIS `web.config` is shipped in the build output. It includes:
+  - MIME types for `.json` and `.woff2`;
+  - a URL Rewrite rule that sends non-file routes to `index.html`;
+  - long-lived immutable caching for hashed bundles;
+  - `no-cache` (revalidate) for `index.html` and the data JSON/manifest, so a data refresh is seen right away.
+- [ ] GitHub Pages: the build output contains `404.html` (a copy of or redirect to `index.html` so deep links work) and `.nojekyll`.
+- [ ] `docs/deploy.md` gives step-by-step instructions for both hosts: build command with base href, files to copy, IIS prerequisites (URL Rewrite module), GitHub Pages settings, and how to verify a deploy (load a shared URL, check data checksums/version).
+- [ ] A shared URL with query params opened on each host reproduces the same view (same check as P2-06).
+
 **P2-12 QA review**
 - [ ] Neutrality sweep: no editorial copy, no adjectives about growth ("soaring", "modest"), no verdicts, and no advocacy-group data anywhere in the UI or assets.
 - [ ] Spot-check 3 chart values against `data/validation.md` and the raw xlsx, by hand, for each measure.
@@ -186,7 +206,24 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 - [ ] `ng serve` at phone width: toggles change the chart, the URL reproduces the view, the GASB 84 marker is visible, and the table matches the chart.
 - [ ] Custodial is excluded by default. Methodology settings are always visible.
 - [ ] No editorial copy. Every displayed number traces to a Source.
+- [ ] A production build works under a sub-path base href and on IIS, per `docs/deploy.md` (P2-14).
 - [ ] The PM end-of-round summary is written, with open decisions re-raised to the user.
+
+---
+
+## Later phases: priority notes
+
+- **Phase 5, high priority (decisions D-12, public site):** the methodology page and the "how to reproduce" page come first in Phase 5, ahead of claim presets and CSV/PNG export. They must cover:
+  - every methodology control and its default;
+  - the custodial / GASB 84 caveat;
+  - transfers gross vs net;
+  - CPI index × period;
+  - population basis;
+  - known source anomalies (QA-01/QA-03);
+  - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
+- Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-31).
+- Phase 6 carries QA-15 (tablet collapsible side panel) (DR-31).
+- Phase 4 is on hold (D-11).
 
 ---
 
