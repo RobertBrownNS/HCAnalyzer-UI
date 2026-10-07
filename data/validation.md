@@ -224,6 +224,46 @@ The fiscal-year CPI values are a simple mean of the published monthly (national)
 | CUUSS35DSA0 | 2024 | 2 halves | 299.315 | 299.315 | match |
 | CUUSS35DSA0 | 2025 | 2 halves | 307.694 | 307.516 | differs (documented) |
 
+## Index comparison (informational)
+
+Computed from `src/assets/data/cpi.json` only. Change = end index / start index - 1. Gap = national change minus Tampa change, in percentage points (pp). Percentages are rounded to 2 decimals for display; calculations use the stored index values.
+
+### Calendar-year alignment
+
+Each fiscal year is matched to the BLS annual average of the calendar year in which it ends (FY 2024-25 uses 2025). National: CUUR0000SA0 annual average (M13). Tampa: CUUSS35DSA0 annual average (S03).
+
+| Period | Index values used | National CPI-U values | National change | Tampa CPI values | Tampa change | Gap (national minus Tampa) |
+|---|---|---|---:|---|---:|---:|
+| FY 2005-06 to FY 2024-25 | 2006 to 2025 | 201.6 to 321.943 | 59.69% | 175.2 to 307.516 | 75.52% | -15.83 pp |
+| FY 2019-20 to FY 2024-25 | 2020 to 2025 | 258.811 to 321.943 | 24.39% | 233.844 to 307.516 | 31.50% | -7.11 pp |
+| FY 2017-18 to FY 2024-25 | 2018 to 2025 | 251.107 to 321.943 | 28.21% | 224.263 to 307.516 | 37.12% | -8.91 pp |
+
+### Fiscal-year alignment
+
+Oct-Sep fiscal-year averages computed by the pipeline. National: mean of 12 monthly CUUR0000SA0 values. Tampa: mean of 6 bimonthly CUURS35DSA0 values, available FY 2017-18 onward only.
+
+| Period | Index values used | National CPI-U values | National change | Tampa CPI values | Tampa change | Gap (national minus Tampa) |
+|---|---|---|---:|---|---:|---:|
+| FY 2005-06 to FY 2024-25 | FY 2005-06 to FY 2024-25 | 200.633 to 319.997 | 59.49% | n/a to 305.761 | n/a (no Tampa value for FY 2005-06) | n/a |
+| FY 2019-20 to FY 2024-25 | FY 2019-20 to FY 2024-25 | 258.014 to 319.997 | 24.02% | 232.317 to 305.761 | 31.61% | -7.59 pp |
+| FY 2017-18 to FY 2024-25 | FY 2017-18 to FY 2024-25 | 249.749 to 319.997 | 28.13% | 223.26 to 305.761 | 36.95% | -8.83 pp |
+
+### Worked example: Hillsborough County FY 2024-25 revenue excluding custodial, in FY 2019-20 dollars
+
+Nominal amount: $5,468,332,134 (workbook Total Account minus Custodial column, revenues sheet 2025). Deflated amount = nominal x index(FY 2019-20) / index(FY 2024-25). Dollars rounded to the nearest dollar for display.
+
+| Alignment | Index | Index values | In base-year dollars | Difference from nominal |
+|---|---|---|---:|---:|
+| Calendar-year | National CPI-U | 2020: 258.811; 2025: 321.943 | $4,396,009,567 | -$1,072,322,567 |
+| Calendar-year | Tampa CPI | 2020: 233.844; 2025: 307.516 | $4,158,276,836 | -$1,310,055,298 |
+| Fiscal-year | National CPI-U | FY 2019-20: 258.014; FY 2024-25: 319.997 | $4,409,123,358 | -$1,059,208,776 |
+| Fiscal-year | Tampa CPI | FY 2019-20: 232.317; FY 2024-25: 305.761 | $4,154,835,039 | -$1,313,497,095 |
+
+| Alignment | National-deflated minus Tampa-deflated |
+|---|---:|
+| Calendar-year | $237,732,731 |
+| Fiscal-year | $254,288,319 |
+
 ## Account codes by year
 
 ### Hillsborough County - revenue account codes not present in every year

@@ -11,6 +11,7 @@ import { classifyAccount, normalizeHeading, SECTION_HEADINGS } from './edr/accou
 import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
 import { buildOutputs } from './build.js';
+import { indexComparisonSection } from './index-comparison.js';
 import { fiscalYearLabel } from './lib/fiscal.js';
 import { sha256 } from './lib/hash.js';
 import { OUT_DIR, rel, VALIDATION_REPORT } from './lib/paths.js';
@@ -349,6 +350,19 @@ async function main() {
   add('CPI Tampa: fiscal-year coverage', true,
     `fiscal-year values exist for FY ${Math.min(...tampaFy)}-${Math.max(...tampaFy)} only; earlier finance years are null with a reason. The bimonthly series starts Nov 2017; before that BLS published only semiannual averages, which do not align with Oct-Sep`, true);
 
+  // --- Index comparison (informational) ---------------------------------------------------
+  const firstCounty = inputs.counties[0];
+  const indexSection = indexComparisonSection({
+    nationalCalendar: cpiJson['national'].calendarYear,
+    tampaCalendar: cpiJson['tampa_semiannual'].calendarYear,
+    nationalFiscal: cpiJson['national'].fiscalYear,
+    tampaFiscal: cpiJson['tampa'].fiscalYear,
+    revenueExclCustodial: Object.fromEntries(
+      firstCounty.revenues.sheets.map((s) => [s.fiscalYear, (s.grandTotal.cachedTotal ?? NaN) - (s.grandTotal.cached['custodial'] ?? 0)]),
+    ),
+    jurisdictionName: firstCounty.county.name,
+  });
+
   // --- Account codes appearing / disappearing, fund usage changes ------------------------
   const accountSections: string[] = [];
   for (const { county, revenues, expenditures } of inputs.counties) {
@@ -462,6 +476,7 @@ async function main() {
     '|---|---:|---:|---:|---:|---|',
     ...cpiRows,
     '',
+    ...indexSection,
     '## Account codes by year',
     '',
     ...accountSections,
