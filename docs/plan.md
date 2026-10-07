@@ -352,3 +352,38 @@ Method: production build (`ng build`) served statically from a clean clone of `b
 
 **P2-12 status after P2-14:** approve. No open blocker or major findings. Open minors: QA-23, QA-24 and QA-25. Not verifiable here: a live IIS 10 deploy (URL Rewrite behavior, actual headers, compression) and a live GitHub Pages deploy.
 
+**P2-15 skeleton review (2026-10-06, `bc790aa`):** clean clone, 243 tests pass, production build served with gzip (`qa/phase2/gzip-server.mjs`, like IIS/Pages), driven in headless Chrome with DevTools network throttling plus CPU slowdown (`qa/phase2/load-probe.mjs`, a per-frame recorder injected before the app starts). FE's script was not used.
+
+Measured (phone 390 px unless noted; ms from navigation; before = `b722e87`, after = `bc790aa`; 3 runs each, median):
+
+| Profile | Chart canvas, before | Chart canvas, after | Data shown, after | Skeleton first visible | CLS |
+|---|---:|---:|---:|---:|---:|
+| Unthrottled (phone / desktop) | n/a | 272 / 131 | 228 / 91 (fx:dataReady) | never | 0 |
+| Fast 4G + 4× CPU | 2,465 | 2,128 | 1,836 | ≈ 1,170 | 0 |
+| Slow 4G + 4× CPU | 7,452 | 6,090 | 5,814 | ≈ 3,470 | 0 |
+
+The ECharts chunk is fetched **once** per load before and after; preloading at init created no duplicate fetch (also with the chunk held 6 s). The chart is ready about 0.34 s (Fast 4G) and about 1.36 s (Slow 4G) sooner, the same direction as FE's notes and larger.
+
+Verified with no defects found:
+- **No flash:** fast loads never show a skeleton.
+- **No layout shift:** CLS is 0 on every profile, phone and desktop.
+- **Covered areas:** skeletons cover the KPI cards, chart tile, annotation key, source line, range control, and the Notes and Sources tiles. The phone chip row renders real chips (settings come from the URL), with the range chip reading "Fiscal years" until the data loads, and nothing shifts. QA accepts this in place of a chip skeleton.
+- **Chunk held back:** with the ECharts chunk held 6 s, KPIs and notes render on data and the chart area shows the chart skeleton until ECharts initializes (346 of 355 frames; the rest are the 180 ms reveal delay). There is never an empty chart with axes.
+- **Accessibility during load:**
+  - `aria-busy="true"` on the main region while loading, then `false`;
+  - one polite message per load (live region "" → "Loading data…" → "");
+  - every skeleton container is `aria-hidden`.
+- **Reduced motion:** under `prefers-reduced-motion: reduce` the shimmer layer is removed (`::after` `display: none`), so skeletons are static.
+- **Colors:** token colors in light (#e4e7ec on white) and dark (#2a2f39 on #1d2129). The 1.2:1 contrast is acceptable for decorative, aria-hidden placeholders, which WCAG 1.4.11 does not cover.
+- **Errors (404 on a data file and a schema mismatch):** they replace the chart, notes and KPI skeletons, clear `aria-busy`, and show Retry, except for QA-27.
+- **deploy.md 500.52 section:** accurate. The check and the fallback (delete `<outboundRules>`, then re-check that `no-cache` arrives) are correct. The `LogRewrittenUrlEnabled` registry and module-order remedy is correctly marked as an unverified pointer, and `rewriteBeforeCache` is correctly described as unrelated to compression.
+
+| ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
+|---|---|---|---|---|---|
+| QA-26 | P2-15 chart skeleton | minor | **The chart skeleton blinks off at the data-ready handover.** On a slow load the page-level chart skeleton is visible, then data arrives and `app-series-chart` mounts its own overlay, which restarts the 180 ms hidden delay. The chart area is blank until either that delay ends or ECharts renders. Measured chart-skeleton visibility: Slow 4G with the chunk held: visible 3,170 → 4,770, **blank 4,770 → 4,937**, visible → 10,357. Slow 4G + 4× CPU: visible 3,358 → 5,775, **blank 5,775 → 6,052** (canvas). Fails "the chart skeleton stays until the lazy ECharts chunk is loaded and the first render is done". It is blank, never an empty chart. | FE | open |
+| | | | *Suggested fix:* when the page-level skeleton has already been revealed, start the series-chart overlay revealed (pass the parent's `reveal()` in, or base both on one shared start time). Re-test with `load-probe.mjs` (`chartSkelTransitions` should go 0 → 1 → canvas, with no 1 → 0 → 1). | | |
+| QA-27 | P2-15 error state | minor | **A failed load leaves the range-control skeleton shimmering.** After a 404 on `cpi.json` or a schema-version error, the Retry state shows, but `app-range-control`'s pending placeholder (`readout-skel`, `track-skel`; aria-hidden) stays visible and animated indefinitely (`error-skeletons.mjs`). It reads as "still loading" next to Retry. This fails "a failed load never leaves a skeleton showing". The same error state also shows the phone range chip as "FY 2004-05 to FY 2…", an unchecked default that doesn't exist for revenues (FY 2005-06 onward); while loading, the chip correctly says "Fiscal years". The KPI sub-line says "No years in range", which reads like a data fact rather than a load failure. | FE | open |
+| | | | *Suggested fix:* the range control shows its placeholder only while `status` is `idle` or `loading`, and nothing (or a disabled control) on error. Keep the chip label "Fiscal years" while the data is not ready (error included). On error the KPI sub-line should say e.g. "Data not loaded". | | |
+| QA-28 | P2-15 notes | minor | P2-15 asks for before/after load waits (time to first data, ECharts chunk ready) on a throttled profile to be recorded in the task notes or `docs/`. Only the commit message records them, as relative gains ("0.27s/0.52s sooner"), with no absolute times or profile details. | FE, PM | open |
+| | | | *Suggested fix:* record the table above (or FE's own measurements, with the profile settings) in `docs/` or the P2-15 task notes. | | |
+
