@@ -16,15 +16,17 @@ Format: ID · decision · status · rationale · reversibility. Statuses: **assu
 | D-08 | **Layout:** desktop filters pane on the RIGHT. CLAUDE.md layout line updated. | decided (user, 2026-10-06) | Confirms D-07. | Easy |
 | D-09 | **Transfers (closes O-09):** the UI offers both gross (as reported) and net of interfund transfers (381/581). The default stays **gross**. | decided (user, 2026-10-06) | Gross matches EDR totals. Net exposes the QA-02 effect. Net with a narrower fund scope is still open (O-11, risks R-19). | Easy |
 | D-10 | **Inflation (closes O-03, O-04):** the UI offers every index × period combination: national CPI-U / Tampa CPI × fiscal-year (Oct–Sep) / calendar-year averages. The default stays **national CPI-U, fiscal-year**. | decided (user, 2026-10-06) | National covers the full range. Fiscal-year matches the county FY. Tampa fiscal-year has gaps before FY 2017-18, shown as nulls (DR-10). | Easy |
-| D-11 | **Comparison counties (closes O-01):** none yet. Phase 4 is on hold. The pipeline stays county-agnostic. | decided (user, 2026-10-06) | Confirms D-03. | Easy |
+| D-11 | **Comparison counties (closes O-01):** none yet. Phase 4 is on hold (partly reopened by D-13: Pinellas as a county switch). The pipeline stays county-agnostic. | decided (user, 2026-10-06) | Confirms D-03. | Easy |
 | D-12 | **Public site (closes O-02):** public. Static hosting on the user's private IIS server or GitHub Pages. Builds must work under a sub-path base href and on IIS (task P2-14). The Phase 5 methodology and "how to reproduce" pages are high priority. | decided (user, 2026-10-06) | Confirms D-04. | Moderate |
+| D-13 | **County switch: Pinellas (partly reopens Phase 4; amends D-11).** Pinellas is added as a county switch: the user views one county at a time. A comparison overlay (two counties on one chart) is **not** in scope. The pipeline stays county-agnostic. | decided (user, 2026-10-07) | Gives research access to a second county without the cross-county comparability work an overlay would need. | Easy |
+| D-14 | **Annotation rule across counties:** "Same as Hillsborough; where Hillsborough has no comparable issue, note what is necessary for research." Every Hillsborough annotation rule (GASB 84, custodial account moves, population rebasing, rounded-to-$1,000 years, proprietary-fund gaps, filing breaks) applies to each county the same way. County-specific issues are annotated only where research needs it. **Transfer-imbalance annotations now go through a reviewed approval list** (like `approved-gaps.ts`), not only the DR-17 threshold. Approved for Pinellas: FY 2005-06 and FY 2021-22. | decided (user, 2026-10-07) | Consistent treatment across counties (neutrality). A human review step means a threshold alone does not decide what gets annotated. | Easy |
 
 ## Open decisions for the user
 
 Until answered, the team uses the **interim default** shown. Each one is visible in the UI or methodology notes so users can see it.
 
 > **Closed by user decisions (2026-10-06):** O-01 → D-11, O-02 → D-12, O-03 / O-04 → D-10, O-09 → D-09. CLAUDE.md "Decided" is authoritative. Rows are kept for history.
-> Still open: O-05, O-06, O-07, O-08, O-10, O-11.
+> Still open: O-05, O-06, O-07, O-08, O-10, O-11, O-12.
 
 | ID | Question | Options | Interim default | Who's blocked |
 |---|---|---|---|---|
@@ -39,6 +41,7 @@ Until answered, the team uses the **interim default** shown. Each one is visible
 | O-09 | **[Closed → D-09]** Default for interfund transfers (381/581) in Phase 2 totals (QA-02). Transfers are 10–39% of each year's total. For example, FY 2021-22 revenue excluding custodial changes −22.9% gross and −6.4% net of 381. | (a) Gross, as published (matches EDR totals) · (b) Net of transfers · either way, a visible include/exclude control in the URL | **Gross, as published**, labelled plainly. A transfers control or annotation is pending (QA-02). | P2-07, P2-08 |
 | O-10 | How to present the FY 2022-23 / FY 2023-24 expenditure classification break (QA-01). In those years 581 exceeds 381 by $625M and $536M, and account 521 Law Enforcement is near $0, unlike adjacent years. | (a) Show as published, with `methodology` annotations and source caveats (cell refs) · (b) Also check against the county ACFR or the DFS LOGERX AFR before showing expenditure series | **(a) Show as published, with annotations**, in neutral wording. QA-01 asks for this before any expenditure series ships. Option (b) is optional confirmation. | P2-08 (expenditures), Phase 3 categories |
 | O-11 | Net-of-transfers mode with a narrower fund scope (Phase 3). Netting is only valid for all funds. With a narrower scope, transfers to or from funds outside it are real inflows and outflows, and the AFR has no counterparty fund data. (risks R-19) | (a) Disable "net" unless the scope is all funds · (b) Relabel it for narrower scopes (for example "excluding all transfer accounts") with a caveat | **(a) Disable** until the user decides. Proposed by TE. | Phase 3 fund-scope control |
+| O-12 | Cross-check county figures against the DFS LOGERX AFR filings, in addition to EDR reconciliation? | (a) Yes, every county and year · (b) Only where EDR shows anomalies (as done for Hillsborough QA-01) · (c) No | **Ship with EDR reconciliation only, plus a caveat on each county's EDR `Source`** saying the figures are not cross-checked against LOGERX. Pending the user's answer (asked 2026-10-07). | P4a-01, P4a-05 |
 
 ## Decisions made during the round
 

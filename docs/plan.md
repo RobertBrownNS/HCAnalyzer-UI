@@ -262,6 +262,105 @@ Phase 2 status notes: QA's conditional approval (`5a4afb2`) became final approva
 
 ---
 
+## Phase 4a: County switch (Pinellas)
+
+Branch: `feature/pinellas`. Scope comes from decisions D-13 and D-14:
+- **D-13:** one county at a time, no overlay.
+- **D-14:** the annotation rule, plus a reviewed list for transfer-imbalance annotations.
+
+Interim for open decision O-12: EDR reconciliation, plus a "not cross-checked against LOGERX" caveat on the source.
+
+| ID | Task | Owner | Depends on | Status |
+|---|---|---|---|---|
+| P4a-01 | Pinellas pipeline: raw files, parse, validation, annotations | DE | none | todo |
+| P4a-02 | Reviewed transfer-imbalance approval list (all counties) | DE | none | todo |
+| P4a-03 | Multi-county `transform.ts` + golden tests | TE | P4a-01 (data shape) | todo |
+| P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | todo |
+| P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | todo |
+| P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | todo |
+
+### Acceptance criteria
+
+**P4a-01 Pinellas pipeline (DE)**
+- [ ] Raw files: the EDR Pinellas revenue and expenditure workbooks and the Pinellas population are fetched into `data/raw/`. Each has its sha256, URL and retrieval date in `manifest.json`. CPI is shared, not duplicated: Pinellas is in the same Tampa–St. Petersburg–Clearwater area.
+- [ ] Pinellas is added by configuration in `scripts/pipeline/config/counties.ts`. There are no Pinellas-specific branches in parser code. Any layout difference from Hillsborough is either handled generically or fails the build, and is documented in `docs/data-layout.md`.
+- [ ] The Pinellas data is written to `src/assets/data/pinellas.*.json`. The Hillsborough outputs are byte-identical to before (checksums unchanged).
+- [ ] `data/validation.md` has a Pinellas section that passes every check Hillsborough passes:
+  - per-fund and grand totals match to the dollar;
+  - totals excluding custodial match EDR's Total − Custodial;
+  - per capita matches within 1e-6;
+  - the Custodial column appears only from FY 2020-21.
+- [ ] Annotations follow D-14. All Hillsborough annotation rules run for Pinellas. Every Pinellas annotation has workbook-qualified cell refs (DR-24) and a `topic` (DR-28). Pinellas-only issues are annotated only where research needs it. Each one is listed in the hand-off notes for user review.
+- [ ] The Pinellas EDR `Source` caveats include the O-12 interim caveat (not cross-checked against LOGERX).
+- [ ] `npm run pipeline` is deterministic: two runs give byte-identical output.
+
+**P4a-02 Transfer-imbalance approval list (DE)**
+- [ ] Transfer-imbalance annotations are emitted only for the (county, FY, flow) entries in a reviewed config list, like `approved-gaps.ts`. Each entry records the reason, the reviewer and the date.
+- [ ] The build fails if an approved entry is no longer found by the scan.
+- [ ] Years over the DR-17 threshold that aren't approved are listed in the validation report as "detected, not annotated". None are dropped silently.
+- [ ] The approved entries are:
+  - Hillsborough FY 2022-23 and FY 2023-24 (existing);
+  - Pinellas FY 2005-06 and FY 2021-22 (D-14).
+- [ ] Hillsborough annotation output is unchanged.
+
+**P4a-03 Multi-county transform (TE)**
+- [ ] `transform.ts` stays pure. The county is an input, not a module constant, and no county name appears in `transform.ts`.
+- [ ] Population, annotations and sources are joined by county. A missing county or year gives an explicit null with a reason, never another county's value.
+- [ ] Golden tests: for each county, a fixed set of settings produces snapshot outputs. The settings cover:
+  - nominal and per resident;
+  - inflation-adjusted with fiscal-year and calendar-year CPI, national and Tampa;
+  - index-to-100;
+  - custodial included and excluded;
+  - gross and net transfers.
+
+  Each snapshot includes at least 3 values hand-checked against `data/validation.md`.
+- [ ] Hillsborough golden outputs equal the pre-change outputs exactly (no regressions). `transform.ts` coverage stays at 100%.
+
+**P4a-04 County control and de-hardcoding (FE)**
+- [ ] The county control lists Hillsborough and Pinellas. It is a chip with a bottom sheet on phone, and sits in the filters pane on desktop.
+- [ ] The county is in the URL (for example `county=pinellas`):
+  - an unknown value falls back to the default, with no crash;
+  - old links without `county` open Hillsborough.
+- [ ] One county at a time. There is no overlay, and no copy compares counties (D-13, neutrality).
+- [ ] No "Hillsborough" is hard-coded in the UI or services. These all come from county config:
+  - the title and caption;
+  - KPIs and the table caption;
+  - sources and methodology text;
+  - `aria-label`s and the document title.
+
+  `grep -ri hillsborough src/app` finds only config, fixtures and tests.
+- [ ] A county's data loads only when it is selected. Switching county shows the P2-15 skeletons, and error states still take precedence. Data from the previous county is never shown.
+- [ ] The base year and range are kept if they are valid for the new county. Otherwise they are clamped to that county's years, and the clamping is visible in the chips and the URL.
+- [ ] Back/forward works across county switches. The 44 px targets and light/dark rules still hold.
+
+**P4a-05 QA: independent Pinellas re-read**
+- [ ] `qa/phase1/independent_check.py` (standard library only, sharing no code with the pipeline) is run against the Pinellas raw xlsx.
+  - Every Pinellas observation matches cell by cell in both directions: 0 missing, 0 extra, 0 mismatched.
+  - Totals match the workbook's total row for every sheet.
+- [ ] At least 5 values are checked by hand, with cell refs. They include one total before FY 2020-21 and one after, each with and without custodial. Per-capita and population are checked against the EDR population file.
+- [ ] Every Pinellas annotation is checked against its cited cells and against the D-14 rule.
+- [ ] The transfer-imbalance list is checked: FY 2005-06 and FY 2021-22 are annotated, and other detected years are listed but not annotated.
+- [ ] Hillsborough outputs are confirmed unchanged (checksums).
+- [ ] Findings are logged in the findings log.
+
+**P4a-06 QA: county-switch UI review**
+- [ ] The `qa/phase2/` scripts are re-run with `county=pinellas` and with the default county. They cover:
+  - URL round-trip and Back/forward;
+  - error and Retry;
+  - skeletons and CLS;
+  - 44 px targets and contrast.
+- [ ] Spot-check 3 Pinellas on-screen values per measure against the raw xlsx.
+- [ ] Neutrality sweep: no Hillsborough text on Pinellas views, no copy comparing counties, no advocacy sources.
+
+### Phase 4a Definition of Done
+- [ ] P4a-01 to P4a-06 are `done`, and there are no open blocker or major findings.
+- [ ] Pinellas validation all passes. Hillsborough outputs and golden tests are unchanged.
+- [ ] `ng build` and `ng test` are green. The pipeline is deterministic.
+- [ ] Every Pinellas number traces to a Source, and the O-12 caveat shows in the Pinellas sources.
+- [ ] Either the user has answered O-12, or the interim caveat ships as a known choice.
+
+---
+
 ## Later phases: priority notes
 
 - **Phase 5, high priority (decisions D-12, public site):** the methodology page and the "how to reproduce" page come first in Phase 5, ahead of claim presets and CSV/PNG export. They must cover:
@@ -275,7 +374,7 @@ Phase 2 status notes: QA's conditional approval (`5a4afb2`) became final approva
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
 - **Phase 3:** any new long-running operation (category breakdowns, a second dataset such as expenditures alongside revenues) reuses the P2-15 skeleton components and follows the same rules: delay, no layout shift, a11y, reduced motion, errors take precedence. No new loader styles.
-- Phase 4 is on hold (D-11).
+- Phase 4 comparison overlays are still on hold (D-11). Only the Pinellas county switch is in scope, as Phase 4a (D-13).
 
 ---
 
