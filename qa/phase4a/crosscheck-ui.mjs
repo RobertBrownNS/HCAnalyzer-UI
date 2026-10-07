@@ -9,7 +9,9 @@ const sources = Object.fromEntries(JSON.parse(readFileSync(sourcesPath, 'utf8'))
 const LABELS = {
   full: 'Cross-checked: matches the county-filed AFR',
   'not-checked': 'Not cross-checked against the county-filed AFR',
-  mismatch: 'Cross-checked: differences with the county-filed AFR not resolved',
+  // QA-35 (b25cecc): text built from the range's counts; both current mismatch years are one
+  // reclassified amount with equal yearly totals.
+  mismatch: 'Total matches; 1 amount classified differently',
 };
 const cases = [
   ['hillsborough', 'revenue', { 2010: 'not-checked', 2020: 'full' }],

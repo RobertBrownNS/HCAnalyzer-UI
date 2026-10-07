@@ -11,6 +11,12 @@ import random
 import re
 import sys
 from collections import defaultdict
+from decimal import ROUND_HALF_UP, Decimal
+
+
+def half_up(x):
+    """Exact round-half-up to 3 decimals (BLS publishes 3). Float round() mis-rounds ties such as 298.1655 (QA-38)."""
+    return x.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -352,23 +358,23 @@ def check_cpi():
         return pts, foot, reqs
     nat, natf, natreq = load('CUUR0000SA0')
     print('  national request statuses:', [r.get('status') for r in natreq], [r.get('message') for r in natreq])
-    for fy in (2006, 2007, 2020, 2021, 2022, 2025, 2026):
+    for fy in range(2001, 2027):
         months = [(fy - 1, f'M{m:02d}') for m in (10, 11, 12)] + [(fy, f'M{m:02d}') for m in range(1, 10)]
         vals = [nat.get(k) for k in months]
-        have = [float(v) for v in vals if v not in (None, '-')]
-        mean = sum(have) / 12 if len(have) == 12 else None
+        have = [Decimal(v) for v in vals if v not in (None, '-')]
+        mean = half_up(sum(have) / 12) if len(have) == 12 else None
         out = cpi['national']['fiscalYear'].get(str(fy))
         missing = [k for k, v in zip(months, vals) if v in (None, '-')]
-        good = (mean is None and out is None) or (mean is not None and out is not None and abs(round(mean, 3) - out) < 1e-9)
+        good = (mean is None and out is None) or (mean is not None and out is not None and mean == Decimal(str(out)))
         (ok if good else fail)(f'  national FY{fy}: hand mean={mean} json={out} missing={missing}')
     print('  2025 M10 raw:', nat.get((2025, 'M10')), natf.get((2025, 'M10')), ' M13 2025:', nat.get((2025, 'M13')))
     tpa, tpaf, _ = load('CUURS35DSA0')
-    for fy in (2018, 2021, 2025):
+    # Every Tampa fiscal year, including FY 2023-24 whose mean is exactly 298.1655 (QA-38 tie).
+    for fy in range(2018, 2026):
         months = [(fy - 1, 'M11')] + [(fy, f'M{m:02d}') for m in (1, 3, 5, 7, 9)]
-        vals = [float(tpa[k]) for k in months]
-        mean = sum(vals) / 6
+        mean = half_up(sum(Decimal(tpa[k]) for k in months) / 6)
         out = cpi['tampa']['fiscalYear'].get(str(fy))
-        (ok if abs(round(mean, 3) - out) < 1e-9 else fail)(f'  tampa FY{fy}: hand mean={mean:.4f} json={out}')
+        (ok if mean == Decimal(str(out)) else fail)(f'  tampa FY{fy}: hand mean={mean} json={out}')
     even = [k for k in tpa if k[1].startswith('M') and k[1] != 'M13' and int(k[1][1:]) % 2 == 0]
     print('  tampa even-month points present:', even[:5], ' earliest:', min(k for k in tpa if k[1] != 'M13'))
     early_fy = [y for y, v in cpi['tampa']['fiscalYear'].items() if int(y) < 2018 and v is not None]
