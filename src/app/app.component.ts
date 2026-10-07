@@ -21,10 +21,6 @@ import { CountyContext } from './core/county';
         <span class="jurisdiction">{{ label }}</span>
       }
       <div class="actions">
-        <span class="export">
-          <button type="button" class="bar-button" disabled aria-describedby="export-hint">Export</button>
-          <span id="export-hint" class="bar-hint">Not available yet</span>
-        </span>
         <button
           type="button"
           class="bar-button theme"

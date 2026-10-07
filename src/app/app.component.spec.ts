@@ -71,17 +71,13 @@ describe('AppComponent header actions', () => {
     expect(el.querySelector('.share .label-short')?.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('Export is present but disabled', async () => {
+  it('shows no Export control until export exists (Phase 5)', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();
-    const exportBtn = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
-      (b) => b.textContent?.trim() === 'Export',
-    );
-    expect(exportBtn?.disabled).toBe(true);
-    // Visible hint, not only a title attribute (QA-20).
-    const hint = (fixture.nativeElement as HTMLElement).querySelector('#export-hint');
-    expect(hint?.textContent).toContain('Not available yet');
-    expect(exportBtn?.getAttribute('aria-describedby')).toBe('export-hint');
+    const el = fixture.nativeElement as HTMLElement;
+    const exportBtn = [...el.querySelectorAll('button')].find((b) => /export/i.test(b.textContent ?? ''));
+    expect(exportBtn).toBeUndefined();
+    expect(el.textContent).not.toContain('Not available yet');
   });
 
   it('theme button cycles Auto -> Light -> Dark and sets html[data-theme]', async () => {
