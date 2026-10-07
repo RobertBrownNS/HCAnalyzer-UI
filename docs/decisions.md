@@ -44,6 +44,8 @@ Until answered, the team uses the **interim default** shown. Each one is visible
 
 Append here as team members make choices (for example, how subtotal rows are detected, CPI tolerance). Include who decided and why. IDs use the `DR-` prefix so they don't collide with risk IDs (`R-`) in risks.md.
 
+**ID allocation:** the PM hands out DR numbers. Ask the PM for the next free ID before adding a row; don't pick one yourself. Numbers are never reused. DR-31 is intentionally unused, left by a renumbering. **Next free: DR-34.**
+
 | ID | Date | Decision | By | Rationale |
 |---|---|---|---|---|
 | DR-01 | 2026-10-06 | Fund columns are mapped by header text in row 4, not position. An unknown header fails the build. | DE | The column layout changed in FY 2020-21 (Custodial and Private Purpose added, so later columns shift). |
