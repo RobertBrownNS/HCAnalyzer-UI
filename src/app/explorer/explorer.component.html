@@ -1,0 +1,78 @@
+<div class="layout">
+  <aside class="panel" aria-label="Chart settings">
+    <app-explorer-controls />
+  </aside>
+
+  <div class="content">
+    <div>
+      <h1 class="title">Hillsborough County: {{ valueLabel() }}</h1>
+      <p class="scope">{{ scopeLine() }}</p>
+    </div>
+
+    <div class="chips" role="group" aria-label="Active settings">
+      @for (chip of chips(); track chip.aria) {
+        <button
+          type="button"
+          class="chip"
+          [attr.aria-label]="chip.aria + ': ' + chip.label + '. Change'"
+          (click)="openSheet(chip.group)"
+        >
+          {{ chip.label }}
+        </button>
+      }
+    </div>
+
+    <mat-button-toggle-group
+      class="view-switch"
+      aria-label="Display"
+      hideSingleSelectionIndicator
+      [value]="view()"
+      (change)="view.set($event.value)"
+    >
+      <mat-button-toggle value="chart">Chart</mat-button-toggle>
+      <mat-button-toggle value="table">View as table</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <div class="figure">
+      @switch (store.status()) {
+        @case ('error') {
+          <div class="state" role="alert">
+            <p>Data could not be loaded: {{ store.error() }}</p>
+            <button matButton="outlined" type="button" (click)="store.retry()">Retry</button>
+          </div>
+        }
+        @case ('ready') {
+          @if (view() === 'chart') {
+            <app-series-chart
+              class="fill"
+              [points]="store.points()"
+              [annotations]="store.annotationNotes()"
+              [settings]="store.settings()"
+              [valueLabel]="valueLabel()"
+            />
+          } @else {
+            <app-series-table
+              class="fill"
+              [points]="store.points()"
+              [settings]="store.settings()"
+              [valueLabel]="valueLabel()"
+            />
+          }
+        }
+        @default {
+          <div class="state">
+            <mat-progress-bar mode="indeterminate" aria-label="Loading data" />
+          </div>
+        }
+      }
+    </div>
+
+    <div class="range">
+      <app-range-control />
+    </div>
+
+    <app-view-notes class="section" />
+
+    <app-methodology class="section" />
+  </div>
+</div>

@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
-    "test:watch": "ng test"
+    "test:watch": "ng test",
+    "test:coverage": "ng test --watch=false --coverage"
   },
   "private": true,
   "dependencies": {
@@ -28,6 +29,7 @@
     "@angular/build": "^22.2.1",
     "@angular/cli": "^22.2.1",
     "@angular/compiler-cli": "^22.2.1",
+    "@vitest/coverage-v8": "^5.0.3",
     "jsdom": "^30.1.2",
     "typescript": "~6.0.3",
     "vitest": "^5.0.0"

@@ -1,0 +1,86 @@
+<section aria-labelledby="methodology-heading">
+  <h2 id="methodology-heading">Settings and sources</h2>
+
+  <dl class="facts">
+    <dt>Jurisdiction</dt>
+    <dd>Hillsborough County</dd>
+
+    <dt>Data</dt>
+    <dd>{{ flowLabel() }}, all account codes, as reported in the county's Annual Financial Reports and compiled by EDR.</dd>
+
+    <dt>Funds</dt>
+    <dd>
+      {{ scope() }}. This covers every fund column in the report, including pension and trust funds,
+      private-purpose funds and component units (legally separate entities).
+      @if (s().includeCustodial) {
+        The custodial column is reported from FY 2020-21 (GASB Statement No. 84); earlier years have no
+        custodial amounts.
+      }
+    </dd>
+
+    <dt>Interfund transfers</dt>
+    <dd>
+      {{ transfers() }}.
+      @if (s().transfers === 'net') {
+        Account 381 (transfers in) is removed from revenues and account 581 (transfers out) from expenditures.
+      } @else {
+        Transfers appear on both sides: as revenue (account 381) in the receiving fund and as expenditure
+        (account 581) in the sending fund.
+      }
+    </dd>
+
+    <dt>Measure</dt>
+    <dd>
+      {{ measureLabel() }}@if (real()) {, in {{ baseLabel() }} dollars}.
+      @if (s().indexTo100) {
+        Indexed: each value divided by the {{ baseLabel() }} value, times 100.
+      }
+    </dd>
+
+    <dt>Fiscal years</dt>
+    <dd>
+      {{ span() }} (October 1 to September 30).
+      @if (gaps()) {
+        No value for: {{ gaps() }}.
+      }
+    </dd>
+
+    @if (perCapita() && population(); as pop) {
+      <dt>Population</dt>
+      <dd>EDR/BEBR county estimates as of {{ pop.reference }}. {{ pop.fiscalYearAlignment }}</dd>
+    }
+
+    <dt>Inflation index</dt>
+    <dd>
+      @if (real() && cpi(); as c) {
+        {{ c.label }}, BLS series {{ c.seriesId }} ({{ c.basePeriod }}). {{ c.basis }}
+        @if (s().cpiPeriod === 'calendar') {
+          Fiscal year N uses calendar year N (for example, FY 2023-24 uses the 2024 annual average).
+        }
+      } @else {
+        Not applied to this measure.
+      }
+    </dd>
+  </dl>
+
+  <h3>Sources</h3>
+  <ul class="sources">
+    @for (src of sources(); track src.id) {
+      <li>
+        <div>{{ src.publisher }}</div>
+        <a [href]="src.url" target="_blank" rel="noopener">{{ src.title }}</a>
+        <div class="meta">Retrieved {{ src.retrieved }} · SHA-256 <code>{{ src.sha256.slice(0, 12) }}…</code></div>
+        @if (src.caveats.length) {
+          <details>
+            <summary>Caveats ({{ src.caveats.length }})</summary>
+            <ul>
+              @for (c of src.caveats; track $index) {
+                <li>{{ c }}</li>
+              }
+            </ul>
+          </details>
+        }
+      </li>
+    }
+  </ul>
+</section>

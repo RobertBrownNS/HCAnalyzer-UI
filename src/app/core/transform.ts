@@ -142,17 +142,20 @@ export function availableYears(
 
 /**
  * Annotations that apply to the current view, by year: fiscalYear inside the
- * range, and each optional condition (flow, custodial, measures) satisfied.
+ * range, and each optional condition (jurisdiction, flow, custodial, measures)
+ * satisfied.
  * A condition that is absent applies to every view.
  */
 export function annotationsInRange(data: TransformData, s: TransformSettings): AnnotationRecord[] {
   const [lo, hi] = normalizeRange(s.range);
   const custodial = s.includeCustodial ? 'included' : 'excluded';
+  const jurisdiction = s.jurisdiction ?? DEFAULT_JURISDICTION;
   return data.annotations
     .filter(
       (a) =>
         a.fiscalYear >= lo &&
         a.fiscalYear <= hi &&
+        (a.jurisdiction === undefined || a.jurisdiction === jurisdiction) &&
         (a.flow === undefined || a.flow === s.flow) &&
         (a.custodial === undefined || a.custodial === custodial) &&
         (a.measures === undefined || a.measures.includes(s.measure)),
@@ -174,6 +177,8 @@ export interface CpiSelection {
   valueFor(fiscalYear: number): number | undefined;
   /** Why there is no value for a fiscal year (always a non-empty string). */
   unavailableReason(fiscalYear: number): string;
+  /** Caveat on a value that is present (cpi.json *YearNotes), as a sentence. */
+  noteFor(fiscalYear: number): string | undefined;
 }
 
 const CPI_AREA_LABEL: Record<CpiIndex, string> = {
@@ -201,6 +206,8 @@ export function selectCpi(cpi: CpiFile, index: CpiIndex, period: CpiPeriod): Cpi
     index === 'cpi-u-us' ? cpi.national : period === 'fiscal' ? cpi.tampa : cpi.tampa_semiannual;
   const values = period === 'fiscal' ? series.fiscalYear : series.calendarYear;
   const unavailable = period === 'fiscal' ? series.fiscalYearUnavailable : series.calendarYearUnavailable;
+  const yearNotes = (period === 'fiscal' ? series.fiscalYearNotes : series.calendarYearNotes) ?? {};
+  const yearText = (fy: number) => (period === 'fiscal' ? fiscalYearLabel(fy) : `calendar year ${fy}`);
   const label = `${CPI_AREA_LABEL[index]}, ${CPI_PERIOD_LABEL[period]}`;
   return {
     index,
@@ -212,9 +219,12 @@ export function selectCpi(cpi: CpiFile, index: CpiIndex, period: CpiPeriod): Cpi
       return isPositiveNumber(v) ? v : undefined;
     },
     unavailableReason(fy) {
-      const yearText = period === 'fiscal' ? fiscalYearLabel(fy) : `calendar year ${fy}`;
       const reason = unavailable[String(fy)];
-      return `No ${label} for ${yearText}` + (reason ? ` (${reason}).` : '.');
+      return `No ${label} for ${yearText(fy)}` + (reason ? ` (${reason}).` : '.');
+    },
+    noteFor(fy) {
+      const note = yearNotes[String(fy)];
+      return note ? `${label} for ${yearText(fy)}: ${note}.` : undefined;
     },
   };
 }
@@ -423,6 +433,10 @@ function measureYear(
     if (cpiYear !== undefined || cpiBase !== undefined) sourceIds.push(cpi.sourceId);
     if (cpiYear === undefined) notes.push(cpi.unavailableReason(fy));
     if (cpiBase === undefined && s.baseYear !== fy) notes.push(cpi.unavailableReason(s.baseYear));
+    const yearNote = cpiYear !== undefined ? cpi.noteFor(fy) : undefined;
+    const baseNote = cpiBase !== undefined && s.baseYear !== fy ? cpi.noteFor(s.baseYear) : undefined;
+    if (yearNote) notes.push(yearNote);
+    if (baseNote) notes.push(baseNote);
     if (cpiYear === undefined || cpiBase === undefined) {
       value = null;
     } else if (value !== null) {

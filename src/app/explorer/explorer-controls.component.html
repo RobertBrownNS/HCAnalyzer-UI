@@ -1,0 +1,125 @@
+@if (show('flow')) {
+  <fieldset class="group">
+    <legend>Data</legend>
+    <mat-button-toggle-group
+      class="segmented"
+      aria-label="Revenues or expenditures"
+      hideSingleSelectionIndicator
+      [value]="settings().flow"
+      (change)="setFlow($event.value)"
+    >
+      @for (f of flows; track f.value) {
+        <mat-button-toggle [value]="f.value">{{ f.label }}</mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </fieldset>
+}
+
+@if (show('measure')) {
+  <fieldset class="group">
+    <legend>Measure</legend>
+    <mat-radio-group
+      class="stack"
+      aria-label="Measure"
+      [value]="settings().measure"
+      (change)="setMeasure($event.value)"
+    >
+      @for (m of measures; track m.value) {
+        <mat-radio-button [value]="m.value">{{ m.label }}</mat-radio-button>
+      }
+    </mat-radio-group>
+
+    <mat-form-field class="field" subscriptSizing="dynamic">
+      <mat-label>Base year</mat-label>
+      <mat-select [value]="settings().baseYear" (valueChange)="setBaseYear($event)">
+        @for (y of years(); track y) {
+          <mat-option [value]="y">{{ fyLabel(y) }}</mat-option>
+        }
+      </mat-select>
+      <mat-hint>Dollars of this year for inflation adjustment; 100 when indexed.</mat-hint>
+    </mat-form-field>
+
+    <mat-slide-toggle
+      class="toggle"
+      [checked]="settings().indexTo100"
+      (change)="setIndexTo100($event.checked)"
+    >
+      Index to 100 at base year
+    </mat-slide-toggle>
+  </fieldset>
+}
+
+@if (show('inflation')) {
+  <fieldset class="group" [disabled]="!real()">
+    <legend>Inflation index</legend>
+    @if (!real()) {
+      <p class="hint">Applies to the inflation-adjusted measures.</p>
+    }
+    <mat-radio-group
+      class="stack"
+      aria-label="CPI series"
+      [disabled]="!real()"
+      [value]="settings().cpiIndex"
+      (change)="setCpiIndex($event.value)"
+    >
+      @for (c of cpiIndexes; track c.value) {
+        <mat-radio-button [value]="c.value">{{ c.label }}</mat-radio-button>
+      }
+    </mat-radio-group>
+    <mat-radio-group
+      class="stack"
+      aria-label="CPI period"
+      [disabled]="!real()"
+      [value]="settings().cpiPeriod"
+      (change)="setCpiPeriod($event.value)"
+    >
+      @for (p of cpiPeriods; track p.value) {
+        <mat-radio-button [value]="p.value">{{ p.label }}</mat-radio-button>
+      }
+    </mat-radio-group>
+  </fieldset>
+}
+
+@if (show('funds')) {
+  <fieldset class="group">
+    <legend>Funds</legend>
+    <p class="hint">{{ scope() }}.</p>
+    <mat-slide-toggle
+      class="toggle"
+      [checked]="settings().includeCustodial"
+      (change)="setIncludeCustodial($event.checked)"
+    >
+      Include custodial fund
+    </mat-slide-toggle>
+    <p class="hint">
+      Reported from FY 2020-21 (GASB Statement No. 84). Amounts the county holds or collects for
+      others.
+    </p>
+  </fieldset>
+
+  <fieldset class="group">
+    <legend>Transfers between funds</legend>
+    <mat-radio-group
+      class="stack"
+      aria-label="Transfers between funds"
+      [value]="settings().transfers ?? 'gross'"
+      (change)="setTransfers($event.value)"
+    >
+      @for (t of transferModes; track t.value) {
+        <mat-radio-button [value]="t.value">{{ t.label }}</mat-radio-button>
+      }
+    </mat-radio-group>
+    <p class="hint">Account 381 (transfers in, revenues) and 581 (transfers out, expenditures).</p>
+  </fieldset>
+}
+
+@if (show('range')) {
+  <fieldset class="group">
+    <legend>Fiscal years</legend>
+    <app-range-control />
+  </fieldset>
+}
+
+@if (only() === null) {
+  <button matButton type="button" class="reset" (click)="reset()">Reset to defaults</button>
+}

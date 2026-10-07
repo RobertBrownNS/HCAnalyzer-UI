@@ -56,11 +56,17 @@ export type Measure = 'nominal' | 'per_capita' | 'real' | 'real_per_capita';
  * when it applies. An absent condition applies to every view.
  */
 export interface AnnotationRecord extends Annotation {
+  /** Absent = applies to every jurisdiction (e.g. the GASB 84 marker). */
+  jurisdiction?: string;
   flow?: Flow;
   /** Show only when the custodial toggle matches. */
   custodial?: 'included' | 'excluded';
   /** Show only for these measures. */
   measures?: readonly Measure[];
+  /** Longer factual text for the source drawer. */
+  detail?: string;
+  /** Workbook cells or file locations, e.g. "2023!D16". */
+  refs?: readonly string[];
 }
 
 /** One non-zero fund cell of one account row. Zero cells are omitted (= $0). */
@@ -121,6 +127,9 @@ export interface CpiSeriesFile {
   calendarYear: Record<string, number | null>;
   calendarYearBasis: string;
   calendarYearUnavailable: Record<string, string>;
+  /** Caveats on values that are present, keyed by year. */
+  calendarYearNotes?: Record<string, string>;
+  fiscalYearNotes?: Record<string, string>;
   monthly: Record<string, number>;
   semiannual: Record<string, number>;
   missingMonths: Record<string, string>;
