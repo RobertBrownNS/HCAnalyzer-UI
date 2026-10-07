@@ -8,7 +8,6 @@
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_JURISDICTION } from '../config/counties.js';
 import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig, type ParsedCpi } from './bls/cpi.js';
 import type { AfrSheet } from './edr/afr.js';
 import { generateAnomalies, type Annotation } from './edr/anomalies.js';
@@ -175,6 +174,13 @@ export function countyCrossChecks(c: Inputs['counties'][number]): { revenue: Flo
   };
 }
 
+/** The one configured county marked `default: true`; anything else is a config error. */
+export function defaultJurisdiction(counties: Array<{ slug: string; default?: boolean }>): string {
+  const defaults = counties.filter((c) => c.default);
+  if (defaults.length !== 1) throw new Error(`config/counties.ts: exactly one county must have default: true (found ${defaults.length})`);
+  return defaults[0].slug;
+}
+
 export function buildOutputs(inputs: Inputs): Map<string, string> {
   const files = new Map<string, string>();
   const sources: Source[] = [];
@@ -303,7 +309,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     generator: 'scripts/pipeline (npm run build)',
     jurisdictions: inputs.counties.map((c) => c.county.slug),
     jurisdictionNames: Object.fromEntries(inputs.counties.map((c) => [c.county.slug, c.county.name])),
-    defaultJurisdiction: DEFAULT_JURISDICTION,
+    defaultJurisdiction: defaultJurisdiction(inputs.counties.map((c) => c.county)),
     inputs: inputsList,
     outputs,
   };

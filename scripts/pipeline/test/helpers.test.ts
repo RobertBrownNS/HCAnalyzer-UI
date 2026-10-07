@@ -3,6 +3,8 @@ import { classifyAccount, formatAccountCode, normalizeHeading, SECTION_HEADINGS 
 import { cleanCountyName, selectPopulation, type PopulationValue } from '../src/edr/population.js';
 import { fiscalYearLabel, fiscalYearMonths, parseFiscalYearLabel, parseFiscalYearTitle } from '../src/lib/fiscal.js';
 import { stableStringify } from '../src/lib/hash.js';
+import { defaultJurisdiction } from '../src/build.js';
+import { COUNTIES } from '../config/counties.js';
 
 describe('fiscal year helpers', () => {
   it('labels FY by ending year', () => {
@@ -104,5 +106,16 @@ describe('population helpers', () => {
 describe('stableStringify', () => {
   it('sorts keys recursively and keeps array order', () => {
     expect(stableStringify({ b: 1, a: { d: [3, 1], c: 2 } })).toBe('{"a":{"c":2,"d":[3,1]},"b":1}\n');
+  });
+});
+
+describe('default jurisdiction (QA-36)', () => {
+  it('is the single county marked default', () => {
+    expect(defaultJurisdiction([{ slug: 'a' }, { slug: 'b', default: true }])).toBe('b');
+    expect(defaultJurisdiction(COUNTIES)).toBe('hillsborough');
+  });
+  it('fails with no default or more than one', () => {
+    expect(() => defaultJurisdiction([{ slug: 'a' }])).toThrow(/exactly one/);
+    expect(() => defaultJurisdiction([{ slug: 'a', default: true }, { slug: 'b', default: true }])).toThrow(/found 2/);
   });
 });

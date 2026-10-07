@@ -5,6 +5,8 @@
 export interface CountyConfig {
   /** Slug used in output file names and Observation.jurisdiction. */
   slug: string;
+  /** The county the site opens with when none is selected (manifest.defaultJurisdiction). Exactly one county has it. */
+  default?: boolean;
   name: string;
   /** File-name stem on EDR's cntyfiscal page, e.g. "hillsboroughcounty" -> hillsboroughcountyrevenues.xlsx */
   edrFileStem: string;
@@ -27,12 +29,10 @@ export interface CountyConfig {
   };
 }
 
-/** County the site opens with when none is selected (emitted as manifest.defaultJurisdiction). */
-export const DEFAULT_JURISDICTION = 'hillsborough';
-
 export const COUNTIES: CountyConfig[] = [
   {
     slug: 'hillsborough',
+    default: true,
     name: 'Hillsborough County',
     edrFileStem: 'hillsboroughcounty',
     populationName: 'Hillsborough',
