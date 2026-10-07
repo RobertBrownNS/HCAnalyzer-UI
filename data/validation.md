@@ -417,7 +417,7 @@ One row per configured county. All values come from the same checks reported abo
 
 ## LOGERX reconciliation
 
-Every account and fund amount in the DFS LOGERX public "Revenue Details" and "Expenditure Details" reports (verified data; the county's own Annual Financial Report filing) compared with the EDR workbook cell for the same fiscal year, flow, account and fund. Impact-fee rows split by dwelling and fee type are summed to the account. Extracts: data/raw/logerx/<county>/. Differences never change EDR values; they are listed here for review.
+Every account and fund amount in the DFS LOGERX public "Revenue Details" and "Expenditure Details" reports (data DFS marks "Verified"; the county's own Annual Financial Report filing) compared with the EDR workbook cell for the same fiscal year, flow, account and fund. Impact-fee rows split by dwelling and fee type are summed to the account. Extracts: data/raw/logerx/<county>/. Differences never change EDR values; they are listed here for review.
 
 | County | Fiscal year | Flow | Cells | Match | Mismatch | Only in LOGERX | Only in EDR | LOGERX total | EDR total | Result |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---|

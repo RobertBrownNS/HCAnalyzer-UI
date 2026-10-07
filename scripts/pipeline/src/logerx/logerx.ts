@@ -8,7 +8,7 @@ import { cellText } from '../lib/xlsx.js';
  * DFS LOGERX public "Revenue Details" / "Expenditure Details" reports: the account x fund amounts
  * local governments filed in their Annual Financial Reports (the DFS form), statewide, one workbook
  * per fiscal year. Fetched through the same public endpoint the LOGERX "Reports" page uses.
- * Only verified data is public. Used to cross-check EDR; never a data source for the explorer.
+ * Only data DFS marks "Verified" is public. Used to cross-check EDR; never a data source for the explorer.
  */
 
 export const LOGERX_REPORT_ENDPOINT = 'https://logerx.myfloridacfo.gov/api/document/systemReport';

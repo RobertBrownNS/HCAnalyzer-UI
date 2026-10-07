@@ -126,7 +126,7 @@
         "sha256": "2cc8f874b36cc2b868d1d3da4f2589defd34f9784a0bf1758debb1ab9f51ebcd"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -151,7 +151,7 @@
         "sha256": "d22cad34926864ab4810e70d5e5ae99675a073ce086aa35ffb6e24f811e6f884"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -176,7 +176,7 @@
         "sha256": "556a6e4f0dd2a2c0e634f25958e6598c0ca98d1260be70b210892d50d505a9c1"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -201,7 +201,7 @@
         "sha256": "b806f55e8a4b7236cb423807cdb590845e3caf2597dee9cc9136ba73cce20103"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -226,7 +226,7 @@
         "sha256": "62e37b59f828ecfb9ca3402ae0602831ce838751783acb44db6079b40154c507"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -251,7 +251,7 @@
         "sha256": "ca94883f1e5aa93fb4009c6dfbcdd9655d2247f966c970e76ed945341d00ead8"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -276,7 +276,7 @@
         "sha256": "4a0e30c3ec598f5d5855c2e3f846fd570326ab1b5ee39220b7ca1bb970d02763"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -301,7 +301,7 @@
         "sha256": "31af83700709a55fb1c1db6cf7cccac92ff1ec33e9617b48713f1427530299f3"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -326,7 +326,7 @@
         "sha256": "fbca3f5079ce6619934b5f38bb7e7a7d2c7165504555ad6adf56206a039d61be"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -351,7 +351,7 @@
         "sha256": "654dc5933f24e5340377943dabbc8c86415a67d9987655f3f0ca28cdf444fb48"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -376,7 +376,7 @@
         "sha256": "89ff5bc69cf552cfad3ec019b8e40f1e2f96fe78119f1c3894532ff2cc937b78"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -401,7 +401,7 @@
         "sha256": "01c115b3ccaca40cf06580667bfa5093e43384f2e99988937cf1b99b76af2ea5"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -426,7 +426,7 @@
         "sha256": "9b9ee8c05087b160728779714c1871e55902331e7c5c8206b5609f1d6deeb9ba"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -451,7 +451,7 @@
         "sha256": "9cf7dcf0702efa3a9338805ee2981170af5c7e717ed63edbaaa272abc525e22d"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -476,7 +476,7 @@
         "sha256": "99cb91e4cef5a84eb08999accda50184b6c362b93dafb735a506647c01deb279"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -501,7 +501,7 @@
         "sha256": "b0925a515797485ecd99ace8252bfad5676fd4f8d4abe461ff195ed84c68d731"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -526,7 +526,7 @@
         "sha256": "7f3c9f41ea2156a794193be7349703df79d3c437287f559bf381ea4902b5dc07"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -551,7 +551,7 @@
         "sha256": "022cc357973719ebd6c9cd0e3c685624ed7ced6f01b175108af2c2c20dc7d8d9"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -576,7 +576,7 @@
         "sha256": "f40993cbf4c578d006225beb14337bacaaa25ff4f7c9111d54f93c825fab77c4"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -601,7 +601,7 @@
         "sha256": "6617b3ac4780e6d6199d6cf74689128a3678927ce07d2572394847f4ff3d85b9"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -626,7 +626,7 @@
         "sha256": "8a7dcebf8916cb0381f92993e748f2de85f51a215bc487cacc86db01fcea7552"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -651,7 +651,7 @@
         "sha256": "26dc05aa96968891aca143ad35c8d3bdeae673a6a62cd9d0a36dee0cd27fb717"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -676,7 +676,7 @@
         "sha256": "a9a7c5206bcb46b00221254468f6a1da309deb1123e38921499d87269701f700"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -701,7 +701,7 @@
         "sha256": "8e4cf138846cb375e0c6f9832584b45f70609ee910d5c97d0a18b576a1229df0"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -726,7 +726,7 @@
         "sha256": "79c471b04976c42d62b6a1a084f9b0cc3d057a815eb9f52853d7a495008b11af"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -751,7 +751,7 @@
         "sha256": "8abc3b6a6d3fe1549c94048ce451ece2fe8bc86d6ee49aeae6a4867fa7b3b997"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100029 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -776,7 +776,7 @@
         "sha256": "2cc8f874b36cc2b868d1d3da4f2589defd34f9784a0bf1758debb1ab9f51ebcd"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -801,7 +801,7 @@
         "sha256": "d22cad34926864ab4810e70d5e5ae99675a073ce086aa35ffb6e24f811e6f884"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -826,7 +826,7 @@
         "sha256": "556a6e4f0dd2a2c0e634f25958e6598c0ca98d1260be70b210892d50d505a9c1"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -851,7 +851,7 @@
         "sha256": "b806f55e8a4b7236cb423807cdb590845e3caf2597dee9cc9136ba73cce20103"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -876,7 +876,7 @@
         "sha256": "62e37b59f828ecfb9ca3402ae0602831ce838751783acb44db6079b40154c507"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -901,7 +901,7 @@
         "sha256": "ca94883f1e5aa93fb4009c6dfbcdd9655d2247f966c970e76ed945341d00ead8"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -926,7 +926,7 @@
         "sha256": "4a0e30c3ec598f5d5855c2e3f846fd570326ab1b5ee39220b7ca1bb970d02763"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -951,7 +951,7 @@
         "sha256": "31af83700709a55fb1c1db6cf7cccac92ff1ec33e9617b48713f1427530299f3"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -976,7 +976,7 @@
         "sha256": "fbca3f5079ce6619934b5f38bb7e7a7d2c7165504555ad6adf56206a039d61be"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1001,7 +1001,7 @@
         "sha256": "654dc5933f24e5340377943dabbc8c86415a67d9987655f3f0ca28cdf444fb48"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1026,7 +1026,7 @@
         "sha256": "89ff5bc69cf552cfad3ec019b8e40f1e2f96fe78119f1c3894532ff2cc937b78"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1051,7 +1051,7 @@
         "sha256": "01c115b3ccaca40cf06580667bfa5093e43384f2e99988937cf1b99b76af2ea5"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1076,7 +1076,7 @@
         "sha256": "9b9ee8c05087b160728779714c1871e55902331e7c5c8206b5609f1d6deeb9ba"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Expenditure Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Expenditure Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1101,7 +1101,7 @@
         "sha256": "9cf7dcf0702efa3a9338805ee2981170af5c7e717ed63edbaaa272abc525e22d"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1126,7 +1126,7 @@
         "sha256": "99cb91e4cef5a84eb08999accda50184b6c362b93dafb735a506647c01deb279"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1151,7 +1151,7 @@
         "sha256": "b0925a515797485ecd99ace8252bfad5676fd4f8d4abe461ff195ed84c68d731"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1176,7 +1176,7 @@
         "sha256": "7f3c9f41ea2156a794193be7349703df79d3c437287f559bf381ea4902b5dc07"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1201,7 +1201,7 @@
         "sha256": "022cc357973719ebd6c9cd0e3c685624ed7ced6f01b175108af2c2c20dc7d8d9"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1226,7 +1226,7 @@
         "sha256": "f40993cbf4c578d006225beb14337bacaaa25ff4f7c9111d54f93c825fab77c4"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1251,7 +1251,7 @@
         "sha256": "6617b3ac4780e6d6199d6cf74689128a3678927ce07d2572394847f4ff3d85b9"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1276,7 +1276,7 @@
         "sha256": "8a7dcebf8916cb0381f92993e748f2de85f51a215bc487cacc86db01fcea7552"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1301,7 +1301,7 @@
         "sha256": "26dc05aa96968891aca143ad35c8d3bdeae673a6a62cd9d0a36dee0cd27fb717"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1326,7 +1326,7 @@
         "sha256": "a9a7c5206bcb46b00221254468f6a1da309deb1123e38921499d87269701f700"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1351,7 +1351,7 @@
         "sha256": "8e4cf138846cb375e0c6f9832584b45f70609ee910d5c97d0a18b576a1229df0"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1376,7 +1376,7 @@
         "sha256": "79c471b04976c42d62b6a1a084f9b0cc3d057a815eb9f52853d7a495008b11af"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {
@@ -1401,7 +1401,7 @@
         "sha256": "8abc3b6a6d3fe1549c94048ce451ece2fe8bc86d6ee49aeae6a4867fa7b3b997"
       },
       "lastVerified": "2026-10-07",
-      "method": "Public LOGERX \"Revenue Details\" report (verified data), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
+      "method": "Public LOGERX \"Revenue Details\" report (data DFS marks \"Verified\"), statewide, Excel; rows for entity 100052 extracted verbatim, sorted, as CSV",
       "publisher": "Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)",
       "reportAsOf": "Wednesday, October 7, 2026",
       "request": {

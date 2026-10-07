@@ -123,7 +123,7 @@ async function fetchLogerx(log: RetrievalLog, useCache: boolean) {
         record(log, logerxExtractPath(county.slug, report.flow, year), Buffer.from(csv), {
           url: LOGERX_PUBLIC_PAGE,
           publisher: 'Florida Department of Financial Services (DFS), Local Government Electronic Reporting (LOGERX)',
-          method: `Public LOGERX "${report.label}" report (verified data), statewide, Excel; rows for entity ${county.logerxEntityCode} extracted verbatim, sorted, as CSV`,
+          method: `Public LOGERX "${report.label}" report (data DFS marks "Verified"), statewide, Excel; rows for entity ${county.logerxEntityCode} extracted verbatim, sorted, as CSV`,
           request: { endpoint: LOGERX_REPORT_ENDPOINT, body: { afrYear: year, reportFormat: 'EXCEL', reportName: report.name } },
           fullDownload: { cachePath: rel(cache), bytes: xlsx.length, sha256: sha256(xlsx) },
           entityCode: county.logerxEntityCode,

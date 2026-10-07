@@ -227,7 +227,7 @@ Observations are sorted by jurisdiction, fiscalYear, flow (revenue first), numer
 
 ### Where the FY 2022-23 and FY 2023-24 expenditure break comes from (QA-01)
 
-The county's own Annual Financial Reports, as filed with the Florida CFO and published by the Clerk of Court & Comptroller, show the same figures as EDR. The PDFs are in `data/raw/county-afr/`. Lines checked, all verified by `npm run validate`:
+The county's own Annual Financial Reports, as filed with the Florida Department of Financial Services and published by the Clerk of Court & Comptroller, show the same figures as EDR. The PDFs are in `data/raw/county-afr/`. Lines checked, all verified by `npm run validate`:
 
 | FY | Account, fund | County AFR (page) | EDR cell |
 |---|---|---|---|
@@ -266,7 +266,7 @@ The API used here is the undocumented backend of the public LOGERX reports page,
 LOGERX is the Florida Department of Financial Services system where local governments file the Annual Financial Report (the DFS form). Its public reports page (https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu, "Citizens Enter Here") calls a public JSON API with no login:
 
 - `GET https://logerx.myfloridacfo.gov/api/document/AFR/reportYears` returns `[2013, ..., 2025]` (fiscal years ending; FY 2012-13 to FY 2024-25).
-- `POST https://logerx.myfloridacfo.gov/api/document/systemReport` with `{"afrYear": 2024, "reportFormat": "EXCEL", "reportName": "REVENUEDETAILREPORT"}` (or `EXPENDITUREDETAILREPORT`) returns `{mimeType, content}` with a base64 xlsx: the statewide "Revenue Details" / "Expenditure Details" report (verified data only; about 1,900 governments, 2.0-3.4 MB).
+- `POST https://logerx.myfloridacfo.gov/api/document/systemReport` with `{"afrYear": 2024, "reportFormat": "EXCEL", "reportName": "REVENUEDETAILREPORT"}` (or `EXPENDITUREDETAILREPORT`) returns `{mimeType, content}` with a base64 xlsx: the statewide "Revenue Details" / "Expenditure Details" report (only data DFS marks "Verified"; about 1,900 governments, 2.0-3.4 MB).
 
 Report layout: title in row 1 ("Revenue Details for Fiscal Year 2024, as of Wednesday, October 7, 2026"), header in row 3, data from row 4.
 

@@ -11,7 +11,7 @@ export interface CountyConfig {
   /** County name exactly as it appears (before any footnote marker) in EDR's FLcopops.xlsx. */
   populationName: string;
   /**
-   * Optional: the county's own Annual Financial Report (the DFS form it filed with the Florida CFO),
+   * Optional: the county's own Annual Financial Report (the form it filed with the Florida Department of Financial Services),
    * as published by the county. Used only to cross-check EDR's transcription; never as a data source.
    */
   /** Extra caveats copied into this county's two EDR AFR Source records. */
