@@ -73,6 +73,12 @@ export interface AnnotationRecord extends Annotation {
   funds?: readonly string[];
   /** Categories the row is about (DR-47). Shown only in a category view that includes one. */
   categories?: readonly string[];
+  /**
+   * EDR cells the row is about (DR-50), as account + fund. For the source
+   * drawer: the row applies to a point whose observations include one of these
+   * cells. Doesn't affect chart markers.
+   */
+  cells?: readonly { account: string; fundType: string }[];
 }
 
 export type AnnotationTopic =
@@ -93,7 +99,15 @@ export interface CategoryDef {
   flow: Flow;
   label: string;
   section?: string;
-  accountRanges?: readonly { from: string; to: string }[];
+  accountRanges?: readonly {
+    from: string;
+    to: string;
+    /** First and last fiscal year the range applies to (DR-48); absent = open-ended. */
+    fromFiscalYear?: number;
+    toFiscalYear?: number;
+    uasReference?: string;
+    sourceIds?: readonly string[];
+  }[];
   uasReference?: string;
   sourceId?: string;
 }
@@ -121,20 +135,36 @@ export interface SourceRecord extends Source {
   crossCheckCoverage?: readonly CrossCheckRange[];
 }
 
-/** funds.json (P3-02): fund types, their groups and the preset definitions, all from data. */
-export interface FundsFile {
-  groups: readonly { id: string; label: string; order: number }[];
-  funds: readonly { id: string; label: string; group: string; order: number; custodial?: boolean }[];
-  /** Preset id -> fund ids; labels and the "what this includes" text come with each preset. */
-  presets: readonly { id: string; label: string; funds: readonly string[]; description?: string }[];
+/** <county>.accounts.json row: an account's names over the years. */
+export interface AccountRecord {
+  account: string;
+  flow: Flow;
+  category: string;
+  section: string;
+  /** Latest printed name. */
+  name: string;
+  names: readonly { fiscalYears: readonly number[]; name: string }[];
 }
 
-/** categories.json (P3-01): category display labels and order, by flow. */
-export interface CategoriesFile {
-  categories: readonly { id: string; label: string; flow: Flow; order: number }[];
-  /** Where the published mapping table lives (site page or source document). */
-  mappingUrl?: string;
+/** funds.json (P3-02, DR-49): every EDR fund column, its GASB group, and the presets. Array order is display order. */
+export interface FundsFile {
+  sourceId?: string;
+  groups: readonly { id: string; label: string }[];
+  funds: readonly {
+    id: string;
+    /** EDR column header. */
+    label: string;
+    group: string;
+    description?: string;
+    /** Set on a fund with its own control (custodial): never in the fund checkboxes. */
+    handledByToggle?: string;
+  }[];
+  presets: readonly { id: string; label: string; funds: readonly string[] }[];
+  note?: string;
 }
+
+/** categories.json (P3-01, DR-49): one row per category, in UAS order. */
+export type CategoriesFile = readonly CategoryDef[];
 
 /** Cross-check status of a range of fiscal years (pipeline, DR-45). */
 export type CrossCheckStatus = 'full' | 'spot-check' | 'not-checked' | 'mismatch';

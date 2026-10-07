@@ -482,6 +482,33 @@ export function pointBreakdown(
   );
 }
 
+/**
+ * Annotations for the source drawer of one point (DR-50): rows with `cells`,
+ * same jurisdiction, flow and fiscal year, where one of the listed cells
+ * (account AND fund) is among the point's observations (pointBreakdown, so
+ * the current funds, custodial, transfers and category apply). Account codes
+ * are compared as numbers ("335.8" = "335.80").
+ */
+export function annotationsForPoint(
+  data: TransformData,
+  s: TransformSettings,
+  fiscalYear: number,
+  category?: string,
+): AnnotationRecord[] {
+  const cellKey = (account: string, fundType: string) => `${Number(account)}|${fundType}`;
+  const cells = new Set(pointBreakdown(data, s, fiscalYear, category).map((o) => cellKey(o.account, o.fundType)));
+  return data.annotations
+    .filter(
+      (a) =>
+        a.cells !== undefined &&
+        a.fiscalYear === fiscalYear &&
+        (a.jurisdiction === undefined || a.jurisdiction === s.jurisdiction) &&
+        (a.flow === undefined || a.flow === s.flow) &&
+        a.cells.some((c) => cells.has(cellKey(c.account, c.fundType))),
+    )
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
 function seriesFor(
   data: TransformData,
   s: TransformSettings,

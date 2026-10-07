@@ -12,6 +12,7 @@ import type {
   WorkbookTotal,
 } from './models';
 import {
+  annotationsForPoint,
   annotationsInRange,
   availableCategories,
   availableFunds,
@@ -1905,4 +1906,85 @@ describe('golden: pointBreakdown', () => {
       }
     }
   });
+});
+
+describe('annotationsForPoint (DR-50)', () => {
+  const ann = (label: string, extra: Partial<AnnotationRecord> = {}): AnnotationRecord => ({
+    fiscalYear: 2019,
+    label,
+    kind: 'methodology',
+    sourceId: 's',
+    ...extra,
+  });
+  const cell = (account: string, fundType: string) => ({ account, fundType });
+  const d = (): TransformData => ({
+    ...p3Fixture(),
+    annotations: [
+      ann('no-cells'),
+      ann('b-341-ent', { cells: [cell('341.00', 'enterprise')], flow: 'revenue', jurisdiction: 'hillsborough' }),
+      ann('a-311-gen', { cells: [cell('999', 'general'), cell('311', 'general')] }),
+      ann('311-wrong-fund', { cells: [cell('311', 'capital')] }),
+      ann('exp-513', { cells: [cell('513', 'general')], flow: 'expenditure' }),
+      ann('other-county', { cells: [cell('311', 'general')], jurisdiction: 'pasco' }),
+      ann('other-year', { cells: [cell('311', 'general')], fiscalYear: 2020 }),
+    ],
+  });
+  const labels = (over: Partial<TransformSettings>, fy: number, category?: string) =>
+    annotationsForPoint(d(), p3(over), fy, category).map((a) => a.label);
+
+  it("matches rows whose cells (account AND fund) are among the point's observations", () => {
+    expect(labels({}, 2019)).toEqual(['a-311-gen', 'b-341-ent']);
+    expect(labels({ flow: 'expenditure' }, 2019)).toEqual(['exp-513']);
+    expect(labels({}, 2020)).toEqual(['other-year']);
+  });
+
+  it('follows the point selection: category and funds', () => {
+    expect(labels({}, 2019, 'charges_for_services')).toEqual(['b-341-ent']);
+    expect(labels({ funds: ['general'] }, 2019)).toEqual(['a-311-gen']);
+    expect(labels({ funds: ['enterprise'] }, 2019)).toEqual(['b-341-ent']);
+    expect(labels({}, 1990)).toEqual([]);
+  });
+});
+
+describe('golden: annotationsForPoint', () => {
+  // The pipeline emits one 'reconciliation-difference' row per approved reclassification
+  // (scripts/pipeline/config/approved-annotations.ts), each with the EDR cell in `cells`.
+  const rows = realData.annotations.filter((a) => (a.topic as string) === 'reconciliation-difference');
+
+  it('finds the approved reconciliation rows (at least one), and only they carry cells', () => {
+    expect(rows.length).toBeGreaterThan(0);
+    expect(realData.annotations.filter((a) => a.cells !== undefined)).toEqual(rows);
+    for (const a of rows) {
+      expect(a.jurisdiction && JURISDICTIONS.includes(a.jurisdiction)).toBe(true);
+      expect(a.flow).toBeDefined();
+      expect(a.cells!.length).toBeGreaterThan(0);
+    }
+  });
+
+  it.each(rows.map((a) => [`${a.jurisdiction} ${a.flow} FY ${a.fiscalYear}`, a] as const))(
+    '%s: each cell is a real observation and the row reaches its own point only with that fund selected',
+    (_, a) => {
+      const s = goldenFull({ jurisdiction: a.jurisdiction!, flow: a.flow! });
+      for (const c of a.cells!) {
+        const hit = realData.observations.some(
+          (o) =>
+            o.jurisdiction === a.jurisdiction &&
+            o.flow === a.flow &&
+            o.fiscalYear === a.fiscalYear &&
+            Number(o.account) === Number(c.account) &&
+            o.fundType === c.fundType,
+        );
+        expect(hit).toBe(true);
+        const category = realData.observations.find(
+          (o) => o.jurisdiction === a.jurisdiction && o.flow === a.flow && Number(o.account) === Number(c.account),
+        )!.category;
+        expect(annotationsForPoint(realData, s, a.fiscalYear)).toContain(a);
+        expect(annotationsForPoint(realData, s, a.fiscalYear, category)).toContain(a);
+        expect(annotationsForPoint(realData, { ...s, funds: [c.fundType] }, a.fiscalYear)).toContain(a);
+        const others = availableFunds(realData, s.jurisdiction).filter((f) => f !== c.fundType);
+        expect(annotationsForPoint(realData, { ...s, funds: others }, a.fiscalYear)).not.toContain(a);
+        expect(annotationsForPoint(realData, s, a.fiscalYear - 1)).not.toContain(a);
+      }
+    },
+  );
 });
