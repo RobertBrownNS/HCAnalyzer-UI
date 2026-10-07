@@ -100,6 +100,18 @@ export interface SourceRecord extends Source {
   countyAfrCrossCheck?: 'not-checked' | 'spot-check' | 'partial' | 'full';
   /** Plain-language statement of that check, for display. */
   crossCheckSummary?: string;
+  /** Per fiscal-year range status; together the ranges cover every workbook year once. */
+  crossCheckCoverage?: readonly CrossCheckRange[];
+}
+
+/** Cross-check status of a range of fiscal years (pipeline, DR-45). */
+export type CrossCheckStatus = 'full' | 'spot-check' | 'not-checked' | 'mismatch';
+
+/** Inclusive fiscal-year range (year ending: 2013 = FY 2012-13) with one status. */
+export interface CrossCheckRange {
+  fromFiscalYear: number;
+  toFiscalYear: number;
+  status: CrossCheckStatus;
 }
 
 export interface PopulationValue {

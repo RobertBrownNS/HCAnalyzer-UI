@@ -44,6 +44,22 @@
             <span class="swatch" [style.background]="seriesColor()"></span>{{ caption() }}
           </p>
           <p class="fx-caption meta">{{ scopeLine() }}</p>
+          @if (view() === 'chart' && crossCheckLegend().length) {
+            <ul class="fx-caption meta check-legend" aria-label="Point markers" [style.--series-color]="seriesColor()">
+              @for (item of crossCheckLegend(); track item.status) {
+                <li>
+                  <svg class="marker" viewBox="0 0 12 12" aria-hidden="true">
+                    @if (item.status === 'mismatch') {
+                      <path class="filled" d="M6 1 L11 6 L6 11 L1 6 Z" />
+                    } @else {
+                      <circle class="hollow" cx="6" cy="6" r="4" />
+                    }
+                  </svg>
+                  {{ item.label }}
+                </li>
+              }
+            </ul>
+          }
         </div>
         <div class="fx-segmented" role="group" aria-label="Display">
           <button type="button" class="fx-button" [attr.aria-pressed]="view() === 'chart'" (click)="view.set('chart')">
@@ -73,6 +89,7 @@
                 [valueLabel]="valueLabel()"
                 [seriesIndex]="seriesIndex()"
                 [revealSkeleton]="reveal()"
+                [crossCheck]="store.crossCheck()"
                 (rangeChange)="store.update({ range: $event })"
               />
             } @else {
@@ -81,6 +98,7 @@
                 [points]="store.points()"
                 [settings]="store.settings()"
                 [valueLabel]="valueLabel()"
+                [crossCheck]="store.crossCheck()"
               />
             }
           }

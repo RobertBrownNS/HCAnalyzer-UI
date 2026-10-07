@@ -1,6 +1,8 @@
 import { Component, computed, input } from '@angular/core';
 
+import { CROSS_CHECK_SHORT } from '../core/cross-check';
 import { formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
+import { CrossCheckStatus } from '../core/models';
 import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
 
@@ -22,6 +24,9 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
               <th scope="col" class="num">CPI</th>
               <th scope="col" class="num">CPI {{ baseLabel() }} (base)</th>
             }
+            @if (crossCheck()) {
+              <th scope="col">Cross-check</th>
+            }
             <th scope="col">Notes</th>
           </tr>
         </thead>
@@ -37,6 +42,9 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
               @if (showCpi()) {
                 <td class="num">{{ cpi(p.cpi) }}</td>
                 <td class="num">{{ cpi(p.cpiBase) }}</td>
+              }
+              @if (crossCheck(); as check) {
+                <td class="check">{{ checkLabel(check.get(p.fiscalYear) ?? null) }}</td>
               }
               <td class="notes">
                 @for (n of p.notes; track $index) {
@@ -80,6 +88,10 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
     tbody th {
       white-space: nowrap;
     }
+    thead th.num {
+      font: inherit; // headers are text: only the figures use the mono face
+      font-weight: var(--fx-weight-semibold);
+    }
     thead th {
       position: sticky;
       top: 0;
@@ -88,6 +100,9 @@ import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transfo
     .num {
       text-align: right;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .check {
       white-space: nowrap;
     }
     .notes {
@@ -101,6 +116,12 @@ export class SeriesTableComponent {
   readonly points = input.required<SeriesPoint[]>();
   readonly settings = input.required<TransformSettings>();
   readonly valueLabel = input.required<string>();
+  /** Cross-check status per year; null = the source has no coverage, so no column. */
+  readonly crossCheck = input<ReadonlyMap<number, CrossCheckStatus | null> | null>(null);
+
+  checkLabel(status: CrossCheckStatus | null): string {
+    return status ? CROSS_CHECK_SHORT[status] : '—';
+  }
 
   readonly showPopulation = computed(() => isPerCapita(this.settings().measure));
   readonly showCpi = computed(() => isReal(this.settings().measure));

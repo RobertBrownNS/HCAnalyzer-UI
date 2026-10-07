@@ -13,7 +13,7 @@ import {
   yearRanges,
   markLineGroups,
 } from './view-notes';
-import { tooltipHtml } from './series-chart.component';
+import { crossCheckMarker, tooltipHtml } from './series-chart.component';
 
 const point = (fy: number, notes: string[] = [], extra: Partial<SeriesPoint> = {}): SeriesPoint => ({
   fiscalYear: fy,
@@ -270,5 +270,26 @@ describe('crossCheckNotice', () => {
 
   it('shows nothing for sources without a cross-check status', () => {
     expect(crossCheckNotice(src({}))).toBeNull();
+  });
+});
+
+describe('cross-check markers and tooltip line', () => {
+  const m = { symbolSize: 5, lineWidth: 2 };
+
+  it('uses shape, not colour alone: filled, hollow, diamond; none without coverage', () => {
+    expect(crossCheckMarker('full', 'S', 'T', m)).toMatchObject({ symbol: 'circle', itemStyle: { color: 'S' } });
+    expect(crossCheckMarker('spot-check', 'S', 'T', m)).toMatchObject({ symbol: 'circle', itemStyle: { color: 'S' } });
+    expect(crossCheckMarker('not-checked', 'S', 'T', m)).toMatchObject({
+      symbol: 'circle',
+      itemStyle: { color: 'T', borderColor: 'S' },
+    });
+    expect(crossCheckMarker('mismatch', 'S', 'T', m)?.symbol).toBe('diamond');
+    expect(crossCheckMarker(null, 'S', 'T', m)).toBeNull();
+  });
+
+  it('adds one line with the year’s cross-check status to the tooltip', () => {
+    const html = tooltipHtml(point(2010), DEFAULT_SETTINGS, 'Revenues', [], 'not-checked');
+    expect(html).toContain('Not cross-checked against the county-filed AFR');
+    expect(tooltipHtml(point(2010), DEFAULT_SETTINGS, 'Revenues')).not.toContain('cross-check');
   });
 });

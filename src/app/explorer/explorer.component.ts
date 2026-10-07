@@ -11,6 +11,7 @@ import {
   isReal,
   transferLabel,
 } from '../core/labels';
+import { CROSS_CHECK_LABELS } from '../core/cross-check';
 import { fiscalYearLabel } from '../core/transform';
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
@@ -87,6 +88,19 @@ export class ExplorerComponent {
   readonly caption = computed(() => measureCaption(this.store.settings()));
   /** Annotations that apply to every view (e.g. GASB 84), spelled out under the chart on phones. */
   readonly keyAnnotations = computed(() => this.store.annotationNotes().filter((a) => a.universal));
+
+  /**
+   * Legend for marked points, only for statuses actually in view: hollow circle = not cross-checked,
+   * diamond = cross-checked with differences not resolved.
+   */
+  readonly crossCheckLegend = computed(() => {
+    const check = this.store.crossCheck();
+    if (!check) return [];
+    const present = new Set([...check.values()]);
+    return (['not-checked', 'mismatch'] as const)
+      .filter((status) => present.has(status))
+      .map((status) => ({ status, label: CROSS_CHECK_LABELS[status] }));
+  });
 
   readonly kpis = computed(() =>
     kpiCards(this.store.points(), this.store.settings(), this.store.loaded() ? undefined : 'Data not loaded'),

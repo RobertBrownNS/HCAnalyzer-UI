@@ -52,9 +52,18 @@ const shared = {
     source('page', 'County Government Revenues and Expenditures (index page)'),
     source('edr-afr-revenues-hillsborough', 'Hillsborough County Government Revenues Reported by Account', [], {
       countyAfrCrossCheck: 'spot-check', crossCheckSummary: HILLSBOROUGH_SUMMARY,
+      crossCheckCoverage: [
+        { fromFiscalYear: 2020, toFiscalYear: 2020, status: 'full' },
+        { fromFiscalYear: 2021, toFiscalYear: 2021, status: 'mismatch' },
+        { fromFiscalYear: 2022, toFiscalYear: 2023, status: 'full' },
+      ],
     }),
     source('edr-afr-revenues-pinellas', 'Pinellas County Government Revenues Reported by Account', [PINELLAS_CAVEAT], {
       countyAfrCrossCheck: 'not-checked', crossCheckSummary: PINELLAS_SUMMARY,
+      crossCheckCoverage: [
+        { fromFiscalYear: 2020, toFiscalYear: 2021, status: 'not-checked' },
+        { fromFiscalYear: 2022, toFiscalYear: 2023, status: 'full' },
+      ],
     }),
   ],
 };
@@ -138,5 +147,47 @@ describe('Explorer with a county selected', () => {
     notes = el.querySelector('app-view-notes')?.textContent ?? '';
     expect(notes).toContain('Hillsborough custodial accounts');
     expect(notes).not.toContain('Pinellas custodial accounts');
+  });
+
+  describe('cross-check marking', () => {
+    const legend = (el: HTMLElement) => [...el.querySelectorAll('.check-legend li')].map((li) => li.textContent?.trim());
+
+    it('shows the "not cross-checked" legend entry only when such points are in view', async () => {
+      let el = await open('/?county=pinellas&from=2020&to=2023');
+      expect(legend(el)).toEqual(['Not cross-checked against the county-filed AFR']);
+      el = await open('/?county=pinellas&from=2022&to=2023'); // only fully checked years
+      expect(el.querySelector('.check-legend')).toBeNull();
+    });
+
+    it('shows a separate legend entry for years with unresolved differences', async () => {
+      const el = await open('/?county=hillsborough&from=2020&to=2023');
+      expect(legend(el)).toEqual(['Cross-checked: differences with the county-filed AFR not resolved']);
+    });
+
+    it('legend uses a marker shape plus text, not colour alone', async () => {
+      const el = await open('/?county=hillsborough&from=2020&to=2023');
+      const item = el.querySelector('.check-legend li')!;
+      expect(item.querySelector('svg path')).not.toBeNull(); // diamond shape
+      expect(item.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+      expect(item.textContent?.trim().length).toBeGreaterThan(0);
+    });
+
+    it('table: a Cross-check column with the status per year', async () => {
+      const el = await open('/?county=pinellas&from=2020&to=2023');
+      (el.querySelector('.fx-segmented button:last-child') as HTMLButtonElement).click();
+      await harness.fixture.whenStable();
+      const headers = [...el.querySelectorAll('app-series-table thead th')].map((th) => th.textContent?.trim());
+      expect(headers).toContain('Cross-check');
+      const rows = [...el.querySelectorAll('app-series-table tbody tr')].map((tr) => [
+        tr.querySelector('th')?.textContent?.trim(),
+        tr.querySelector('.check')?.textContent?.trim(),
+      ]);
+      expect(rows).toEqual([
+        ['FY 2019-20', 'Not cross-checked'],
+        ['FY 2020-21', 'Not cross-checked'],
+        ['FY 2021-22', 'Matches'],
+        ['FY 2022-23', 'Matches'],
+      ]);
+    });
   });
 });

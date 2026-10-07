@@ -2,7 +2,9 @@ import { Component, DestroyRef, ElementRef, computed, inject, input, output, sig
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 
-import { readChartColors, readChartMetrics } from '../core/chart-palette';
+import { ChartMetrics, readChartColors, readChartMetrics } from '../core/chart-palette';
+import { CROSS_CHECK_LABELS } from '../core/cross-check';
+import { CrossCheckStatus } from '../core/models';
 import { ColorSchemeService } from '../core/color-scheme.service';
 import { formatAxisValue, formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
 import { isPerCapita, isReal } from '../core/labels';
@@ -14,6 +16,30 @@ import { AnnotationNote, annotationsForTooltip, markLineGroups } from './view-no
 // ECharts renders the tooltip as HTML in the page, so tokens apply.
 const NOTE_STYLE = 'max-width:var(--fx-tooltip-width);white-space:normal;margin-top:var(--fx-space-1)';
 
+/**
+ * Point marker by cross-check status. Checked years (full, spot-check): filled circle.
+ * Not cross-checked: hollow circle (series outline, tile fill). Mismatch: filled diamond, larger.
+ * Shape, not colour, carries the meaning. Null = default marker (no coverage: no marking).
+ */
+export function crossCheckMarker(
+  status: CrossCheckStatus | null,
+  series: string,
+  surface: string,
+  m: Pick<ChartMetrics, 'symbolSize' | 'lineWidth'>,
+): { symbol: string; symbolSize?: number; itemStyle: Record<string, unknown> } | null {
+  switch (status) {
+    case 'full':
+    case 'spot-check':
+      return { symbol: 'circle', itemStyle: { color: series } };
+    case 'not-checked':
+      return { symbol: 'circle', itemStyle: { color: surface, borderColor: series, borderWidth: m.lineWidth * 0.75 } };
+    case 'mismatch':
+      return { symbol: 'diamond', symbolSize: m.symbolSize * 1.6, itemStyle: { color: series } };
+    default:
+      return null;
+  }
+}
+
 function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
@@ -24,6 +50,7 @@ export function tooltipHtml(
   s: TransformSettings,
   valueLabel: string,
   annotations: readonly AnnotationNote[] = [],
+  crossCheck: CrossCheckStatus | null = null,
 ): string {
   const rows: [string, string][] = [[valueLabel, formatValue(p.value, s)], ['Nominal total', formatUsd(p.nominal)]];
   if (isPerCapita(s.measure)) rows.push(['Population (April 1)', formatCount(p.population)]);
@@ -38,7 +65,8 @@ export function tooltipHtml(
     .map((a) => `<div style="${NOTE_STYLE}">${a.n}. ${escapeHtml(a.label)}</div>`)
     .join('');
   const notes = p.notes.map((n) => `<div style="${NOTE_STYLE}">${escapeHtml(n)}</div>`).join('');
-  return `<strong>${escapeHtml(p.label)}</strong><table>${table}</table>${marks}${notes}`;
+  const check = crossCheck ? `<div style="${NOTE_STYLE}">${escapeHtml(CROSS_CHECK_LABELS[crossCheck])}</div>` : '';
+  return `<strong>${escapeHtml(p.label)}</strong><table>${table}</table>${check}${marks}${notes}`;
 }
 
 @Component({
@@ -83,6 +111,8 @@ export class SeriesChartComponent {
   readonly settings = input.required<TransformSettings>();
   /** Axis/series name, e.g. "Revenues, per resident". */
   readonly valueLabel = input.required<string>();
+  /** Cross-check status per fiscal year; null when the source has no coverage (no marking). */
+  readonly crossCheck = input<ReadonlyMap<number, CrossCheckStatus | null> | null>(null);
   /** Palette slot for the line: 1 = revenue, 2 = spending (see _tokens.scss $series). */
   readonly seriesIndex = input<number>(1);
 
@@ -175,6 +205,8 @@ export class SeriesChartComponent {
     const label = this.valueLabel();
 
     const notes = this.annotations();
+    const check = this.crossCheck();
+    const series = c.series[this.seriesIndex() - 1] ?? c.series[0];
     const markLines = markLineGroups(notes, this.compact()).map((g) => ({
       xAxis: fiscalYearLabel(g.fiscalYear),
       label: { formatter: g.label },
@@ -183,7 +215,7 @@ export class SeriesChartComponent {
 
     return {
       backgroundColor: 'transparent',
-      color: [c.series[this.seriesIndex() - 1] ?? c.series[0]],
+      color: [series],
       aria: { enabled: true },
       animationDuration: 300,
       textStyle: { color: c.text, fontFamily: m.fontFamily },
@@ -197,7 +229,7 @@ export class SeriesChartComponent {
         formatter: (params: unknown) => {
           const first = Array.isArray(params) ? params[0] : params;
           const p = pts[(first as { dataIndex: number }).dataIndex];
-          return p ? tooltipHtml(p, s, label, notes) : '';
+          return p ? tooltipHtml(p, s, label, notes, check?.get(p.fiscalYear) ?? null) : '';
         },
       },
       dataZoom: [
@@ -235,11 +267,17 @@ export class SeriesChartComponent {
         {
           type: 'line',
           name: label,
-          data: pts.map((p) => p.value ?? '-'), // '-' is ECharts' missing-value marker
+          // '-' is ECharts' missing-value marker. Marker shape carries the cross-check status
+          // (never colour alone): see crossCheckMarker.
+          data: pts.map((p) => {
+            const marker = crossCheckMarker(check?.get(p.fiscalYear) ?? null, series, c.surface, m);
+            return marker ? { value: p.value ?? '-', ...marker } : (p.value ?? '-');
+          }),
           connectNulls: false,
           showSymbol: true,
           symbolSize: m.symbolSize,
-          lineStyle: { width: m.lineWidth },
+          itemStyle: { color: series },
+          lineStyle: { width: m.lineWidth, color: series },
           markLine: {
             silent: true,
             symbol: 'none',

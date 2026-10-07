@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
 import { CountyContext, countyLabel, countyShortName } from '../core/county';
+import { coverageFor, crossCheckByYear } from '../core/cross-check';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
@@ -135,6 +136,17 @@ export class ExplorerStore {
       expenditures: afr('expenditure'),
       population: data.population[this.county()]?.sourceId,
     };
+  });
+
+  /** Cross-check status per fiscal year in view (county + flow source coverage); null = no coverage. */
+  readonly crossCheck = computed(() => {
+    const data = this.data();
+    if (!data) return null;
+    const coverage = coverageFor(data.sources, data.observations, this.county(), this.settings().flow);
+    return crossCheckByYear(
+      this.points().map((p) => p.fiscalYear),
+      coverage,
+    );
   });
 
   readonly cpiSelection = computed(() => {
