@@ -1,5 +1,6 @@
 {
-  "dataVersion": "5bb7e2af98f7d30a",
+  "dataVersion": "4851b5faadec2fda",
+  "defaultJurisdiction": "hillsborough",
   "generator": "scripts/pipeline (npm run build)",
   "inputs": [
     {
@@ -45,21 +46,242 @@
     {
       "path": "data/raw/edr/hillsboroughcountyrevenues.xlsx",
       "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0"
+    },
+    {
+      "path": "data/raw/edr/pinellascountyexpenditures.xlsx",
+      "sha256": "d148689269f529c232af68595e3b2221ab2175f73747805d96bf5b9fb18c0392"
+    },
+    {
+      "path": "data/raw/edr/pinellascountyrevenues.xlsx",
+      "sha256": "370f27c0e27099859a4572ae45ba14b5551bc78affbb8bbdc1700018ac733327"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2013.csv",
+      "sha256": "8578194c6a8d11a07e59581c36d4452386363394c8c6259cc4f622390788cd74"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2014.csv",
+      "sha256": "c4aafade049acdfc2b7efda892a32aa41c2757d72178777dc3d2d9ecea5b9030"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2015.csv",
+      "sha256": "90ccd04172f007b2c2d688bf2777b4aad0aacf5f24fac57d334bc3f386db14ab"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2016.csv",
+      "sha256": "242ab1f0be36b9261646fc9a4e6de326e7cd34736ea4a4077d6477e94caaf0bb"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2017.csv",
+      "sha256": "7b5545f996790597a88405887f85918d434459db7dc7da3b8a7df89e0ff71502"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2018.csv",
+      "sha256": "2ccb9ceaa595fe359677607839aa65bc7f6867d255947d5dbc0c0b7f0579a353"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2019.csv",
+      "sha256": "af4d422a5f6714632fa323a053cc5c2cf18ed1f21a44558654a004bfaabfe15c"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2020.csv",
+      "sha256": "adb8de6b7d017ca79e6d5835c327360c0c7405fb41235a4bcb640fcd0fe7d302"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2021.csv",
+      "sha256": "d7b19a807965b88c419bdcbdc12cd68e94d95ed750c40cb9e606b77f48595392"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2022.csv",
+      "sha256": "547ebd7850bc9b794525bc08c905cc9c7d8504163c66c3cd841af2bea08942b6"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2023.csv",
+      "sha256": "887fee9a3cb6c7942a502d82179a2757e138e8b8293148ab2a7d2f76642c6404"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2024.csv",
+      "sha256": "c3c2e6c80a9c07ef8fc6e761ff78d5b5704712244de26a87631c844a33eb09b0"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/expenditures-fy2025.csv",
+      "sha256": "304a7379dffabc9f031d8c1857d3f5b1d36963cb43cefb17cbabf4d3f55a5caa"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2013.csv",
+      "sha256": "c4aecc70cb11480e86cc1247a5810c917699f571ac5b8fe114b6b6c8f86b6c8d"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2014.csv",
+      "sha256": "0c97613e9746936261bf620fd7dd8e73b00223ae6d2b898cebdb89f091708c60"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2015.csv",
+      "sha256": "b8eb5945a03e62957be13a97887a38b558ea2843564555896c29ee59830943ce"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2016.csv",
+      "sha256": "79a5bbff5fecaa89bc005dd360915e1a42e3270133e4aeade857e82ffd793bb2"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2017.csv",
+      "sha256": "0cb333ab04d6942e9140091f16b482e83d58014f0e3ced375d911be89e93e405"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2018.csv",
+      "sha256": "1b81fadc8bf966e72668e062de4ec00a5b970487b70f66c410889ee1e13331ec"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2019.csv",
+      "sha256": "bec7d391b8321fe0222c973e8b07090f2abaf34349728edad071fb175ccf02cd"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2020.csv",
+      "sha256": "854e913bde78d64bfd31a1e495dc96aeb55f25e1b3c85b51dd1a21af2584c2ab"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2021.csv",
+      "sha256": "30e02a5ac54140fea87d7739a280273685ebcf51ca637e6d759b80991501dbbb"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2022.csv",
+      "sha256": "2ecb8989b9b8f1ca0d6627a5a4eacb8a31f344c7237653e99973e852d61c4a80"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2023.csv",
+      "sha256": "f03e995f7926d2eb7b3e000124d490bda137b01a5bfb0168355ee075e1f81054"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2024.csv",
+      "sha256": "13b03bd7497c4599e6f92defdea158bc7d80c4f4df2db1260eb4df8d51a4f620"
+    },
+    {
+      "path": "data/raw/logerx/hillsborough/revenues-fy2025.csv",
+      "sha256": "7ae90391dcd44b5236c3b9d0815e41d74606686b9cb8c02892dcab3828c25958"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2013.csv",
+      "sha256": "dd37f2f7964d95bd1ef23908c596ad163b86549bd543f8f8291eec3ead2e4b2b"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2014.csv",
+      "sha256": "3f1160704ef383a9317531db1f726647315e901c7d7a41eafa56954b52d33945"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2015.csv",
+      "sha256": "93363310135639a4d4236ab4624d22d30712d3d80ae9128e523f3f7c93debec2"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2016.csv",
+      "sha256": "744e325b5575f87526521f9d51b5adf80f24e9755b3dca28dcb412d2c5d1680a"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2017.csv",
+      "sha256": "f90e92ccc8593bdc2bd1fab8deb6b47b24e6add16c0dfd5e3a7b783d70452b50"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2018.csv",
+      "sha256": "f30265065996d5b6f134995444d3c107dd9dc66c128f7470d98302daaeed0a8e"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2019.csv",
+      "sha256": "3f7813fde591f968f5bd53cb6d61bd1ffe6cb72656d06bc2e0a5f0fc9694be5e"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2020.csv",
+      "sha256": "2631e398b228390bab299b8a441fb79731f926ee41bb79bc7a97977b148d44e7"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2021.csv",
+      "sha256": "55a1cc9ea4f1dfc880265d148d4c71dde5c606980e6068e17592fcadff1c4105"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2022.csv",
+      "sha256": "abdbe0b14294cc23420199c787be1bee4a52182c6beb1c2da7c1241de86012f2"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2023.csv",
+      "sha256": "4dd8b9e14253a68759f4e0ee546b874f26fcf9a3f2de60151f3d53357e35a556"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2024.csv",
+      "sha256": "13d71781427260561beb1c01f973da229ac34e2814bfe44d8f3ded011b6974e3"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/expenditures-fy2025.csv",
+      "sha256": "86ae5e6870fc21a023df3de9592218b776f81482f509e8dcc7f14310ac410c54"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2013.csv",
+      "sha256": "a5e86c1d1cc8696c274dd8e32ce1d52328c721f28212a04295d88ba3df4c5848"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2014.csv",
+      "sha256": "d7c5911a20e9dfd5c0cf7fe732f955e753db17501ccb204325734d2102ff60eb"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2015.csv",
+      "sha256": "43bd32f99c9003ba41197924d7d154ef9ea6aa942b1893742fc6ccf28e78d613"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2016.csv",
+      "sha256": "a8aac6dd3a6df51b4c37278eebecd2cca1bf7afa468131c05d935f9b872bd4c9"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2017.csv",
+      "sha256": "0bc083d1d8e17e81a1414d376021f83eb9b4d07a6b0690a1e860f2581ac2b0a5"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2018.csv",
+      "sha256": "a5d5e3edd4cbbbdd775ba88ed4c9035ac73fac9e6f5bc2b4f5bdc7261cb7e63f"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2019.csv",
+      "sha256": "c571d9f955ca59af40be7f5584d8492b8932d45660663c0e550a40588865319c"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2020.csv",
+      "sha256": "9a1614219763d4eab034e2ce2b30bc9e7f8c41d899f6ef63c2c5e599be23cfcf"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2021.csv",
+      "sha256": "133f4c8da146175d733352592afe6807b0c25af679df33ee0483a63a0635784c"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2022.csv",
+      "sha256": "bf5b235233a70874dda3c9b5d27ed03c4ecdd47acb0d317ff3b56c46b3e3bac3"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2023.csv",
+      "sha256": "c2ab1cfd14960c01c3f4c8842550b2723ddfdb9f9dc1de54e3711267e58d06d1"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2024.csv",
+      "sha256": "d6e4deec051fddf066baeb13150c33ce85a9662ccaf2fec71d049b593b53add2"
+    },
+    {
+      "path": "data/raw/logerx/pinellas/revenues-fy2025.csv",
+      "sha256": "a493fd1fbd09d7f89b8f5221c8eec019bf92fa0f8f89bf61dfe3714f46e1825b"
     }
   ],
+  "jurisdictionNames": {
+    "hillsborough": "Hillsborough County",
+    "pinellas": "Pinellas County"
+  },
   "jurisdictions": [
-    "hillsborough"
+    "hillsborough",
+    "pinellas"
   ],
   "outputs": [
     {
-      "bytes": 12693,
+      "bytes": 23892,
       "path": "annotations.json",
-      "sha256": "910adb79547053e2d748e6568ffb63e0f7a2b1c87566b9d091b8a8e239ccca7d"
+      "sha256": "3b841d89456f60115fc2be782b009210a026b4f543c4d5bdce2bc46322be7329"
     },
     {
       "bytes": 27527,
       "path": "cpi.json",
-      "sha256": "e4c93b1bc5bd00c8e47b29d636ff8968778fb61aa0e946d8bbb6a96e7b56f105"
+      "sha256": "248f21a89a74b42a42c41f9ab03a6d2c2b013ab686aa6cac30cd1f5384105455"
     },
     {
       "bytes": 103537,
@@ -77,14 +299,29 @@
       "sha256": "dff7bc429d6bae21c3bc45ebdffbb15b38e64d1535b12b1c1fc0e6802ab6ea39"
     },
     {
-      "bytes": 6771,
-      "path": "population.json",
-      "sha256": "8905dc0045d98350202200f1d223f72e688b954c5275e6043436c6fcc4f52038"
+      "bytes": 94703,
+      "path": "pinellas.accounts.json",
+      "sha256": "a22ae2c61b29e34f90633ad7644032b1483b6e2c4f8fc2dc49244d3992d98efe"
     },
     {
-      "bytes": 21827,
+      "bytes": 1401694,
+      "path": "pinellas.observations.json",
+      "sha256": "05b441c10f7af41cc2772dd2bb1f7c6f62263af70bd83bdd2f8c7846ebb577cc"
+    },
+    {
+      "bytes": 16041,
+      "path": "pinellas.workbook-totals.json",
+      "sha256": "9ad1eec8f8a1538c432a3a85cb664282ab6afda83f5824ac603d79ecea10afc3"
+    },
+    {
+      "bytes": 13509,
+      "path": "population.json",
+      "sha256": "829bac983772d9fbf454f0a8b2afaeb6914e9011e3f773d25d413f2526077574"
+    },
+    {
+      "bytes": 39300,
       "path": "sources.json",
-      "sha256": "6e96165680dc6696fee2652e287c9a99463458a0ced78bf03ab100f8716fffc6"
+      "sha256": "3106cce5c1df8304a7ac5e8f8dd2703c14f8797e7b55c9de87bfff99966f2244"
     }
   ],
   "schemaVersion": 1
