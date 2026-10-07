@@ -558,3 +558,67 @@ Verified with no defects found:
 
 Fixed in `qa/phase2/cdp.mjs` (close the tab via `/json/close`, `Page.bringToFront`) and `load-probe.mjs` (`jsMaxFetchCount`/`jsFiles` count fetches per JS path; `ECHARTS_CHUNK` env var for an exact match). Re-run at `b6a46c7`, six scenarios in one launch: every field is populated, ECharts is fetched once, no JS file is fetched twice, CLS is 0, and all frames between data-ready and the canvas show the chart skeleton on throttled profiles. On unthrottled loads the 1–2 uncovered frames fall inside the 180 ms no-flash window, and desktop `firstSkelVisible` is null because fast loads show no skeleton (expected). The sign-off did not rely on the affected fields, so it is unchanged: **APPROVE**.
 
+### P4a-05 / P4a-07 data review (2026-10-07, `d2fc34d`; HEAD `550027f` changes only the summary wording, re-checked)
+
+Method: clean clone of `d2fc34d`. QA scripts use only the Python standard library and share no code with the pipeline: `qa/phase1/independent_check.py <county>` (now takes a county argument and a `QA_ROOT` env var); new `qa/phase4a/logerx_check.py` (full independent LOGERX reconciliation) and `qa/phase4a/logerx_extract.py` (re-creates a per-county extract from a statewide report).
+
+**P4a-05 (Pinellas re-read), verified with no defects found:**
+- **Cell-by-cell:** all **5,794** Pinellas observations match the raw xlsx in both directions (0 missing, 0 extra, 0 mismatched amount, account string or ref). Per-fund and grand totals match the total row in all 41 sheets. Per capita matches within 1e-6. Custodial column only from FY 2020-21.
+- **Hand values:**
+  - Revenue FY 2005-06 total $1,763,913,250 (`revenues:2006!N132`; no custodial column) and per capita 1,860.467808 (`2006!O132` = total ÷ 948,102).
+  - Revenue FY 2024-25 total $6,810,317,539 (`2025!P128`), custodial $4,045,549,500 (`2025!K128`), so excluding custodial $2,764,768,039. Per capita 7,043.215548 (`2025!Q128` = $6,810,317,539 ÷ 966,933).
+  - Expenditure FY 2004-05 total $1,527,205,128 (`expenditures:2005!N99`).
+  - Expenditure FY 2024-25 total $6,607,592,639 (`2025!P73`), custodial $4,047,074,986 (`2025!K73`), so excluding custodial $2,560,517,653.
+- **Population:** FY 2004-05 to FY 2024-25 all equal FLcopops and the workbooks' own population rows. 2010 uses the census count (916,542). 2020 uses the revised BEBR estimate (984,054; census 959,107, +2.6%).
+- **Annotations (D-14):** 16 Pinellas annotations, 56 cell refs, all resolving to non-empty cells; every amount in the details equals its cell.
+  - transfer-imbalance at FY 2005-06 and FY 2021-22 only;
+  - custodial-zero at FY 2020-21 and FY 2021-22, and custodial-start at FY 2022-23 (both flows);
+  - custodial-accounts at FY 2022-23 to FY 2024-25;
+  - population-source at FY 2009-10 (−1.6%) and FY 2020-21 (−2.0%);
+  - no rounding years (correct: Pinellas reports to the dollar);
+  - the GASB 84 note is universal.
+- **Transfer list, independent scan of 581 − 381 (non-custodial):** over $1,000,000 only in FY 2005-06 (+$283,213,259) and FY 2021-22 (+$13,778,002). FY 2022-23 is +$369,300, with no annotation.
+- **Gap scan, independent (DR-25 rule):** the same 3 Pinellas drop-and-recover gaps as the pipeline, listed and not annotated, per DR-29.
+- **Hillsborough unchanged vs `main`:**
+  - `hillsborough.observations/accounts/workbook-totals.json` and `cpi.json` are byte-identical;
+  - the Hillsborough and universal annotations are the same 21;
+  - Hillsborough population is identical;
+  - the only changes are the intended cross-check fields and caveats on the two Hillsborough EDR sources. The Phase 1 checker is still 0 FAIL for Hillsborough on this branch.
+- **Pipeline:** `npm run pipeline` ran twice in the clean clone with no cached LOGERX downloads (`data/cache` holds only its `.gitignore`). 60 tests pass, validation passes, and `git status` stays clean, so it is deterministic and reproduces from the committed extracts alone.
+
+**P4a-07 (QA part), verified with no defects found:**
+- **Full independent reconciliation** (`logerx_check.py`, all years, not a sample). Results equal `data/validation.md`:
+
+  | County | Flow | Cells | Matched | Differences |
+  |---|---|---:|---:|---:|
+  | Hillsborough | revenue | 2,618 | 2,618 | 0 |
+  | Hillsborough | expenditure | 1,830 | 1,828 | 2 |
+  | Pinellas | revenue | 2,307 | 2,305 | 2 |
+  | Pinellas | expenditure | 1,355 | 1,355 | 0 |
+
+  All **52 per-year rows** (cells, match, mismatch, LOGERX-only, EDR-only, both totals) equal QA's recount. All 52 yearly totals are equal.
+- **The 4 differences**, re-derived from the raw lines:
+  - Hillsborough `expenditures-fy2015.csv` line 95, `559.00 … ,30 - Operating…,103116,…,1164281`: Component Units in LOGERX, Internal Service in EDR (`2015!J41`).
+  - Pinellas `revenues-fy2014.csv` line 41, `335.900 - State Revenue Sharing - Other`, Special Revenue 2,309,587: EDR prints it under 335.8 (`2014!E48`).
+- **Sample, 10 per county, each traced to an extract line and an EDR cell:** these include summed impact-fee rows (Hillsborough 324.31 and 324.32; Pinellas 324.31), summed object-code rows, custodial cells (Hillsborough 311 FY 2021-22 $6,356,061,000; Pinellas 342.1 FY 2024-25 $9,695,853) and component-unit cells.
+- **Fresh download** (1 request, 2026-10-07): `POST /api/document/systemReport` `{afrYear: 2014, REVENUEDETAILREPORT}` returned 200 and a 2,024,909-byte xlsx. QA's independent extraction reproduces **both committed extracts byte for byte** (Pinellas `d7c5911a…`, 115 rows; Hillsborough `0c97613e…`, 138 rows).
+- **Mapping and parsing:**
+  - `329.xxx` appears only in FY 2012-13 to FY 2019-20 (8 files per county), exactly the years EDR prints a bare 329. From FY 2020-21 both sources use explicit codes (329.1, 329.4, 329.5). No file has both forms for one account.
+  - No non-integer amounts and no CRLF in the extracts.
+  - Pinellas FY 2023-24 and FY 2024-25 expenditure extracts are larger (952 and 958 rows) because LOGERX lists all-zero object-code rows from FY 2023-24 on. Zeros drop out of the comparison.
+- **Site wording:** the `countyAfrCrossCheck`, `crossCheckCoverage` and `crossCheckSummary` claims stay within what was checked.
+  - Both counties are `partial`.
+  - The ranges are `not-checked` before FY 2012-13 and `mismatch` exactly for Hillsborough expenditure FY 2014-15 and Pinellas revenue FY 2013-14.
+  - The counts equal the reconciliation, and HEAD's "2 cell differences …, yearly totals match" is accurate.
+  - The Hillsborough 14-value Clerk-PDF check is labelled "Spot check", and "verified" is not used.
+
+| ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
+|---|---|---|---|---|---|
+| QA-29 | P4a-07 docs | note | `docs/data-layout.md` says the full statewide file's sha256 changes on every download "because the title carries the as-of date". QA's same-day re-download (same "as of" date) still differed: the only difference is a random worksheet GUID (`xr:uid` in `xl/worksheets/sheet1.xml`); all 26,413 data rows are identical. The API response also carries `uri` and `documentId` besides `{mimeType, content}`. Neither affects the committed extracts, which reproduce byte for byte. | DE | open |
+| | | | *Suggested fix:* reword to "changes on every download (a per-file worksheet GUID and the as-of stamp); compare the extracts, not the full file". Mention the extra response fields. | | |
+| QA-30 | P4a-07 / Phase 5 wording | note | **What the LOGERX check proves.** EDR's workbooks are "compiled from data obtained from the Florida Department of Financial Services", and LOGERX is that DFS system. The reconciliation therefore shows that EDR transcribed the county's DFS filing faithfully, cell for cell. It does not independently verify the county's figures (that would need the audited ACFR). Today's site wording ("cross-checked … against the Annual Financial Report data filed with the Florida Department of Financial Services") is accurate. D-16's "independent official verification" and any methodology text must not suggest an audit. | PM, FE | open |
+| | | | *Suggested fix:* in the Phase 5 methodology page, describe it as a transcription check of EDR against the county's DFS filing. Optionally note that LOGERX rows are summed to EDR's account × fund level (object codes, dwelling and fee types, `329.xxx` → 329), so "cell by cell" means at EDR's cell level. | | |
+| QA-31 | P4a-07 durability | note | The LOGERX JSON API is the backend of the public reports page. DFS publishes no API documentation or terms, so endpoints and report layout may change without notice. This is mitigated: the extracts are committed with request bodies and hashes (DR-43), `npm run pipeline` needs no network, and QA re-derived the extracts from a fresh download. | DE | open |
+| | | | *Suggested fix:* add one sentence to `data-layout.md` ("unpublished API behind the public page; may change; re-run `npm run fetch -- --logerx` and expect 'unchanged' extracts"). No code change. | | |
+| QA-32 | P4a-07 wording | note | Only the Pinellas **expenditure** summary says the FY 2005-06 transfer imbalance is before LOGERX coverage. The imbalance is 581 vs 381, so it involves revenues too, but the revenue summary is silent. That is accurate (FY 2005-06 is listed as not checked there), just less explicit. | DE | open |
+

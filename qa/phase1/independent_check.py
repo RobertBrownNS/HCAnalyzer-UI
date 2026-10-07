@@ -16,7 +16,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from xlsxraw import read_workbook, num_to_col  # noqa: E402
 
-ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
+ROOT = os.path.abspath(os.environ.get('QA_ROOT') or os.path.join(HERE, '..', '..'))
+# County to check (default hillsborough): python -I qa/phase1/independent_check.py pinellas
+COUNTY = (sys.argv[1] if len(sys.argv) > 1 else 'hillsborough').lower()
 RAW = os.path.join(ROOT, 'data', 'raw')
 OUT = os.path.join(ROOT, 'src', 'assets', 'data')
 
@@ -144,7 +146,7 @@ def sha256(path):
 
 
 def main():
-    obs = json.load(open(os.path.join(OUT, 'hillsborough.observations.json'), encoding='utf-8'))
+    obs = json.load(open(os.path.join(OUT, f'{COUNTY}.observations.json'), encoding='utf-8'))
     sources = {s['id']: s for s in json.load(open(os.path.join(OUT, 'sources.json'), encoding='utf-8'))}
     obs_map = {}
     dup = 0
@@ -156,8 +158,8 @@ def main():
     (fail if dup else ok)(f'duplicate observation keys: {dup}')
 
     parsed = {
-        'revenue': parse_afr(os.path.join(RAW, 'edr', 'hillsboroughcountyrevenues.xlsx'), 'revenue'),
-        'expenditure': parse_afr(os.path.join(RAW, 'edr', 'hillsboroughcountyexpenditures.xlsx'), 'expenditure'),
+        'revenue': parse_afr(os.path.join(RAW, 'edr', f'{COUNTY}countyrevenues.xlsx'), 'revenue'),
+        'expenditure': parse_afr(os.path.join(RAW, 'edr', f'{COUNTY}countyexpenditures.xlsx'), 'expenditure'),
     }
 
     # ---------- full cell-by-cell comparison, every year ----------
@@ -277,7 +279,7 @@ def main():
             fail(f'ad_valorem misclass {o["ref"]}')
         if o['sourceId'] not in sources:
             fail(f'unresolved sourceId {o["sourceId"]}')
-        exp_src = 'edr-afr-revenues-hillsborough' if o['flow'] == 'revenue' else 'edr-afr-expenditures-hillsborough'
+        exp_src = f'edr-afr-revenues-{COUNTY}' if o['flow'] == 'revenue' else f'edr-afr-expenditures-{COUNTY}'
         if o['sourceId'] != exp_src:
             fail(f'wrong sourceId {o["ref"]} {o["sourceId"]}')
 
@@ -301,7 +303,7 @@ def main():
 
 def check_population(parsed):
     print('\nPopulation:')
-    pop = json.load(open(os.path.join(OUT, 'population.json'), encoding='utf-8'))['hillsborough']
+    pop = json.load(open(os.path.join(OUT, 'population.json'), encoding='utf-8'))[COUNTY]
     sheets = {s.name: s for s in read_workbook(os.path.join(RAW, 'edr-population', 'FLcopops.xlsx'))}
     print('  population sheets (first/last):', list(sheets)[:6], '...', list(sheets)[-3:])
 
@@ -309,7 +311,7 @@ def check_population(parsed):
         sh = sheets[sheetname]
         for r in range(1, sh.max_row + 1):
             a = sh.text(r, 1)
-            if a.replace('*', '').strip().lower() == 'hillsborough':
+            if a.replace('*', '').strip().lower() == COUNTY:
                 return sh.val(r, 2), r, sh.text(2, 2), sh.text(3, 2)
         return None
     for y in range(2004, 2026):
