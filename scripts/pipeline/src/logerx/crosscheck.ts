@@ -18,6 +18,32 @@ export interface CoverageRange {
   fromFiscalYear: number;
   toFiscalYear: number;
   status: CoverageStatus;
+  /** "mismatch" ranges only: amounts present in both sources but under a different account or fund. */
+  classificationDifferences?: number;
+  /** "mismatch" ranges only: same account and fund, different amount. */
+  valueDifferences?: number;
+  /** "mismatch" ranges only: amounts present in one source with no counterpart of equal value in the other. */
+  unmatchedAmounts?: number;
+  /** "mismatch" ranges only: LOGERX and EDR yearly totals are equal in every year of the range. */
+  totalsMatch?: boolean;
+}
+
+/**
+ * Differences in one reconciliation, grouped: an amount found only in LOGERX that equals an amount
+ * found only in EDR (same fiscal year and flow) is one amount classified differently.
+ */
+export function classifyDifferences(r: Reconciliation): { classificationDifferences: number; valueDifferences: number; unmatchedAmounts: number } {
+  const edrOnly = r.onlyEdr.map((d) => d.edr!);
+  let paired = 0;
+  for (const d of r.onlyLogerx) {
+    const i = edrOnly.findIndex((v) => Math.abs(v - d.logerx!) < 0.5);
+    if (i >= 0) { edrOnly.splice(i, 1); paired++; }
+  }
+  return {
+    classificationDifferences: paired,
+    valueDifferences: r.mismatches.length,
+    unmatchedAmounts: r.onlyLogerx.length - paired + edrOnly.length,
+  };
 }
 
 export interface FlowCrossCheck {
@@ -68,7 +94,19 @@ export function flowCrossCheck(
   const cleanYears = checkedYears.filter((y) => !diffYears.includes(y));
   const coverage: CoverageRange[] = [
     ...ranges(cleanYears).map(([a, b]) => ({ fromFiscalYear: a, toFiscalYear: b, status: 'full' as const })),
-    ...ranges(diffYears).map(([a, b]) => ({ fromFiscalYear: a, toFiscalYear: b, status: 'mismatch' as const })),
+    ...ranges(diffYears).map(([a, b]) => {
+      const inRange = reconciliations.filter((r) => r.fiscalYear >= a && r.fiscalYear <= b);
+      const counts = inRange.map(classifyDifferences);
+      return {
+        fromFiscalYear: a,
+        toFiscalYear: b,
+        status: 'mismatch' as const,
+        classificationDifferences: counts.reduce((n, c) => n + c.classificationDifferences, 0),
+        valueDifferences: counts.reduce((n, c) => n + c.valueDifferences, 0),
+        unmatchedAmounts: counts.reduce((n, c) => n + c.unmatchedAmounts, 0),
+        totalsMatch: inRange.every((r) => Math.abs(r.logerxTotal - r.edrTotal) < 0.5),
+      };
+    }),
     ...ranges(uncheckedYears).map(([a, b]) => ({ fromFiscalYear: a, toFiscalYear: b, status: 'not-checked' as const })),
   ].sort((a, b) => a.fromFiscalYear - b.fromFiscalYear);
 

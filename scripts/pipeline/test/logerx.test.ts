@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { crossCheckSourceProblems, flowCrossCheck, preCoverageTransferNotes, type FlowCrossCheck } from '../src/logerx/crosscheck.js';
+import { classifyDifferences, crossCheckSourceProblems, flowCrossCheck, preCoverageTransferNotes, type FlowCrossCheck } from '../src/logerx/crosscheck.js';
 import { aggregateExtract, extractEntityCsv, logerxAccountCode, parseCsv, reconcile, type StatewideReport } from '../src/logerx/logerx.js';
 import type { Observation } from '../src/edr/observations.js';
 
@@ -148,5 +148,24 @@ describe('LOGERX account codes and expenditure object codes', () => {
       '',
     ].join('\n');
     expect(Object.fromEntries(aggregateExtract(csv))).toEqual({ '511|general': 2192011, '511|special_revenue': 5 });
+  });
+});
+
+describe('difference counts on mismatch ranges (QA-35)', () => {
+  it('pairs an amount moved to another fund or account as one classification difference', () => {
+    const base = { jurisdiction: 't', fiscalYear: 2015, flow: 'expenditure' as const, cells: 4, match: 0, logerxTotal: 0, edrTotal: 0 };
+    expect(classifyDifferences({
+      ...base,
+      mismatches: [{ account: '511', fundType: 'general', logerx: 5, edr: 6, ref: null }],
+      onlyLogerx: [{ account: '559', fundType: 'component_unit', logerx: 1_164_281, edr: null, ref: null }, { account: '600', fundType: 'general', logerx: 7, edr: null, ref: null }],
+      onlyEdr: [{ account: '559', fundType: 'internal_service', logerx: null, edr: 1_164_281, ref: 'expenditures:2015!J41' }],
+    })).toEqual({ classificationDifferences: 1, valueDifferences: 1, unmatchedAmounts: 1 });
+  });
+
+  it('puts the counts and totalsMatch on the mismatch range', () => {
+    const csv = 'Code,Name,Account,Object Code,General,Internal Service,Component Units\n1,X,559.00 - Other,10 - P,,,100\n';
+    const obs = { jurisdiction: 't', fiscalYear: 2015, flow: 'expenditure', account: '559', category: 'x', section: 'x', fundType: 'internal_service', amount: 100, sourceId: 's', ref: '2015!J41' } as never;
+    const fc = flowCrossCheck('t', 'expenditure', [{ fiscalYear: 2015 } as never], [obs], [{ fiscalYear: 2015, flow: 'expenditure', csv }], []);
+    expect(fc.coverage).toEqual([{ fromFiscalYear: 2015, toFiscalYear: 2015, status: 'mismatch', classificationDifferences: 1, valueDifferences: 0, unmatchedAmounts: 0, totalsMatch: true }]);
   });
 });

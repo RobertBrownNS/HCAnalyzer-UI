@@ -27,6 +27,9 @@ export interface CountyConfig {
   };
 }
 
+/** County the site opens with when none is selected (emitted as manifest.defaultJurisdiction). */
+export const DEFAULT_JURISDICTION = 'hillsborough';
+
 export const COUNTIES: CountyConfig[] = [
   {
     slug: 'hillsborough',

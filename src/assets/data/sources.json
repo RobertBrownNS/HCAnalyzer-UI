@@ -139,9 +139,13 @@
         "toFiscalYear": 2014
       },
       {
+        "classificationDifferences": 1,
         "fromFiscalYear": 2015,
         "status": "mismatch",
-        "toFiscalYear": 2015
+        "toFiscalYear": 2015,
+        "totalsMatch": true,
+        "unmatchedAmounts": 0,
+        "valueDifferences": 0
       },
       {
         "fromFiscalYear": 2016,
@@ -266,9 +270,13 @@
         "toFiscalYear": 2013
       },
       {
+        "classificationDifferences": 1,
         "fromFiscalYear": 2014,
         "status": "mismatch",
-        "toFiscalYear": 2014
+        "toFiscalYear": 2014,
+        "totalsMatch": true,
+        "unmatchedAmounts": 0,
+        "valueDifferences": 0
       },
       {
         "fromFiscalYear": 2015,

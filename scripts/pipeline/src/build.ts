@@ -8,6 +8,7 @@
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_JURISDICTION } from '../config/counties.js';
 import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig, type ParsedCpi } from './bls/cpi.js';
 import type { AfrSheet } from './edr/afr.js';
 import { generateAnomalies, type Annotation } from './edr/anomalies.js';
@@ -302,6 +303,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     generator: 'scripts/pipeline (npm run build)',
     jurisdictions: inputs.counties.map((c) => c.county.slug),
     jurisdictionNames: Object.fromEntries(inputs.counties.map((c) => [c.county.slug, c.county.name])),
+    defaultJurisdiction: DEFAULT_JURISDICTION,
     inputs: inputsList,
     outputs,
   };

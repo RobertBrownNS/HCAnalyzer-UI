@@ -576,7 +576,9 @@ async function main() {
   add('User-facing text has no file names, paths, JSON keys or code identifiers', !leaks.length,
     leaks.length ? leaks.slice(0, 10).join('; ') + (leaks.length > 10 ? `; and ${leaks.length - 10} more` : '') : `${texts.length} strings checked in cpi, annotations, sources and population`);
   // County metadata the UI relies on: display names, cross-check status, DR-42 caveat text.
-  const manifestJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'manifest.json'), 'utf8')) as { jurisdictions: string[]; jurisdictionNames?: Record<string, string> };
+  const manifestJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'manifest.json'), 'utf8')) as { jurisdictions: string[]; jurisdictionNames?: Record<string, string>; defaultJurisdiction?: string };
+  add('manifest: defaultJurisdiction is one of jurisdictions', !!manifestJson.defaultJurisdiction && manifestJson.jurisdictions.includes(manifestJson.defaultJurisdiction),
+    `defaultJurisdiction = ${JSON.stringify(manifestJson.defaultJurisdiction)}; jurisdictions = ${manifestJson.jurisdictions.join(', ')}`);
   const manifestJsonForScope = manifestJson;
   const missingNames = manifestJson.jurisdictions.filter((j) => !manifestJson.jurisdictionNames?.[j]);
   // QA-33: county-specific caveats on shared sources are keyed by jurisdiction, never prefixed text.
