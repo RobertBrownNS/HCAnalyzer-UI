@@ -6,6 +6,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { DataService, DataStatus } from '../core/data.service';
 import { TransformData } from '../core/transform';
 import { ExplorerComponent } from './explorer.component';
+import { SKELETON_DELAY_MS } from './skeleton';
 
 class LoadingDataService {
   readonly status = signal<DataStatus>('loading');
@@ -27,11 +28,58 @@ describe('ExplorerComponent', () => {
     harness = await RouterTestingHarness.create();
   });
 
-  it('shows a loading state while data loads', async () => {
-    await harness.navigateByUrl('/', ExplorerComponent);
-    await harness.fixture.whenStable();
-    const el = harness.routeNativeElement as HTMLElement;
-    expect(el.querySelector('mat-progress-bar')).not.toBeNull();
+  describe('loading skeletons', () => {
+    async function open(): Promise<HTMLElement> {
+      await harness.navigateByUrl('/', ExplorerComponent);
+      await harness.fixture.whenStable();
+      return harness.routeNativeElement as HTMLElement;
+    }
+
+    it('reserves the content boxes at once but keeps them invisible for the first moments', async () => {
+      const el = await open();
+      const placeholders = [...el.querySelectorAll('app-chart-skeleton, .kpis-wide .card.skel, .skel-tile')];
+      expect(placeholders.length).toBeGreaterThanOrEqual(3);
+      // Not yet revealed: laid out (no layout shift later) but hidden (no flash on fast loads).
+      expect(el.querySelector('.figure app-chart-skeleton')?.classList).toContain('fx-skel-pending');
+      expect(el.querySelector('mat-progress-bar')).toBeNull();
+    });
+
+    it('reveals the placeholders after SKELETON_DELAY_MS', async () => {
+      const el = await open();
+      await new Promise((r) => setTimeout(r, SKELETON_DELAY_MS + 30));
+      await harness.fixture.whenStable();
+      expect(el.querySelector('.figure app-chart-skeleton')?.classList).not.toContain('fx-skel-pending');
+    });
+
+    it('marks the region busy, announces once, and hides the shapes from assistive tech', async () => {
+      const el = await open();
+      expect(el.querySelector('.main')?.getAttribute('aria-busy')).toBe('true');
+      const live = el.querySelector('[aria-live="polite"]');
+      expect(live?.textContent?.trim()).toBe('Loading data…');
+      for (const shape of el.querySelectorAll('.fx-skel')) {
+        expect(shape.closest('[aria-hidden="true"]')).not.toBeNull();
+      }
+    });
+
+    it('does not state a fiscal-year range before the data says which years exist', async () => {
+      const el = await open();
+      const chips = [...el.querySelectorAll('.fx-chip')].map((c) => c.textContent?.trim());
+      expect(chips).toContain('Fiscal years');
+      expect(chips.some((c) => c?.startsWith('FY '))).toBe(false);
+    });
+
+    it('error and Retry replace the skeletons', async () => {
+      const el = await open();
+      const data = TestBed.inject(DataService) as unknown as LoadingDataService;
+      data.error.set('The data files use schema version 99, but this version of the site reads schema version 1.');
+      data.status.set('error');
+      await harness.fixture.whenStable();
+      expect(el.querySelector('app-chart-skeleton')).toBeNull();
+      expect(el.querySelector('.card.skel')).toBeNull();
+      expect(el.querySelector('.skel-tile')).toBeNull();
+      expect(el.querySelector('[role="alert"]')?.textContent).toContain('schema version 99');
+      expect(el.querySelector('.main')?.getAttribute('aria-busy')).toBe('false');
+    });
   });
 
   it('shows one chip per active setting, custodial excluded by default', async () => {

@@ -59,6 +59,31 @@ The `web.config` is well-formed XML but has **not yet been tested on an IIS serv
 
 Compression: enable Static Content Compression in IIS (Server → Compression) for `.js`, `.css` and `.json`. The observations file is about 1.7 MB raw and about 90 KB compressed.
 
+### First-deploy check: compression and the outbound rule (HTTP 500.52)
+
+`web.config` has one URL Rewrite **outbound** rule: it sets `Cache-Control: no-cache` on HTML responses. URL Rewrite can fail with **HTTP 500.52** ("outbound rewrite rules cannot be applied when the content of the HTTP response is encoded") when an outbound rule meets a compressed response. Our rule only changes a response header, not the body, so it may not be affected, but this has not been tested on a live IIS. Check it once compression is on:
+
+```powershell
+# Expect 200 for each. A 500 (sub-status 52 in the IIS log) means the outbound rule conflicts with compression.
+foreach ($u in 'https://<site>/', 'https://<site>/index.html', 'https://<site>/some/deep/link') {
+  $r = Invoke-WebRequest $u -Headers @{ 'Accept-Encoding' = 'gzip' } -SkipHttpErrorCheck
+  "{0}  {1}  Content-Encoding={2}  Cache-Control={3}" -f $r.StatusCode, $u, $r.Headers['Content-Encoding'], $r.Headers['Cache-Control']
+}
+```
+
+(`curl -s -o /dev/null -w "%{http_code}\n" -H "Accept-Encoding: gzip" https://<site>/` does the same from a shell.) Also check that `Cache-Control` on these HTML responses is `no-cache`.
+
+If any request returns 500.52, use this fallback (known to be safe):
+
+1. Delete the whole `<outboundRules>` block from `web.config` on the server (and in `src/web.config` for later builds).
+2. Nothing else is needed for caching: the `<location path="index.html">` entry already sends `no-cache` for `index.html`, which is the file the default document and the unknown-path rewrite both serve. Re-run the check above: expect 200 and `Cache-Control: no-cache`.
+
+Other remedies exist but were **not verified** for this project, so treat them as pointers, not instructions:
+
+- Microsoft's URL Rewrite documentation describes using outbound rules together with **dynamic** compression by setting the registry value `LogRewrittenUrlEnabled` (DWORD, `0`) under `HKLM\Software\Microsoft\Inetstp\Rewrite` and changing the order of the compression and rewrite modules. Check Microsoft's current URL Rewrite 2.1 documentation before changing the registry.
+- Turning off **dynamic** compression for HTML avoids the conflict; static compression of `.js`, `.css` and `.json` is unaffected.
+- `rewriteBeforeCache` (an attribute of `<outboundRules>`) concerns the kernel output cache, not compression; it is not a known fix for 500.52.
+
 ## GitHub Pages
 
 The site is published from a separate **orphan** branch, `gh-pages`, that contains only the build output: no source history, no source dotfiles. It is checked out as a git worktree next to the repository (`../gh-pages`), so publishing never touches your working tree.

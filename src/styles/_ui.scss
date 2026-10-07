@@ -121,6 +121,50 @@
   }
 }
 
+// Loading placeholders. Shapes are hidden from assistive tech by their containers
+// (aria-hidden); the region announces "Loading data…" once instead.
+.fx-skel {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--fx-radius-xs);
+  background: var(--fx-color-skeleton-base);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--fx-color-skeleton-highlight), transparent);
+    animation: fx-shimmer var(--fx-skeleton-shimmer) ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// One text line of a type role: set --line to that role's line-height token.
+// The shape is a bit shorter than the line box so lines read as separate bars.
+.fx-skel-line {
+  height: calc(var(--line, 1rem) * 0.7);
+  margin: calc(var(--line, 1rem) * 0.15) 0;
+}
+
+// Laid out from the first frame (no layout shift) but invisible until revealed after a short
+// delay, so fast loads don't flash.
+.fx-skel-pending {
+  visibility: hidden;
+}
+
+@keyframes fx-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 // Setting chip: opens a bottom sheet (phone).
 .fx-chip {
   flex: 0 0 auto;

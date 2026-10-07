@@ -75,6 +75,7 @@ export class DataService {
       this._manifest.set(manifest);
       this._data.set({ observations, population, cpi, annotations, sources });
       this._status.set('ready');
+      performance.mark?.('fx:dataReady');
     } catch (err) {
       this._error.set((err as { message?: string } | null)?.message ?? String(err));
       this._status.set('error');

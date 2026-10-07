@@ -1,11 +1,25 @@
 <div class="page">
-  <div class="main">
+  <div class="main" [attr.aria-busy]="loading()">
+    <p class="sr-only" aria-live="polite">{{ loading() ? 'Loading data…' : '' }}</p>
     <nav class="tabs" aria-label="Report pages">
       <a class="tab" aria-current="page">Overview</a>
     </nav>
 
-    <app-kpi-row class="kpis-wide wide" [cards]="kpis()" [seriesColor]="seriesColor()" />
-    <app-kpi-row class="kpis-compact" [cards]="kpis()" [ids]="['end', 'change']" [seriesColor]="seriesColor()" />
+    <app-kpi-row
+      class="kpis-wide wide"
+      [cards]="kpis()"
+      [seriesColor]="seriesColor()"
+      [loading]="loading()"
+      [reveal]="reveal()"
+    />
+    <app-kpi-row
+      class="kpis-compact"
+      [cards]="kpis()"
+      [ids]="['end', 'change']"
+      [seriesColor]="seriesColor()"
+      [loading]="loading()"
+      [reveal]="reveal()"
+    />
 
     <div class="chips" role="group" aria-label="Active settings">
       @for (chip of chips(); track chip.aria) {
@@ -70,14 +84,18 @@
             }
           }
           @default {
-            <div class="state">
-              <mat-progress-bar mode="indeterminate" aria-label="Loading data" />
-            </div>
+            <app-chart-skeleton class="fill" [class.fx-skel-pending]="!reveal()" />
           }
         }
       </div>
 
-      @if (view() === 'chart' && store.annotationNotes().length) {
+      @if (loading()) {
+        <!-- Phones: reserve the annotation key's two lines. -->
+        <p class="fx-caption chart-key" aria-hidden="true" [class.fx-skel-pending]="!reveal()">
+          <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-caption-line-height); width: 80%"></span>
+          <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-caption-line-height); width: 60%"></span>
+        </p>
+      } @else if (view() === 'chart' && store.annotationNotes().length) {
         <p class="fx-caption chart-key">
           @for (a of keyAnnotations(); track a.n) {
             <span><span class="num">{{ a.n }}</span> {{ a.yearLabel }}: {{ a.label }}</span>
@@ -88,7 +106,12 @@
 
       <app-range-control class="range" />
 
-      @if (afrSource(); as src) {
+      @if (loading()) {
+        <p class="fx-caption source" aria-hidden="true" [class.fx-skel-pending]="!reveal()">
+          <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-caption-line-height)"></span>
+          <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-caption-line-height); width: 40%"></span>
+        </p>
+      } @else if (afrSource(); as src) {
         <p class="fx-caption source">
           Source: {{ src.publisher }}, {{ src.title }}. Retrieved {{ src.retrieved }}. All sources are listed under
           Settings and sources.
@@ -96,9 +119,21 @@
       }
     </section>
 
-    <app-view-notes class="fx-tile" />
+    @if (loading()) {
+      <!-- Notes and Settings-and-sources tiles: heading plus text lines. -->
+      @for (tile of skeletonTiles; track tile.heading) {
+        <section class="fx-tile skel-tile" aria-hidden="true" [class.fx-skel-pending]="!reveal()">
+          <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-title-medium-line-height); width: 30%"></span>
+          @for (w of tile.lines; track $index) {
+            <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-body-medium-line-height)" [style.width]="w"></span>
+          }
+        </section>
+      }
+    } @else {
+      <app-view-notes class="fx-tile" />
 
-    <app-methodology class="fx-tile" />
+      <app-methodology class="fx-tile" />
+    }
   </div>
 
   <aside class="filters" aria-labelledby="filters-title">

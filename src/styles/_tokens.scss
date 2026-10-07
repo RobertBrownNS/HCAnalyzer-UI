@@ -28,6 +28,8 @@ $app-colors: (
   header-border: (#3d4a68, #3d4a68),
   logo-accent: (#f2b544, #f2b544),
   selected-bg: (#e6eef9, #23324a),     // active nav item; dark: derived
+  skeleton-base: (#e4e7ec, #2a2f39),       // loading placeholders
+  skeleton-highlight: (#f4f5f7, #363c48),  // shimmer sweep
   kpi-neutral: (#7d8696, #7d8696),     // top border of non-series KPI cards (3:1 non-text contrast)
   link: (#1f5fad, #5b9be6),
   link-hover: (#164682, #8bbcf0),      // dark: derived
@@ -232,6 +234,8 @@ $layout: (
   figure-min-height: 300px,
   figure-max-height: 520px,   // desktop cap
   content-max-width: 1440px,
+  slider-height: 48px,        // Material range slider box (keeps the loading placeholder the same size)
+  skeleton-shimmer: 1.4s,     // one shimmer sweep; off with prefers-reduced-motion
 );
 
 // Media-query breakpoints (Sass only: custom properties can't be used in media queries).

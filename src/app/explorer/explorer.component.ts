@@ -1,6 +1,5 @@
-import { Component, ViewContainerRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ViewContainerRef, computed, inject, signal } from '@angular/core';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import {
   CPI_PERIOD_LABELS,
@@ -13,10 +12,12 @@ import {
   transferLabel,
 } from '../core/labels';
 import { fiscalYearLabel } from '../core/transform';
+import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
 import { ExplorerStore } from './explorer-store';
 import { kpiCards, measureCaption } from './kpi';
 import { KpiRowComponent } from './kpi-row.component';
+import { SKELETON_DELAY_MS } from './skeleton';
 import { MethodologyComponent } from './methodology.component';
 import { RangeControlComponent } from './range-control.component';
 import { SeriesChartComponent } from './series-chart.component';
@@ -34,9 +35,9 @@ export interface SettingChip {
 @Component({
   selector: 'app-explorer',
   imports: [
+    ChartSkeletonComponent,
     ExplorerControlsComponent,
     KpiRowComponent,
-    MatProgressBarModule,
     MethodologyComponent,
     RangeControlComponent,
     SeriesChartComponent,
@@ -53,6 +54,26 @@ export class ExplorerComponent {
   private readonly vcr = inject(ViewContainerRef);
 
   readonly view = signal<'chart' | 'table'>('chart');
+
+  /** Data not loaded yet: placeholders hold every box the content will fill. */
+  readonly loading = computed(() => {
+    const status = this.store.status();
+    return status === 'idle' || status === 'loading';
+  });
+  /** Placeholders are laid out at once but shown only after SKELETON_DELAY_MS (no flash). */
+  readonly reveal = signal(false);
+  readonly skeletonTiles = [
+    { heading: 'notes', lines: ['90%', '75%', '85%', '60%'] },
+    { heading: 'sources', lines: ['70%', '95%', '80%', '90%', '65%', '85%'] },
+  ];
+
+  constructor() {
+    // Fetch the ECharts chunk in parallel with the data instead of after it (same module the
+    // ngx-echarts provider imports, so it is downloaded once).
+    void import('../core/echarts');
+    const t = setTimeout(() => this.reveal.set(true), SKELETON_DELAY_MS);
+    inject(DestroyRef).onDestroy(() => clearTimeout(t));
+  }
 
   readonly valueLabel = computed(() => {
     const s = this.store.settings();
@@ -99,7 +120,8 @@ export class ExplorerComponent {
     }
     chips.push({
       group: 'range',
-      label: `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
+      // Until the data says which years exist, the range isn't checked yet: don't state it.
+      label: this.loading() ? 'Fiscal years' : `${fiscalYearLabel(s.range[0])} to ${fiscalYearLabel(s.range[1])}`,
       aria: 'Fiscal years',
     });
     chips.push({

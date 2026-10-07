@@ -7,7 +7,9 @@ import { ColorSchemeService } from '../core/color-scheme.service';
 import { formatAxisValue, formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
 import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
+import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ZOOM_SETTLE_MS, zoomWindowToRange } from './chart-zoom';
+import { SKELETON_DELAY_MS } from './skeleton';
 import { AnnotationNote, annotationsForTooltip, markLineGroups } from './view-notes';
 
 // ECharts renders the tooltip as HTML in the page, so tokens apply.
@@ -42,20 +44,31 @@ export function tooltipHtml(
 
 @Component({
   selector: 'app-series-chart',
-  imports: [NgxEchartsDirective],
-  template: `<div
+  imports: [NgxEchartsDirective, ChartSkeletonComponent],
+  template: `@if (!initialized()) {
+      <!-- Data is ready but the ECharts chunk may still be loading. -->
+      <app-chart-skeleton class="overlay" [class.fx-skel-pending]="!revealSkeleton()" />
+    }
+    <div
     class="chart"
     echarts
     [options]="options()"
     role="img"
     [attr.aria-label]="ariaLabel()"
-    (chartInit)="chart = $event"
+    (chartInit)="onChartInit($event)"
     (chartDataZoom)="onDataZoom()"
   ></div>`,
   styles: `
     :host {
       display: block;
+      position: relative;
       min-height: 0;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: var(--fx-color-tile);
     }
     .chart {
       width: 100%;
@@ -95,6 +108,9 @@ export class SeriesChartComponent {
     }
     inject(DestroyRef).onDestroy(() => clearTimeout(this.zoomTimer));
 
+    const reveal = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
+    inject(DestroyRef).onDestroy(() => clearTimeout(reveal));
+
     // QA-11: ECharts' inside dataZoom cancels every wheel event over the plot, even with
     // wheel zoom/move off, which traps page scrolling. Stop wheel events before they reach
     // ECharts (capture phase, passive) so the browser scrolls the page. Pinch uses touch events.
@@ -103,6 +119,17 @@ export class SeriesChartComponent {
     inject(DestroyRef).onDestroy(() =>
       this.host.nativeElement.removeEventListener('wheel', stopWheel, { capture: true }),
     );
+  }
+
+  /** True once ECharts has created the chart (its lazy chunk has loaded). */
+  readonly initialized = signal(false);
+  /** The placeholder appears only if init takes longer than SKELETON_DELAY_MS. */
+  readonly revealSkeleton = signal(false);
+
+  onChartInit(chart: ECharts): void {
+    this.chart = chart;
+    this.initialized.set(true);
+    performance.mark?.('fx:chartInit');
   }
 
   onDataZoom(): void {

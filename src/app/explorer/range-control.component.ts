@@ -1,8 +1,9 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { MatSliderModule } from '@angular/material/slider';
 
 import { fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
+import { SKELETON_DELAY_MS } from './skeleton';
 
 interface RangePreset {
   label: string;
@@ -51,6 +52,17 @@ const PRESETS: RangePreset[] = [
           <button type="button" class="fx-button" (click)="applyPreset(p)">{{ p.label }}</button>
         }
       </div>
+    } @else {
+      <!-- Years not known yet (data loading): same boxes as above, so nothing moves later. -->
+      <div class="pending" aria-hidden="true" [class.fx-skel-pending]="!revealSkeleton()">
+        <span class="fx-skel fx-skel-line readout-skel"></span>
+        <span class="slider-skel"><span class="fx-skel track-skel"></span></span>
+        <div class="presets">
+          @for (p of presets; track p.label) {
+            <button type="button" class="fx-button" disabled tabindex="-1">{{ p.label }}</button>
+          }
+        </div>
+      </div>
     }
   `,
   styles: `
@@ -64,6 +76,21 @@ const PRESETS: RangePreset[] = [
     .slider {
       width: 100%;
       margin: 0;
+    }
+    .readout-skel {
+      --line: var(--fx-type-numeric-line-height);
+      width: 12rem;
+      max-width: 60%;
+    }
+    .slider-skel {
+      display: flex;
+      align-items: center;
+      height: var(--fx-slider-height);
+    }
+    .track-skel {
+      width: 100%;
+      height: var(--fx-space-1);
+      border-radius: var(--fx-radius-full);
     }
     .presets {
       display: flex;
@@ -86,6 +113,14 @@ export class RangeControlComponent {
 
   /** Thumb label: "FY 2020-21" is too wide for the thumb, so show "20-21". */
   readonly shortLabel = (fy: number) => fiscalYearLabel(fy).slice(5);
+
+  /** The placeholder appears only if the years take longer than SKELETON_DELAY_MS. */
+  readonly revealSkeleton = signal(false);
+
+  constructor() {
+    const t = setTimeout(() => this.revealSkeleton.set(true), SKELETON_DELAY_MS);
+    inject(DestroyRef).onDestroy(() => clearTimeout(t));
+  }
 
   /** True between a thumb's pointer down and up. */
   private dragging = false;

@@ -6,6 +6,18 @@ import { KpiCard, KpiId } from './kpi';
 @Component({
   selector: 'app-kpi-row',
   template: `
+    @if (loading()) {
+      <!-- Same grid and card boxes as the real cards, so nothing moves when data arrives. -->
+      <div class="row" [style.--kpi-cols]="ids().length" aria-hidden="true" [class.fx-skel-pending]="!reveal()">
+        @for (id of ids(); track id) {
+          <div class="fx-tile card skel" [style.border-top-color]="id === 'custodial' ? null : seriesColor()">
+            <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-body-small-line-height); width: 55%"></span>
+            <span class="fx-skel fx-skel-line value-skel"></span>
+            <span class="fx-skel fx-skel-line" style="--line: var(--fx-type-caption-line-height); width: 70%"></span>
+          </div>
+        }
+      </div>
+    } @else {
     <ul class="row" [style.--kpi-cols]="shown().length" aria-label="Summary for the selected years">
       @for (c of shown(); track c.id) {
         <li class="fx-tile card" [style.border-top-color]="c.accent === 'series' ? seriesColor() : null">
@@ -15,6 +27,7 @@ import { KpiCard, KpiId } from './kpi';
         </li>
       }
     </ul>
+    }
   `,
   styles: `
     :host {
@@ -31,6 +44,24 @@ import { KpiCard, KpiId } from './kpi';
     .card {
       border-top: var(--fx-kpi-accent) solid var(--fx-color-kpi-neutral);
       padding: var(--fx-space-2) var(--fx-space-3);
+      // Fixed minimum (label + value + sub-line rows) so cards keep their size whatever the
+      // text, and the loading placeholder matches. Phones allow the sub-line to wrap once.
+      --kpi-value-line: var(--fx-type-kpi-compact-line-height);
+      --kpi-sub-lines: 2;
+      min-height: calc(
+        var(--fx-kpi-accent) + 2 * var(--fx-space-2) + var(--fx-type-body-small-line-height) +
+          2 * var(--fx-space-0) + var(--kpi-value-line) +
+          var(--kpi-sub-lines) * var(--fx-type-caption-line-height)
+      );
+    }
+    :host(.wide) .card {
+      --kpi-value-line: var(--fx-type-kpi-line-height);
+      --kpi-sub-lines: 1;
+    }
+    .value-skel {
+      --line: var(--kpi-value-line);
+      width: 45%;
+      margin-top: calc(var(--fx-space-0) + var(--kpi-value-line) * 0.15);
     }
     .label {
       font: var(--fx-type-body-small);
@@ -60,6 +91,10 @@ export class KpiRowComponent {
   readonly ids = input<KpiId[]>(['end', 'start', 'change', 'custodial']);
   /** CSS color for 'series' accents, e.g. var(--fx-series-1). */
   readonly seriesColor = input.required<string>();
+  /** Show placeholders in the same boxes (data still loading). */
+  readonly loading = input(false);
+  /** Placeholders become visible (after the short delay). */
+  readonly reveal = input(false);
 
   readonly shown = computed(() => {
     const byId = new Map(this.cards().map((c) => [c.id, c]));

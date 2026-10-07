@@ -69,7 +69,10 @@ export class ExplorerStore {
     const data = this.data();
     if (!data) return [];
     const s = this.settings();
+    const t0 = performance.now();
     const points = buildSeries(data, s);
+    // Timing for load profiling (DevTools Performance panel / performance.getEntriesByName).
+    performance.measure?.('fx:buildSeries', { start: t0, end: performance.now() });
     if (s.measure !== 'real' && s.measure !== 'real_per_capita') return points;
     const cpi = selectCpi(data.cpi, s.cpiIndex, s.cpiPeriod);
     if (cpi.valueFor(s.baseYear) !== undefined) return points;

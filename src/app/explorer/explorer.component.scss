@@ -114,6 +114,12 @@ app-view-notes:empty {
   display: none;
 }
 
+.skel-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fx-space-1);
+}
+
 @media (min-width: $desktop) {
   .page {
     display: grid;
