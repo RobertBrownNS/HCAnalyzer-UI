@@ -268,7 +268,7 @@ Branch: `feature/pinellas`. Scope comes from decisions D-13 and D-14:
 - **D-13:** one county at a time, no overlay.
 - **D-14:** the annotation rule, plus a reviewed list for transfer-imbalance annotations.
 
-Interim for open decision O-12: EDR reconciliation, plus a "not cross-checked against LOGERX" caveat on the source.
+Cross-check (D-15, closes O-12): Pinellas gets the same cross-check against the county's DFS-form AFR as Hillsborough (P4a-07). Until it is done, the Pinellas EDR source carries the DR-42 caveat. Hillsborough's cross-check is a **spot check**: 14 hand-read values, FY 2021-22 to FY 2024-25, from the Clerk's PDF copies of the DFS-form AFR (DR-22). It is not full coverage and not LOGERX.
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
@@ -278,6 +278,7 @@ Interim for open decision O-12: EDR reconciliation, plus a "not cross-checked ag
 | P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | todo |
 | P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | todo |
 | P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | todo |
+| P4a-07 | Pinellas cross-check against its DFS-form AFR (D-15) | DE | P4a-01 | todo |
 
 ### Acceptance criteria
 
@@ -291,13 +292,13 @@ Interim for open decision O-12: EDR reconciliation, plus a "not cross-checked ag
   - per capita matches within 1e-6;
   - the Custodial column appears only from FY 2020-21.
 - [ ] Annotations follow D-14. All Hillsborough annotation rules run for Pinellas. Every Pinellas annotation has workbook-qualified cell refs (DR-24) and a `topic` (DR-28). Pinellas-only issues are annotated only where research needs it. Each one is listed in the hand-off notes for user review.
-- [ ] The Pinellas EDR `Source` caveats include the O-12 interim caveat (not cross-checked against LOGERX).
+- [ ] The Pinellas EDR `Source` caveats include the O-12 interim caveat, with the exact DR-42 wording, until P4a-07 is done: "Not cross-checked against the county's Annual Financial Report as filed with the Florida Department of Financial Services; values are reconciled to the EDR workbook totals."
 - [ ] `npm run pipeline` is deterministic: two runs give byte-identical output.
 
 **P4a-02 Transfer-imbalance approval list (DE)**
 - [ ] Transfer-imbalance annotations are emitted only for the (county, FY, flow) entries in a reviewed config list, like `approved-gaps.ts`. Each entry records the reason, the reviewer and the date.
 - [ ] The build fails if an approved entry is no longer found by the scan.
-- [ ] Years over the DR-17 threshold that aren't approved are listed in the validation report as "detected, not annotated". None are dropped silently.
+- [ ] The threshold is |581 − 381| ≥ $1,000,000 (DR-19; DR-40 makes `transform.ts` use the same rule). Any over-threshold year that is **not** approved fails the build (DR-41), and validation.md names it. Nothing over the threshold ships unreviewed.
 - [ ] The approved entries are:
   - Hillsborough FY 2022-23 and FY 2023-24 (existing);
   - Pinellas FY 2005-06 and FY 2021-22 (D-14).
@@ -339,9 +340,16 @@ Interim for open decision O-12: EDR reconciliation, plus a "not cross-checked ag
   - Totals match the workbook's total row for every sheet.
 - [ ] At least 5 values are checked by hand, with cell refs. They include one total before FY 2020-21 and one after, each with and without custodial. Per-capita and population are checked against the EDR population file.
 - [ ] Every Pinellas annotation is checked against its cited cells and against the D-14 rule.
-- [ ] The transfer-imbalance list is checked: FY 2005-06 and FY 2021-22 are annotated, and other detected years are listed but not annotated.
+- [ ] The transfer-imbalance list is checked: Pinellas FY 2005-06 and FY 2021-22 are annotated. No other Pinellas year is over $1,000,000. FY 2022-23 ($369,300) has no annotation or point note (DR-40).
 - [ ] Hillsborough outputs are confirmed unchanged (checksums).
 - [ ] Findings are logged in the findings log.
+
+**P4a-07 Pinellas cross-check (DE)**
+- [ ] DE reports whether LOGERX (or another official DFS or Clerk copy) can supply the Pinellas DFS-form AFRs for FY 2021-22 to FY 2024-25. The report names the source URL, retrieval date and sha256. If they can't be obtained, DE says so and the DR-42 caveat stays.
+- [ ] If they can be obtained, DE does a spot check of the same scope as Hillsborough: about 14 hand-read values over FY 2021-22 to FY 2024-25, covering both flows and pre- and post-custodial. Each value is recorded with its PDF page/line and the matching EDR cell ref.
+- [ ] Mismatches are recorded as caveats or annotations under the D-14 rule. EDR values are never changed.
+- [ ] Once the check is done, the Pinellas source caveat replaces DR-42 with a statement of what was checked: years, number of values, document. It says "spot check", not "verified".
+- [ ] QA re-reads at least 3 of the cross-checked values independently (under P4a-05).
 
 **P4a-06 QA: county-switch UI review**
 - [ ] The `qa/phase2/` scripts are re-run with `county=pinellas` and with the default county. They cover:
@@ -356,8 +364,8 @@ Interim for open decision O-12: EDR reconciliation, plus a "not cross-checked ag
 - [ ] P4a-01 to P4a-06 are `done`, and there are no open blocker or major findings.
 - [ ] Pinellas validation all passes. Hillsborough outputs and golden tests are unchanged.
 - [ ] `ng build` and `ng test` are green. The pipeline is deterministic.
-- [ ] Every Pinellas number traces to a Source, and the O-12 caveat shows in the Pinellas sources.
-- [ ] Either the user has answered O-12, or the interim caveat ships as a known choice.
+- [ ] Every Pinellas number traces to a Source. The Pinellas sources show either the P4a-07 cross-check result or the DR-42 caveat, never both and never neither.
+- [ ] P4a-07 is done, or the user knowingly accepts shipping with the DR-42 caveat. No doc or UI text describes either county's cross-check as full coverage.
 
 ---
 
