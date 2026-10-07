@@ -4,9 +4,9 @@ import { CPI_SERIES, parseBlsResponses, type BlsResponse, type CpiSeriesConfig, 
 import { parseAfrWorkbook, type AfrSheet } from './edr/afr.js';
 import { parseCountyPopulation, type PopulationValue } from './edr/population.js';
 import { sha256File } from './lib/hash.js';
-import { blsPath, countyAfrPath, edrAfrPath, logerxExtractPath, POPULATION_FILE, rel, RETRIEVAL_FILE, UAS_MANUAL_FILE } from './lib/paths.js';
+import { blsPath, countyAfrPath, edrAfrPath, logerxExtractPath, POPULATION_FILE, rel, RETRIEVAL_FILE, uasManualPath } from './lib/paths.js';
 import { readWorkbook } from './lib/xlsx.js';
-import { EDR_COUNTY_FISCAL_PAGE_FILE, type RetrievalLog, type RetrievalRecord } from './sources.js';
+import { UAS_EDITIONS, EDR_COUNTY_FISCAL_PAGE_FILE, type RetrievalLog, type RetrievalRecord } from './sources.js';
 
 /** Everything parsed from data/raw/, after checking each file against data/raw/manifest.json. */
 export interface Inputs {
@@ -21,7 +21,7 @@ export interface Inputs {
     logerx: Array<{ fiscalYear: number; flow: 'revenue' | 'expenditure'; file: string; csv: string; record: RetrievalRecord }>;
   }>;
   populationFile: string;
-  uasManualFile: string;
+  uasManualFiles: Array<{ key: string; file: string }>;
   countyFiscalPageFile: string;
   cpi: Array<{ config: CpiSeriesConfig; file: string; parsed: ParsedCpi }>;
 }
@@ -85,7 +85,7 @@ export async function loadInputs(): Promise<Inputs> {
     counties,
     populationFile,
     countyFiscalPageFile: verified(retrieval, EDR_COUNTY_FISCAL_PAGE_FILE),
-    uasManualFile: verified(retrieval, UAS_MANUAL_FILE),
+    uasManualFiles: UAS_EDITIONS.map((e) => ({ key: e.key, file: verified(retrieval, uasManualPath(e.key)) })),
     cpi,
   };
 }

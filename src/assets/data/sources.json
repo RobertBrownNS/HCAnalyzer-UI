@@ -106,10 +106,65 @@
     "url": "https://hillsclerk.com/records-and-reports/financial-reports-county"
   },
   {
+    "accessUrl": "https://web.archive.org/web/20150910184648id_/http://www.myfloridacfo.com/Division/AA/Manuals/LocalGovernment/2011UASManualCounty122910.pdf",
+    "caveats": [
+      "Used to check that account classes did not change across editions (category mapping); not a data source.",
+      "No longer on the DFS site; retrieved from the Internet Archive's capture of its former DFS address, dated 2015-09-10 (the address is the source link)."
+    ],
+    "id": "dfs-uas-manual-2011-county",
+    "publisher": "Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting",
+    "rawFile": "data/raw/dfs/uas-manual-2011-county.pdf",
+    "retrieved": "2026-10-07",
+    "sha256": "104d7927a9c01415a95f0548b628ae2e8aacc1fd275398b0b86b4a51e92cd3a4",
+    "title": "Uniform Accounting System Manual, 2011, county edition (dated 12/29/2010)",
+    "url": "http://www.myfloridacfo.com/Division/AA/Manuals/LocalGovernment/2011UASManualCounty122910.pdf"
+  },
+  {
+    "accessUrl": "https://web.archive.org/web/20210928134440id_/https://www.myfloridacfo.com/Division/AA/Manuals/documents/2019-2020UASManualRevised.pdf",
+    "caveats": [
+      "Used to check that account classes did not change across editions (category mapping); not a data source.",
+      "No longer on the DFS site; retrieved from the Internet Archive's capture of its former DFS address, dated 2021-09-28 (the address is the source link)."
+    ],
+    "id": "dfs-uas-manual-2019-20",
+    "publisher": "Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting",
+    "rawFile": "data/raw/dfs/uas-manual-2019-20.pdf",
+    "retrieved": "2026-10-07",
+    "sha256": "6c99380dcdc307000a45e6f4c6e90bd95310db475d20798852b998264ffcbaf9",
+    "title": "Uniform Accounting System Manual, 2019-2020 (revised)",
+    "url": "https://www.myfloridacfo.com/Division/AA/Manuals/documents/2019-2020UASManualRevised.pdf"
+  },
+  {
+    "accessUrl": "https://web.archive.org/web/20211111011417id_/https://www.myfloridacfo.com/Division/AA/Manuals/documents/2021-2022UASManualVersion1.1.pdf",
+    "caveats": [
+      "Used to check that account classes did not change across editions (category mapping); not a data source.",
+      "No longer on the DFS site; retrieved from the Internet Archive's capture of its former DFS address, dated 2021-11-11 (the address is the source link)."
+    ],
+    "id": "dfs-uas-manual-2021-22",
+    "publisher": "Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting",
+    "rawFile": "data/raw/dfs/uas-manual-2021-22.pdf",
+    "retrieved": "2026-10-07",
+    "sha256": "52b4c9ec3326ff794fa8fa1bc018ddbbc9588824951b141d9170d71651f1ac09",
+    "title": "Uniform Accounting System Manual, 2021-2022, version 1.1",
+    "url": "https://www.myfloridacfo.com/Division/AA/Manuals/documents/2021-2022UASManualVersion1.1.pdf"
+  },
+  {
+    "accessUrl": "https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/uas-manual-for-local-governments-effective-beginning-2022-2023.pdf",
+    "caveats": [
+      "Used to check that account classes did not change across editions (category mapping); not a data source."
+    ],
+    "id": "dfs-uas-manual-2022-23",
+    "publisher": "Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting",
+    "rawFile": "data/raw/dfs/uas-manual-2022-23.pdf",
+    "retrieved": "2026-10-07",
+    "sha256": "2557fb59d788dd0b69309fadd533fde1219c9125266ef2e19a317ab4fe1246ad",
+    "title": "Uniform Accounting System Manual for Local Governments, effective beginning fiscal year 2022-23",
+    "url": "https://www.myfloridacfo.com/division/aa/manuals"
+  },
+  {
     "accessUrl": "https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf",
     "caveats": [
-      "Categories are the manual's major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as the manual names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.",
-      "The 2025 edition is applied to every year. Earlier editions may have grouped some account codes differently.",
+      "Categories are the manual's major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as this edition names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.",
+      "Class boundaries were compared with the 2011 (county), 2019-20, 2021-22 and 2022-23 editions. They are the same except 39x, which the 2011 and 2019-20 editions print as \"Other Sources, Continued\"; it is grouped with Other Sources for fiscal years before FY 2021-22. Editions in force before 2011 were not compared.",
       "Fund groups follow the manual's Fund Groups and Fund Types table (p. 6)."
     ],
     "id": "dfs-uas-manual-2025",

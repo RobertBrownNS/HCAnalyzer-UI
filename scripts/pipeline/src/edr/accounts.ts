@@ -19,11 +19,14 @@ export interface AccountClass {
   category: string;
 }
 
-/** Classify an account code by the UAS chart of accounts. Throws unless exactly one category matches. */
-export function classifyAccount(flow: Flow, code: string): AccountClass {
-  const matches = categoriesFor(flow, code);
+/**
+ * Classify an account code by the UAS chart of accounts in force for that fiscal year (year-ranged
+ * rows, src/edr/categories.ts). Throws unless exactly one category matches.
+ */
+export function classifyAccount(flow: Flow, code: string, fiscalYear: number): AccountClass {
+  const matches = categoriesFor(flow, code, fiscalYear);
   if (matches.length !== 1) {
-    throw new Error(`${flow} account ${code}: ${matches.length ? `matches ${matches.length} UAS categories` : 'not in any UAS category'}`);
+    throw new Error(`${flow} account ${code} (FY ending ${fiscalYear}): ${matches.length ? `matches ${matches.length} UAS categories` : 'not in any UAS category'}`);
   }
   return { section: matches[0].section, category: matches[0].id };
 }

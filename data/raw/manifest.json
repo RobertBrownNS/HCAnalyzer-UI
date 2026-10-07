@@ -63,10 +63,46 @@
       "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2",
       "url": "https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true"
     },
+    "data/raw/dfs/uas-manual-2011-county.pdf": {
+      "bytes": 1369819,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET of the Internet Archive capture (20150910184648) of the DFS URL http://www.myfloridacfo.com/Division/AA/Manuals/LocalGovernment/2011UASManualCounty122910.pdf",
+      "publisher": "Florida Department of Financial Services (DFS), Bureau of Financial Reporting",
+      "retrieved": "2026-10-07",
+      "sha256": "104d7927a9c01415a95f0548b628ae2e8aacc1fd275398b0b86b4a51e92cd3a4",
+      "url": "https://web.archive.org/web/20150910184648id_/http://www.myfloridacfo.com/Division/AA/Manuals/LocalGovernment/2011UASManualCounty122910.pdf"
+    },
+    "data/raw/dfs/uas-manual-2019-20.pdf": {
+      "bytes": 1933536,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET of the Internet Archive capture (20210928134440) of the DFS URL https://www.myfloridacfo.com/Division/AA/Manuals/documents/2019-2020UASManualRevised.pdf",
+      "publisher": "Florida Department of Financial Services (DFS), Bureau of Financial Reporting",
+      "retrieved": "2026-10-07",
+      "sha256": "6c99380dcdc307000a45e6f4c6e90bd95310db475d20798852b998264ffcbaf9",
+      "url": "https://web.archive.org/web/20210928134440id_/https://www.myfloridacfo.com/Division/AA/Manuals/documents/2019-2020UASManualRevised.pdf"
+    },
+    "data/raw/dfs/uas-manual-2021-22.pdf": {
+      "bytes": 1995565,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET of the Internet Archive capture (20211111011417) of the DFS URL https://www.myfloridacfo.com/Division/AA/Manuals/documents/2021-2022UASManualVersion1.1.pdf",
+      "publisher": "Florida Department of Financial Services (DFS), Bureau of Financial Reporting",
+      "retrieved": "2026-10-07",
+      "sha256": "52b4c9ec3326ff794fa8fa1bc018ddbbc9588824951b141d9170d71651f1ac09",
+      "url": "https://web.archive.org/web/20211111011417id_/https://www.myfloridacfo.com/Division/AA/Manuals/documents/2021-2022UASManualVersion1.1.pdf"
+    },
+    "data/raw/dfs/uas-manual-2022-23.pdf": {
+      "bytes": 2134457,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET (PDF from the DFS manuals page)",
+      "publisher": "Florida Department of Financial Services (DFS), Bureau of Financial Reporting",
+      "retrieved": "2026-10-07",
+      "sha256": "2557fb59d788dd0b69309fadd533fde1219c9125266ef2e19a317ab4fe1246ad",
+      "url": "https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/uas-manual-for-local-governments-effective-beginning-2022-2023.pdf"
+    },
     "data/raw/dfs/uas-manual-2025.pdf": {
       "bytes": 2023245,
       "lastVerified": "2026-10-07",
-      "method": "HTTP GET (PDF; 2025 edition, effective beginning FY 2024-25)",
+      "method": "HTTP GET (PDF from the DFS manuals page)",
       "publisher": "Florida Department of Financial Services (DFS), Bureau of Financial Reporting",
       "retrieved": "2026-10-07",
       "sha256": "308d0ad3ed7c3207c242678b52ed7d5d40c22b94cc7a6b3022daad767caf699c",

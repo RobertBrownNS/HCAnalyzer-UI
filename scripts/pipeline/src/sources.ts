@@ -8,6 +8,30 @@ export const EDR_AFR_BASE = 'https://edr.state.fl.us/Content/local-government/da
 export const EDR_COUNTY_FISCAL_PAGE = 'https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal.cfm';
 export const EDR_COUNTY_FISCAL_PAGE_FILE = path.join(RAW_DIR, 'edr', 'cntyfiscal.html');
 export const UAS_MANUAL_URL = 'https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf';
+
+/**
+ * UAS manual editions used for the category mapping. The 2025 and 2022-23 editions are on the DFS
+ * site; older editions are no longer there and are fetched from Internet Archive captures of the
+ * DFS URLs.
+ */
+export interface UasEdition {
+  key: string;
+  title: string;
+  /** URL the PDF was published at by DFS. */
+  dfsUrl: string;
+  /** Wayback Machine capture timestamp, when the PDF is no longer on the DFS site. */
+  waybackTimestamp?: string;
+}
+
+export const UAS_EDITIONS: UasEdition[] = [
+  { key: '2025', title: 'Uniform Accounting System Manual, 2025 Edition, for Florida Local Governments (effective beginning fiscal year 2024-25)', dfsUrl: UAS_MANUAL_URL },
+  { key: '2022-23', title: 'Uniform Accounting System Manual for Local Governments, effective beginning fiscal year 2022-23', dfsUrl: 'https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/uas-manual-for-local-governments-effective-beginning-2022-2023.pdf' },
+  { key: '2021-22', title: 'Uniform Accounting System Manual, 2021-2022, version 1.1', dfsUrl: 'https://www.myfloridacfo.com/Division/AA/Manuals/documents/2021-2022UASManualVersion1.1.pdf', waybackTimestamp: '20211111011417' },
+  { key: '2019-20', title: 'Uniform Accounting System Manual, 2019-2020 (revised)', dfsUrl: 'https://www.myfloridacfo.com/Division/AA/Manuals/documents/2019-2020UASManualRevised.pdf', waybackTimestamp: '20210928134440' },
+  { key: '2011-county', title: 'Uniform Accounting System Manual, 2011, county edition (dated 12/29/2010)', dfsUrl: 'http://www.myfloridacfo.com/Division/AA/Manuals/LocalGovernment/2011UASManualCounty122910.pdf', waybackTimestamp: '20150910184648' },
+];
+
+export const uasEditionUrl = (e: UasEdition) => (e.waybackTimestamp ? `https://web.archive.org/web/${e.waybackTimestamp}id_/${e.dfsUrl}` : e.dfsUrl);
 export const UAS_MANUALS_PAGE = 'https://www.myfloridacfo.com/division/aa/manuals';
 export const EDR_POPULATION_URL = 'https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx';
 export const EDR_POPULATION_PAGE = 'https://edr.state.fl.us/Content/population-demographics/data/index-floridaproducts.cfm';
@@ -82,6 +106,7 @@ export const sourceIds = {
   population: 'edr-population-flcopops',
   countyFiscalPage: 'edr-cntyfiscal-page',
   uasManual: 'dfs-uas-manual-2025',
+  uasEdition: (key: string) => `dfs-uas-manual-${key}`,
   countyAfr: (county: CountyConfig, fiscalYear: number) => `county-afr-${county.slug}-fy${fiscalYear}`,
   cpi: (series: CpiSeriesConfig) => `bls-cpi-${series.id}`,
 };
@@ -141,21 +166,27 @@ export function countyAfrSource(county: CountyConfig, fiscalYear: number, rawFil
 export const FUND_GROUPS_CAVEAT =
   'Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.';
 
-export function uasManualSource(rawFile: string, r: RetrievalRecord): Source {
+export function uasManualSource(edition: UasEdition, rawFile: string, r: RetrievalRecord): Source {
+  const latest = edition.key === '2025';
   return {
-    id: sourceIds.uasManual,
+    id: sourceIds.uasEdition(edition.key),
     publisher: 'Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting',
-    title: 'Uniform Accounting System Manual, 2025 Edition, for Florida Local Governments (effective beginning fiscal year 2024-25)',
-    url: UAS_MANUALS_PAGE,
+    title: edition.title,
+    url: edition.waybackTimestamp ? edition.dfsUrl : UAS_MANUALS_PAGE,
     accessUrl: r.url,
     retrieved: r.retrieved,
     sha256: r.sha256,
     rawFile,
-    caveats: [
-      'Categories are the manual\'s major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as the manual names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.',
-      'The 2025 edition is applied to every year. Earlier editions may have grouped some account codes differently.',
-      'Fund groups follow the manual\'s Fund Groups and Fund Types table (p. 6).',
-    ],
+    caveats: latest
+      ? [
+          'Categories are the manual\'s major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as this edition names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.',
+          'Class boundaries were compared with the 2011 (county), 2019-20, 2021-22 and 2022-23 editions. They are the same except 39x, which the 2011 and 2019-20 editions print as "Other Sources, Continued"; it is grouped with Other Sources for fiscal years before FY 2021-22. Editions in force before 2011 were not compared.',
+          'Fund groups follow the manual\'s Fund Groups and Fund Types table (p. 6).',
+        ]
+      : [
+          'Used to check that account classes did not change across editions (category mapping); not a data source.',
+          ...(edition.waybackTimestamp ? [`No longer on the DFS site; retrieved from the Internet Archive's capture of its former DFS address, dated ${edition.waybackTimestamp.slice(0, 4)}-${edition.waybackTimestamp.slice(4, 6)}-${edition.waybackTimestamp.slice(6, 8)} (the address is the source link).`] : []),
+        ],
   };
 }
 

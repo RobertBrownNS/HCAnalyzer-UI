@@ -267,7 +267,7 @@ async function main() {
           if (a.cachedTotal === null || sum !== a.cachedTotal) rowMismatch.push(`${s.sheetName}!row ${a.row}: funds ${sum} vs total ${a.cachedTotal}`);
           const headingSection = SECTION_HEADINGS[normalizeHeading(a.sectionHeading)];
           if (!headingSection) unknownHeadings.add(a.sectionHeading);
-          else if (!headingSection.includes(classifyAccount(s.flow, a.account).section)) {
+          else if (!headingSection.includes(classifyAccount(s.flow, a.account, s.fiscalYear).section)) {
             const k = `${s.flow}|${a.account}|${a.sectionHeading}`;
             placement.set(k, [...(placement.get(k) ?? []), s.fiscalYear]);
           }
@@ -587,7 +587,7 @@ async function main() {
     for (const sheets of [c.revenues.sheets, c.expenditures.sheets]) {
       for (const sh of sheets) {
         for (const acct of sh.accounts) {
-          const n = categoriesFor(sh.flow, acct.account).length;
+          const n = categoriesFor(sh.flow, acct.account, sh.fiscalYear).length;
           if (n === 1) mappedCount++;
           else unmapped.push(`${c.county.slug} ${sh.flow} ${acct.account} FY ${sh.fiscalYear}: ${n} categories`);
         }
@@ -596,6 +596,26 @@ async function main() {
   }
   add('UAS categories: every account row in every county maps to exactly one category', !unmapped.length,
     unmapped.length ? unmapped.slice(0, 10).join('; ') : `${mappedCount.toLocaleString('en-US')} account rows, ${CATEGORIES.length} categories`);
+
+  // UAS classes EDR prints under a shared heading (38x+39x, 58x+59x): list the rows in the classes
+  // that were split out, so the re-categorisation can be checked (DR-48, P3-09).
+  const splitRows: string[] = [];
+  for (const c of inputs.counties) {
+    const obs = JSON.parse(readFileSync(path.join(OUT_DIR, `${c.county.slug}.observations.json`), 'utf8')) as Observation[];
+    const groups = new Map<string, { n: number; sum: number; years: number[] }>();
+    for (const o of obs) {
+      const heading = o.category === 'other_nonoperating' ? 'Other Uses (and Non-Operating)' : Number(o.account) >= 390 && Number(o.account) < 400 ? 'Other Sources' : null;
+      if (!heading) continue;
+      const k = `${o.flow}|${o.account}|${o.category}|${heading}`;
+      const g = groups.get(k) ?? { n: 0, sum: 0, years: [] };
+      g.n++; g.sum += o.amount; g.years.push(o.fiscalYear);
+      groups.set(k, g);
+    }
+    for (const [k, g] of [...groups].sort()) {
+      const [flow, account, category, heading] = k.split('|');
+      splitRows.push(`| ${c.county.name} | ${flow} | ${account} | "${heading}" | ${category} | ${g.n} | ${usd(g.sum)} | ${fiscalYearLabel(Math.min(...g.years))} to ${fiscalYearLabel(Math.max(...g.years))} |`);
+    }
+  }
 
   // County metadata the UI relies on: display names, cross-check status, DR-42 caveat text.
   const manifestJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'manifest.json'), 'utf8')) as { jurisdictions: string[]; jurisdictionNames?: Record<string, string>; defaultJurisdiction?: string };
@@ -861,6 +881,14 @@ async function main() {
     '| Jurisdiction | Fiscal year | 381 transfers in | 581 transfers out | Difference | |',
     '|---|---|---:|---:|---:|---|',
     ...transferRows,
+    '',
+    '## UAS classes split from a shared EDR heading',
+    '',
+    'EDR prints UAS classes 38x and 39x under one heading ("Other Sources"), and 58x and 59x under another ("Other Uses" / "Other Uses and Non-Operating"). Categories follow the UAS manual edition in force (src/edr/categories.ts): 59x is "Other Nonoperating" in every edition compared; 39x is part of Other Sources before FY 2021-22 and "Proprietary Non-Operating Sources" from FY 2021-22. Rows below are every observation in those codes. Amounts are unchanged; only category and section differ from the EDR heading.',
+    '',
+    '| County | Flow | Account | EDR heading | Category | Cells | Sum | Years |',
+    '|---|---|---|---|---|---:|---:|---|',
+    ...splitRows,
     '',
     '## Drop-and-recover gaps (informational)',
     '',

@@ -13,6 +13,10 @@ Inputs (sha256 verified against `data/raw/manifest.json`):
 - `data/raw/county-afr/hillsborough/afr-fy2023.pdf` - 03b62980d46ba99e8bcf6cf58f4b74dd1260da26611418d7b20bc507359ec2d7 (retrieved 2026-10-06)
 - `data/raw/county-afr/hillsborough/afr-fy2024.pdf` - 091092bb34ca9be55e8f9e29d71a7b03ce1d35a5a9e0c3db3b3e451a6970aa54 (retrieved 2026-10-06)
 - `data/raw/county-afr/hillsborough/afr-fy2025.pdf` - 8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2 (retrieved 2026-10-06)
+- `data/raw/dfs/uas-manual-2011-county.pdf` - 104d7927a9c01415a95f0548b628ae2e8aacc1fd275398b0b86b4a51e92cd3a4 (retrieved 2026-10-07)
+- `data/raw/dfs/uas-manual-2019-20.pdf` - 6c99380dcdc307000a45e6f4c6e90bd95310db475d20798852b998264ffcbaf9 (retrieved 2026-10-07)
+- `data/raw/dfs/uas-manual-2021-22.pdf` - 52b4c9ec3326ff794fa8fa1bc018ddbbc9588824951b141d9170d71651f1ac09 (retrieved 2026-10-07)
+- `data/raw/dfs/uas-manual-2022-23.pdf` - 2557fb59d788dd0b69309fadd533fde1219c9125266ef2e19a317ab4fe1246ad (retrieved 2026-10-07)
 - `data/raw/dfs/uas-manual-2025.pdf` - 308d0ad3ed7c3207c242678b52ed7d5d40c22b94cc7a6b3022daad767caf699c (retrieved 2026-10-07)
 - `data/raw/edr-population/FLcopops.xlsx` - 4cd06da54bfa7dacc2e66715451c66173170554fa60445736e803d6938c73b6f (retrieved 2026-10-06)
 - `data/raw/edr/cntyfiscal.html` - 13261658653bb445e70ea86ce968e1bedd215f93c45b3863f09be6a6d884a82a (retrieved 2026-10-06)
@@ -174,7 +178,7 @@ Inputs (sha256 verified against `data/raw/manifest.json`):
 | NOTE | pinellas: Drop-and-recover gaps: fund type or section falls more than 50% and recovers within 2 years (non-custodial, baseline at least $1,000,000) | 5 found; 0 annotated (config/approved-gaps.ts), 5 listed for reference only. Listed under "Drop-and-recover gaps" |
 | PASS | Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed | 39 annotations |
 | PASS | Annotation refs resolve to a non-empty cell in the named workbook (format workbook:sheet!cell) | 102 refs resolved |
-| PASS | User-facing text has no file names, paths, JSON keys or code identifiers | 290 strings checked in cpi, annotations, sources and population |
+| PASS | User-facing text has no file names, paths, JSON keys or code identifiers | 305 strings checked in cpi, annotations, sources and population |
 | PASS | UAS categories: every account row in every county maps to exactly one category | 7,847 account rows, 19 categories |
 | PASS | manifest: defaultJurisdiction is the one county marked default in config, and is one of jurisdictions | defaultJurisdiction = "hillsborough"; jurisdictions = hillsborough, pinellas |
 | PASS | Shared sources: county-specific caveats are in caveatsByJurisdiction (no county-name prefixes in shared caveats) | ok |
@@ -597,6 +601,21 @@ Revenue account 381 (inter-fund group transfers in) and expenditure account 581 
 | pinellas | FY 2023-24 | $162,655,741 | $162,655,741 | $0 |  |
 | pinellas | FY 2024-25 | $177,585,136 | $177,585,136 | $0 |  |
 
+## UAS classes split from a shared EDR heading
+
+EDR prints UAS classes 38x and 39x under one heading ("Other Sources"), and 58x and 59x under another ("Other Uses" / "Other Uses and Non-Operating"). Categories follow the UAS manual edition in force (src/edr/categories.ts): 59x is "Other Nonoperating" in every edition compared; 39x is part of Other Sources before FY 2021-22 and "Proprietary Non-Operating Sources" from FY 2021-22. Rows below are every observation in those codes. Amounts are unchanged; only category and section differ from the EDR heading.
+
+| County | Flow | Account | EDR heading | Category | Cells | Sum | Years |
+|---|---|---|---|---|---:|---:|---|
+| Hillsborough County | expenditure | 590 | "Other Uses (and Non-Operating)" | other_nonoperating | 39 | $19,925,986 | FY 2004-05 to FY 2022-23 |
+| Hillsborough County | expenditure | 591 | "Other Uses (and Non-Operating)" | other_nonoperating | 10 | $180,345,610 | FY 2015-16 to FY 2024-25 |
+| Pinellas County | expenditure | 590 | "Other Uses (and Non-Operating)" | other_nonoperating | 4 | $345,977 | FY 2004-05 to FY 2015-16 |
+| Pinellas County | expenditure | 591 | "Other Uses (and Non-Operating)" | other_nonoperating | 19 | $56,038,099 | FY 2005-06 to FY 2021-22 |
+| Pinellas County | expenditure | 592 | "Other Uses (and Non-Operating)" | other_nonoperating | 1 | $26,980,910 | FY 2009-10 to FY 2009-10 |
+| Pinellas County | expenditure | 593 | "Other Uses (and Non-Operating)" | other_nonoperating | 2 | $3,278,074 | FY 2007-08 to FY 2014-15 |
+| Pinellas County | revenue | 392 | "Other Sources" | other_sources | 1 | $9,618,265 | FY 2007-08 to FY 2007-08 |
+| Pinellas County | revenue | 393 | "Other Sources" | other_sources | 1 | $12,521,614 | FY 2016-17 to FY 2016-17 |
+
 ## Drop-and-recover gaps (informational)
 
 Non-custodial fund-type totals and sections that fall by more than 50% from the prior year and come back to at least 50% of the prior-year value within 2 years, in either flow. Only scopes with a prior-year value of at least $1,000,000 are scanned. Annotated gaps are listed in `scripts/pipeline/config/approved-gaps.ts`. Per the user decision recorded in docs/decisions.md, only filing breaks are annotated: the FY 2023-24 proprietary-fund and component-unit gaps, and the FY 2022-23 and FY 2023-24 court-related and public safety gaps, which are described in the transfer-imbalance annotations for those years. The other rows are listed for reference only and are not annotated.
@@ -711,7 +730,6 @@ Changes larger than 25% from the prior fiscal year in the non-custodial total or
 | hillsborough | expenditure | physical_environment | FY 2023-24 to FY 2024-25 | $188.3M | $770.6M | 309.2% |
 | hillsborough | expenditure | public_safety | FY 2023-24 to FY 2024-25 | $368.2M | $1.30B | 253.1% |
 | pinellas | revenue | permits_fees_special_assessments | FY 2007-08 to FY 2008-09 | $4.5M | $7.2M | 59.4% |
-| pinellas | revenue | proprietary_nonoperating_sources | FY 2007-08 to FY 2008-09 | $9.6M | $0 | -100.0% |
 | pinellas | revenue | judgments_fines_forfeits | FY 2008-09 to FY 2009-10 | $6.6M | $3.3M | -50.0% |
 | pinellas | revenue | other_sources | FY 2008-09 to FY 2009-10 | $482.6M | $120.9M | -74.9% |
 | pinellas | revenue | judgments_fines_forfeits | FY 2009-10 to FY 2010-11 | $3.3M | $5.4M | 62.3% |
@@ -721,7 +739,8 @@ Changes larger than 25% from the prior fiscal year in the non-custodial total or
 | pinellas | revenue | permits_fees_special_assessments | FY 2012-13 to FY 2013-14 | $10.2M | $27.2M | 165.6% |
 | pinellas | revenue | miscellaneous | FY 2013-14 to FY 2014-15 | $61.0M | $79.2M | 29.7% |
 | pinellas | revenue | other_sources | FY 2013-14 to FY 2014-15 | $31.3M | $40.0M | 27.8% |
-| pinellas | revenue | proprietary_nonoperating_sources | FY 2016-17 to FY 2017-18 | $12.5M | $0 | -100.0% |
+| pinellas | revenue | other_sources | FY 2015-16 to FY 2016-17 | $34.5M | $51.0M | 48.1% |
+| pinellas | revenue | other_sources | FY 2016-17 to FY 2017-18 | $51.0M | $36.0M | -29.5% |
 | pinellas | revenue | miscellaneous | FY 2017-18 to FY 2018-19 | $77.3M | $109.7M | 42.1% |
 | pinellas | revenue | other_sources | FY 2017-18 to FY 2018-19 | $36.0M | $69.5M | 93.1% |
 | pinellas | revenue | intergovernmental | FY 2018-19 to FY 2019-20 | $138.4M | $208.3M | 50.5% |

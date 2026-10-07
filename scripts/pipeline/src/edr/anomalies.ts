@@ -46,6 +46,8 @@ export interface Annotation {
   funds?: string[];
   /** Category views: show when one of these categories is shown. */
   categories?: string[];
+  /** Source drawer: show for a point whose observations include one of these account codes (same jurisdiction, flow and year). */
+  accounts?: string[];
   /** Longer factual text for the source drawer. */
   detail?: string;
   /** Workbook cells ("2023!D16") the annotation's figures come from. */
@@ -99,7 +101,7 @@ function accountTotal(sheet: AfrSheet | undefined, account: string, excludeCusto
 export function sectionTotal(sheet: AfrSheet, section: string, excludeCustodial: boolean): number {
   let sum = 0;
   for (const a of sheet.accounts) {
-    if (classifyAccount(sheet.flow, a.account).section !== section) continue;
+    if (classifyAccount(sheet.flow, a.account, sheet.fiscalYear).section !== section) continue;
     for (const v of a.values) if (!excludeCustodial || v.fundType !== 'custodial') sum += v.amount;
   }
   return sum;
@@ -450,7 +452,7 @@ export interface Swing {
 export function yearOverYearSwings(sheets: AfrSheet[]): Swing[] {
   const sorted = [...sheets].sort((a, b) => a.fiscalYear - b.fiscalYear);
   const out: Swing[] = [];
-  const sections = [...new Set(sorted.flatMap((s) => s.accounts.map((a) => classifyAccount(s.flow, a.account).section)))].sort();
+  const sections = [...new Set(sorted.flatMap((s) => s.accounts.map((a) => classifyAccount(s.flow, a.account, s.fiscalYear).section)))].sort();
   for (let i = 1; i < sorted.length; i++) {
     const [p, c] = [sorted[i - 1], sorted[i]];
     const scopes: Array<[string, number, number]> = [
@@ -525,7 +527,7 @@ export function findGaps(sheets: AfrSheet[]): Gap[] {
   if (!sorted.length) return [];
   const flow = sorted[0].flow;
   const funds = [...new Set(sorted.flatMap((s) => s.fundColumns.map((f) => f.fundType)))].filter((f) => f !== 'custodial');
-  const sections = [...new Set(sorted.flatMap((s) => s.accounts.map((a) => classifyAccount(s.flow, a.account).section)))].sort();
+  const sections = [...new Set(sorted.flatMap((s) => s.accounts.map((a) => classifyAccount(s.flow, a.account, s.fiscalYear).section)))].sort();
   const scopes: Array<[string, (s: AfrSheet) => number]> = [
     ...funds.map((f): [string, (s: AfrSheet) => number] => [`fund:${f}`, (s) => s.accounts.reduce((t, a) => t + (a.values.find((v) => v.fundType === f)?.amount ?? 0), 0)]),
     ...sections.map((sec): [string, (s: AfrSheet) => number] => [`section:${sec}`, (s) => sectionTotal(s, sec, true)]),

@@ -51,7 +51,7 @@ export function toObservations(jurisdiction: string, sheets: AfrSheet[], sourceI
   const out: Observation[] = [];
   for (const sheet of sheets) {
     for (const row of sheet.accounts) {
-      const { section, category } = classifyAccount(sheet.flow, row.account);
+      const { section, category } = classifyAccount(sheet.flow, row.account, sheet.fiscalYear);
       for (const v of row.values) {
         if (v.amount === 0) continue;
         out.push({
@@ -87,7 +87,8 @@ export function toAccounts(sheets: AfrSheet[]): AccountInfo[] {
       const list = [...names].map(([name, years]) => ({ name, fiscalYears: [...years].sort((a, b) => a - b) }));
       list.sort((a, b) => a.fiscalYears[0] - b.fiscalYears[0] || a.name.localeCompare(b.name));
       const latest = list.reduce((best, n) => (n.fiscalYears.at(-1)! > best.fiscalYears.at(-1)! ? n : best));
-      return { flow, account, ...classifyAccount(flow, account), name: latest.name, names: list };
+      // Section and category as classified in the latest year the account appears.
+      return { flow, account, ...classifyAccount(flow, account, latest.fiscalYears.at(-1)!), name: latest.name, names: list };
     })
     .sort((a, b) => FLOW_ORDER.indexOf(a.flow) - FLOW_ORDER.indexOf(b.flow) || Number(a.account) - Number(b.account));
 }

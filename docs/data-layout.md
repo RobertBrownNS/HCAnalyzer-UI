@@ -310,9 +310,21 @@ Source fields (DR-45), derived from these results, never from config:
 
 ## UAS categories and fund metadata (Phase 3)
 
-Categories come from the DFS **Uniform Accounting System Manual, 2025 edition** (effective beginning FY 2024-25), `data/raw/dfs/uas-manual-2025.pdf` (sha256 308d0ad3ed7c3207c242678b52ed7d5d40c22b94cc7a6b3022daad767caf699c), downloaded with `npm run fetch -- --uas` from https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf. Each category is a UAS major account class, named as the manual names it, with ad valorem taxes (311) split out (D-19). The table lives in `scripts/pipeline/src/edr/categories.ts` and is published as `categories.json`.
+Categories come from the DFS **Uniform Accounting System (UAS) Manual**: each category is a UAS major account class, named as the 2025 edition names it, with ad valorem taxes (311) split out (D-19). The table lives in `scripts/pipeline/src/edr/categories.ts` and is published as `categories.json`. Its rows are year-ranged where the manual changed (P3-01, DR-48).
 
-| id | Label (UAS) | Accounts | UAS class, page |
+Editions compared, all in `data/raw/dfs/` with sha256 in the manifest (`npm run fetch -- --uas`):
+
+| Edition | Where from |
+|---|---|
+| 2025 (effective beginning FY 2024-25) | DFS manuals page |
+| 2022-23 | DFS manuals page |
+| 2021-22, version 1.1 | Internet Archive capture of the former DFS URL |
+| 2019-20 (revised) | Internet Archive capture |
+| 2011, county edition (dated 12/29/2010) | Internet Archive capture |
+
+A 2014 edition capture was damaged and not used. Editions in force before 2011 (FY 2004-05 to FY 2009-10) were not compared; the 2011 classes are applied to those years.
+
+| id | Label (UAS 2025) | Accounts | UAS class, page (2025) |
 |---|---|---|---|
 | ad_valorem | Ad Valorem Taxes | 311 | 311.000, p. 38 |
 | other_taxes | General Government Taxes (excluding Ad Valorem Taxes) | 310, 312-319 | 31x, p. 38 |
@@ -321,8 +333,8 @@ Categories come from the DFS **Uniform Accounting System Manual, 2025 edition** 
 | charges_for_services | Charges for Services | 340-349 | 34x, p. 86 |
 | judgments_fines_forfeits | Judgments, Fines, and Forfeits | 350-359 | 35x, p. 104 |
 | miscellaneous | Miscellaneous Revenues | 360-369 | 36x, p. 106 |
-| other_sources | Other Sources | 380-389 | 38x, p. 109 |
-| proprietary_nonoperating_sources | Proprietary Non-Operating Sources | 390-399 | 39x, p. 114 |
+| other_sources | Other Sources | 380-389; 390-399 up to FY 2020-21 | 38x, p. 109; 39x "Other Sources, Continued" in the 2011 and 2019-20 editions |
+| proprietary_nonoperating_sources | Proprietary Non-Operating Sources | 390-399 from FY 2021-22 | 39x, p. 114 (separate class from the 2021-22 edition) |
 | general_government | General Government Services (Not-Court Related) | 510-519 | 51x, p. 118 |
 | public_safety | Public Safety | 520-529 | 52x, p. 119 |
 | physical_environment | Physical Environment | 530-539 | 53x, p. 121 |
@@ -331,26 +343,26 @@ Categories come from the DFS **Uniform Accounting System Manual, 2025 edition** 
 | human_services | Human Services | 560-569 | 56x, p. 124 |
 | culture_recreation | Culture/Recreation | 570-579 | 57x, p. 125 |
 | other_uses | Other Uses | 580-589 | 58x, p. 126 |
-| other_nonoperating | Other Nonoperating | 590-599 | 59x, p. 129 |
+| other_nonoperating | Other Nonoperating | 590-599 | 59x, p. 129 (a separate class in every edition compared) |
 | court_related | Court-Related Expenditures | 600-769 | 60x to 76x, p. 130 |
 
-Differences from the earlier prefix rules (UAS followed):
+Differences from the earlier prefix rules:
 
-- **39x** (392 Extraordinary Items, 393 Special Items) is its own UAS class, "Proprietary Non-Operating Sources" (p. 114). It was `other_sources`. Affected rows: Pinellas only, revenue 392 FY 2007-08 $9,618,265 and 393 FY 2016-17 $12,521,614 (Enterprise).
-- **59x** is its own UAS class, "Other Nonoperating" (p. 129). It was `other_uses`. Affected rows:
+- **59x** moves from `other_uses` to `other_nonoperating` in every year. Rows affected (75, amounts unchanged):
   - Hillsborough: 590 (39 cells, FY 2004-05 to FY 2022-23, $19,925,986 in total) and 591 (10 cells, FY 2015-16 to FY 2024-25, $180,345,610).
   - Pinellas: 590 (4 cells, $345,977), 591 (19 cells, $56,038,099), 592 (1 cell, FY 2009-10, $26,980,910) and 593 (2 cells, $3,278,074).
-  - Effect: the Other Uses category totals fall by these amounts in the years listed, and Other Nonoperating appears. Flow totals, fund totals and every amount are unchanged.
+  - Effect: Other Uses category totals fall by these amounts, and Other Nonoperating appears. Flow and fund totals are unchanged.
+- **39x** stays `other_sources` up to FY 2020-21 (the 2011 and 2019-20 editions print it as "Other Sources, Continued") and is `proprietary_nonoperating_sources` from FY 2021-22. The only 39x rows, Pinellas 392 (FY 2007-08) and 393 (FY 2016-17), stay `other_sources`.
 - **Court-related** is bounded to the UAS classes 60x to 76x (it was 600-799). No account in either county is affected.
-- EDR prints 38x and 39x under one heading ("Other Sources"), and 58x and 59x under another ("Other Uses" / "Other Uses and Non-Operating"). The heading check accepts both classes under each.
-- The 2025 edition is applied to every year; earlier editions may have grouped some codes differently. This is stated in the source caveats.
-- Validation: every account row in both counties maps to exactly one category, and the category ranges don't overlap (tested).
+- EDR prints 38x and 39x under one heading ("Other Sources"), and 58x and 59x under another ("Other Uses" / "Other Uses and Non-Operating"). The heading check accepts both classes under each. `data/validation.md` lists every row in those codes ("UAS classes split from a shared EDR heading").
+- Validation: every account row in both counties maps to exactly one category in its fiscal year, and the ranges in force in any year do not overlap (tested).
 
 `funds.json`: each fund type's id, label (EDR's column header), group (governmental / proprietary / fiduciary from the UAS Fund Groups and Fund Types table, p. 6, plus component_unit, which EDR reports in its own column), a plain description, and `handledByToggle: "custodial"` on the custodial fund. Presets: General Fund; Governmental funds (General, Special Revenue, Debt Service, Capital Projects, Permanent); All funds (every fund except custodial, which stays on its toggle). The EDR AFR sources also carry a plain caveat describing what each fund group includes (QA-07).
 
-`reconciliation-difference` annotations (DR-47): the two LOGERX/EDR classification differences are annotated from `APPROVED_RECLASSIFICATIONS`, with scope fields:
-- `funds`: show when the selected funds include some, but not all, of the listed funds. Hillsborough FY 2014-15, $1,164,281, account 559: Internal Service in EDR, Component Units in LOGERX.
-- `categories`: show in category views showing that category. Pinellas FY 2013-14, $2,309,587: account 335.8 in EDR, 335.9 in LOGERX, both intergovernmental.
+`reconciliation-difference` annotations (DR-47, DR-50): the two LOGERX/EDR classification differences are annotated from `APPROVED_RECLASSIFICATIONS`, with scope fields:
+- `funds`: show in fund-scope views when the selected funds include some, but not all, of the listed funds. Hillsborough FY 2014-15, $1,164,281, account 559: Internal Service in EDR, Component Units in LOGERX.
+- `categories`: show in category views showing that category, not on total charts. Pinellas FY 2013-14, $2,309,587: account 335.8 in EDR, 335.9 in LOGERX, both intergovernmental.
+- `accounts`: show in the source drawer for points whose observations include one of these accounts (Hillsborough [559]; Pinellas [335.8, 335.9]).
 The build fails if an approved difference is not found; validation fails if any difference is not approved.
 
 ## Annotation approvals

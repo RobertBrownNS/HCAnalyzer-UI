@@ -23,7 +23,7 @@ import { fiscalYearLabel, fiscalYearMonths } from './lib/fiscal.js';
 import { sha256, stableStringify } from './lib/hash.js';
 import { OUT_DIR, rel } from './lib/paths.js';
 import { loadInputs, retrievalFor, type Inputs } from './inputs.js';
-import { uasManualSource, afrSource, countyAfrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
+import { UAS_EDITIONS, uasManualSource, afrSource, countyAfrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
 
 export const SCHEMA_VERSION = 1;
 
@@ -209,6 +209,7 @@ function reclassificationAnnotations(c: Inputs['counties'][number], rev: FlowCro
       flow: a.flow,
       ...(a.funds ? { funds: a.funds } : {}),
       ...(a.categories ? { categories: a.categories } : {}),
+      accounts: [...new Set([pair.edr.account, pair.logerx.account])].sort((x, y) => Number(x) - Number(y)),
       detail:
         `${fiscalYearLabel(a.fiscalYear)} ${a.flow}s: ${amount} is in ${where(pair.edr)} in the EDR workbook (${pair.edr.ref}) and in ${where(pair.logerx)} in the Annual Financial Report data the county filed with the Florida Department of Financial Services (LOGERX). ` +
         'Yearly totals are equal in both sources; the explorer shows the EDR classification.',
@@ -287,14 +288,15 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   }
 
   sources.push(populationSource(rel(inputs.populationFile), retrievalFor(inputs.retrieval, inputs.populationFile)));
-  sources.push(uasManualSource(rel(inputs.uasManualFile), retrievalFor(inputs.retrieval, inputs.uasManualFile)));
+  for (const { key, file } of inputs.uasManualFiles) {
+    sources.push(uasManualSource(UAS_EDITIONS.find((e) => e.key === key)!, rel(file), retrievalFor(inputs.retrieval, file)));
+  }
   files.set('categories.json', stringifyRows(CATEGORIES.map((c) => ({
     id: c.id,
     flow: c.flow,
     label: c.label,
     section: c.section,
     accountRanges: c.ranges.map(rangeLabel),
-    uasReference: `UAS Manual, 2025 edition, class ${c.uasClass}, p. ${c.uasPage}`,
     sourceId: sourceIds.uasManual,
   }))));
   files.set('funds.json', stableStringify({
