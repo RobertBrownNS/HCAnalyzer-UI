@@ -99,8 +99,9 @@ Export: CSV (with source columns) and PNG (with settings and sources printed und
 ## Mobile-first layout
 
 - Phone: chart ~60% of viewport; chip row of active settings; tap chip -> bottom sheet; pinch zoom; range slider under chart.
-- Tablet: collapsible side panel. Desktop: persistent left controls, optional second chart.
+- Tablet: collapsible side panel. Desktop: persistent filters pane on the RIGHT, optional second chart.
 - Touch targets >= 44px, colorblind-safe palette, light/dark support.
+- Visual theme: "BI dashboard" (docs/decisions.md D-07). Navy top bar, white tiles on grey canvas, KPI cards, IBM Plex Sans/Mono self-hosted. All visual values live in `src/styles/_tokens.scss`. KPI cards show only values derived from the user's own settings, with no chosen comparison periods and no good/bad coloring.
 
 ## Build phases
 
@@ -111,8 +112,13 @@ Export: CSV (with source columns) and PNG (with settings and sources printed und
 5. **Presets + export:** claim presets, CSV/PNG, methodology page.
 6. **Polish:** accessibility audit, performance, PWA/offline.
 
+## Decided
+
+- Public site. Hosted statically on either a private IIS server or GitHub Pages, so builds must work under a sub-path base href and on IIS. Methodology and "how to reproduce" pages are a priority.
+- Transfers between funds: the UI offers both gross (as reported) and net. Default is gross.
+- Inflation: the UI offers every index and period combination (national CPI-U / Tampa CPI × fiscal-year / calendar-year averages). Default is national CPI-U, fiscal-year.
+- Comparison counties: none yet. Phase 4 is on hold; keep the pipeline county-agnostic.
+
 ## Open decisions
 
-- Comparison counties: neighbors (Pinellas, Pasco, Polk), peers (Orange, Duval/Jacksonville, Palm Beach), or all 67?
 - Include cities and special districts later? (County-only first.)
-- Public or personal? If public, prioritize the methodology and "how to reproduce" pages.
