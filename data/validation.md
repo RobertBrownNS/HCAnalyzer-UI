@@ -174,7 +174,7 @@ Inputs (sha256 verified against `data/raw/manifest.json`):
 | PASS | Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed | 37 annotations |
 | PASS | Annotation refs resolve to a non-empty cell in the named workbook (format workbook:sheet!cell) | 100 refs resolved |
 | PASS | User-facing text has no file names, paths, JSON keys or code identifiers | 277 strings checked in cpi, annotations, sources and population |
-| PASS | manifest: defaultJurisdiction is one of jurisdictions | defaultJurisdiction = "hillsborough"; jurisdictions = hillsborough, pinellas |
+| PASS | manifest: defaultJurisdiction is the one county marked default in config, and is one of jurisdictions | defaultJurisdiction = "hillsborough"; jurisdictions = hillsborough, pinellas |
 | PASS | Shared sources: county-specific caveats are in caveatsByJurisdiction (no county-name prefixes in shared caveats) | ok |
 | PASS | manifest: every jurisdiction has a display name (jurisdictionNames) | hillsborough = "Hillsborough County"; pinellas = "Pinellas County" |
 | PASS | EDR AFR sources: countyAfrCrossCheck, coverage and summary follow the cross-check results; DR-42 caveat text exact where not-checked | hillsborough: revenue partial, expenditure partial; pinellas: revenue partial, expenditure partial |
