@@ -12,6 +12,15 @@ import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
 import { buildOutputs } from './build.js';
 import { indexComparisonSection } from './index-comparison.js';
+import {
+  money,
+  SWING_THRESHOLD,
+  TRANSFER_IMBALANCE_THRESHOLD,
+  transferBalances,
+  yearOverYearSwings,
+  type Annotation,
+} from './edr/anomalies.js';
+import { COUNTY_AFR_CHECKS } from './edr/county-afr-checks.js';
 import { fiscalYearLabel } from './lib/fiscal.js';
 import { sha256 } from './lib/hash.js';
 import { OUT_DIR, rel, VALIDATION_REPORT } from './lib/paths.js';
@@ -350,6 +359,68 @@ async function main() {
   add('CPI Tampa: fiscal-year coverage', true,
     `fiscal-year values exist for FY ${Math.min(...tampaFy)}-${Math.max(...tampaFy)} only; earlier finance years are null with a reason. The bimonthly series starts Nov 2017; before that BLS published only semiannual averages, which do not align with Oct-Sep`, true);
 
+  // --- County-filed AFR cross-check (QA-01) ----------------------------------------------
+  const afrRows: string[] = [];
+  for (const { county, countyAfrFiles } of inputs.counties) {
+    const obs = JSON.parse(readFileSync(path.join(OUT_DIR, `${county.slug}.observations.json`), 'utf8')) as Observation[];
+    const checksHere = COUNTY_AFR_CHECKS.filter((c) => c.jurisdiction === county.slug);
+    const bad: string[] = [];
+    for (const c of checksHere) {
+      const file = countyAfrFiles.find((f) => f.fiscalYear === c.fiscalYear);
+      const o = obs.find((x) => x.fiscalYear === c.fiscalYear && x.flow === c.flow && x.account === c.account && x.fundType === c.fundType);
+      const afr = sumBy(c.lines, (l) => l.amount);
+      const ok = !!file && !!o && o.amount === afr;
+      if (!ok) bad.push(`${c.fiscalYear} ${c.flow} ${c.account} ${c.fundType}: county AFR ${afr} vs EDR ${o?.amount ?? 'missing'}${file ? '' : ' (PDF not in data/raw)'}`);
+      afrRows.push(`| ${fiscalYearLabel(c.fiscalYear)} | ${c.flow} | ${c.account} | ${c.fundType} | ${file ? `\`${rel(file.file)}\`` : 'missing'} p. ${c.page} | ${c.lines.map((l) => `${l.label}: ${usd(l.amount)}`).join('<br>')} | ${usd(afr)} | \`${o?.ref ?? 'n/a'}\` ${o ? usd(o.amount) : 'n/a'} | ${ok ? 'match' : 'MISMATCH'} |`);
+    }
+    if (checksHere.length) {
+      add(tag2(county.slug, 'County-filed AFR (PDF) lines = EDR workbook cells'), !bad.length,
+        bad.length ? bad.join('; ') : `${checksHere.length} values checked in ${new Set(checksHere.map((c) => c.fiscalYear)).size} county AFR filings; EDR matches what the county filed`);
+    }
+  }
+
+  // --- Interfund transfer balance and year-over-year swings (QA-01) ------------------------
+  const transferRows: string[] = [];
+  const swingRows: string[] = [];
+  for (const { county, revenues, expenditures } of inputs.counties) {
+    const balances = transferBalances(revenues.sheets, expenditures.sheets);
+    for (const b of balances) {
+      transferRows.push(`| ${county.slug} | ${fiscalYearLabel(b.fiscalYear)} | ${usd(b.transfersIn)} | ${usd(b.transfersOut)} | ${usd(b.difference)} | ${b.flagged ? 'over threshold' : ''} |`);
+    }
+    const flagged = balances.filter((b) => b.flagged);
+    add(tag2(county.slug, `Inter-fund transfers: 581 out vs 381 in, non-custodial (threshold ${usd(TRANSFER_IMBALANCE_THRESHOLD)})`), true,
+      flagged.length
+        ? `${balances.length - flagged.length} of ${balances.length} years within threshold (largest gap ${usd(Math.max(...balances.filter((b) => !b.flagged).map((b) => Math.abs(b.difference))))}); over threshold: ${flagged.map((b) => `${fiscalYearLabel(b.fiscalYear)} ${usd(b.difference)}`).join('; ')}. Annotated in annotations.json.`
+        : `all ${balances.length} years within threshold`,
+      true);
+    for (const sheets of [revenues.sheets, expenditures.sheets]) {
+      const swings = yearOverYearSwings(sheets);
+      for (const w of swings) {
+        swingRows.push(`| ${county.slug} | ${w.flow} | ${w.scope} | ${fiscalYearLabel(w.fiscalYear - 1)} to ${fiscalYearLabel(w.fiscalYear)} | ${money(w.from)} | ${money(w.to)} | ${(w.change * 100).toFixed(1)}% |`);
+      }
+      const label = sheets[0]?.flow ?? '';
+      add(tag2(county.slug, `${label}s: year-over-year changes above ${(SWING_THRESHOLD * 100).toFixed(0)}% (non-custodial)`), true,
+        `${swings.length} changes over the threshold across totals and sections; listed under "Year-over-year changes"`, true);
+    }
+  }
+
+  // --- Annotations: every one resolves and is well-formed ----------------------------------
+  const annotationsJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'annotations.json'), 'utf8')) as Annotation[];
+  const sourceIdsJson = new Set((JSON.parse(readFileSync(path.join(OUT_DIR, 'sources.json'), 'utf8')) as Array<{ id: string }>).map((x) => x.id));
+  const badAnnotations = annotationsJson.filter(
+    (a) =>
+      !sourceIdsJson.has(a.sourceId) ||
+      !a.label ||
+      !['methodology', 'policy', 'event'].includes(a.kind) ||
+      (a.flow !== undefined && !['revenue', 'expenditure'].includes(a.flow)) ||
+      (a.custodial !== undefined && !['included', 'excluded'].includes(a.custodial)) ||
+      (a.refs ?? []).some((r) => !/^(\d{4}![A-Z]+\d+|FLcopops\.xlsx ".+" row \d+)$/.test(r)),
+  );
+  add('Annotations: sourceId resolves, fields valid, cell references well-formed', !badAnnotations.length,
+    badAnnotations.length ? badAnnotations.map((a) => `${a.fiscalYear} ${a.label}`).join('; ') : `${annotationsJson.length} annotations`);
+  const gasb = annotationsJson.find((a) => a.fiscalYear === 2021 && a.label === 'Custodial fund reporting begins (GASB 84).' && a.kind === 'methodology');
+  add('GASB 84 annotation present at FY 2020-21', !!gasb, gasb ? `sourceId ${gasb.sourceId}` : 'missing');
+
   // --- Index comparison (informational) ---------------------------------------------------
   const firstCounty = inputs.counties[0];
   const indexSection = indexComparisonSection({
@@ -477,6 +548,30 @@ async function main() {
     ...cpiRows,
     '',
     ...indexSection,
+    '## County-filed AFR cross-check',
+    '',
+    "Lines read from the county's own Annual Financial Report PDFs (the Florida DFS form as filed with the CFO, published by the Hillsborough County Clerk of Court & Comptroller), compared with the EDR workbook cell for the same fiscal year, account and fund. The lines are listed in `scripts/pipeline/src/edr/county-afr-checks.ts`.",
+    '',
+    '| Fiscal year | Flow | Account | Fund | County AFR file, page | Lines in county AFR | County AFR sum | EDR cell | Result |',
+    '|---|---|---|---|---|---|---:|---|---|',
+    ...afrRows,
+    '',
+    '## Inter-fund transfers (informational)',
+    '',
+    `Revenue account 381 (inter-fund group transfers in) and expenditure account 581 (inter-fund group transfers out), all funds except custodial. Difference = out minus in. Years whose difference exceeds ${usd(TRANSFER_IMBALANCE_THRESHOLD)} in absolute value are marked and annotated.`,
+    '',
+    '| Jurisdiction | Fiscal year | 381 transfers in | 581 transfers out | Difference | |',
+    '|---|---|---:|---:|---:|---|',
+    ...transferRows,
+    '',
+    '## Year-over-year changes (informational)',
+    '',
+    `Changes larger than ${(SWING_THRESHOLD * 100).toFixed(0)}% from the prior fiscal year in the non-custodial total or in a section (all funds except custodial, nominal dollars).`,
+    '',
+    '| Jurisdiction | Flow | Scope | Years | From | To | Change |',
+    '|---|---|---|---|---:|---:|---:|',
+    ...swingRows,
+    '',
     '## Account codes by year',
     '',
     ...accountSections,

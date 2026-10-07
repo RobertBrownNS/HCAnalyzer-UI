@@ -12,6 +12,7 @@ Format: ID · decision · status · rationale · reversibility. Statuses: **assu
 | D-04 | Treat the site as public: methodology and provenance hooks are first-class from the start | assumed | Safer default. Adding provenance later is costly; it's cheap to keep if the site stays personal. | Easy |
 | D-05 | Pipeline written in Node/TypeScript | assumed | One toolchain with the Angular app. Shared model types. Python env lacks openpyxl. | Moderate |
 | D-06 | Custodial EXCLUDED by default; GASB 84 annotation at FY 2020-21 always shown | decided (CLAUDE.md) | Pre/post FY 2020-21 years are not comparable otherwise. | n/a |
+| D-07 | **Visual theme: direction D, "BI dashboard"** ([mockup](https://claude.ai/artifact/JYKf9JomoUP48hdheup6vk)). IBM Plex Sans and IBM Plex Mono, self-hosted. Navy top bar, tiles on a grey canvas, KPI cards. **Filters pane on the RIGHT on desktop**, which overrides CLAUDE.md's "persistent left controls". KPI neutrality rule: cards show only values derived from the user's own range and base-year settings. There are no comparison periods we choose, and no good/bad coloring of changes. Multi-tile layouts (category breakdown, revenue vs spending) are Phase 3+. | decided (user, 2026-10-06) | User choice among the theme directions. | Moderate (tokens are in one file) |
 
 ## Open decisions for the user
 

@@ -10,22 +10,18 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig, type ParsedCpi } from './bls/cpi.js';
 import type { AfrSheet } from './edr/afr.js';
+import { generateAnomalies, type Annotation } from './edr/anomalies.js';
+import { countyAfrNotes } from './edr/county-afr-checks.js';
 import { toAccounts, toObservations } from './edr/observations.js';
 import { selectPopulation } from './edr/population.js';
 import { fiscalYearMonths } from './lib/fiscal.js';
 import { sha256, stableStringify } from './lib/hash.js';
 import { OUT_DIR, rel } from './lib/paths.js';
 import { loadInputs, retrievalFor, type Inputs } from './inputs.js';
-import { afrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
+import { afrSource, countyAfrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
 
 export const SCHEMA_VERSION = 1;
 
-interface Annotation {
-  fiscalYear: number;
-  label: string;
-  kind: 'methodology' | 'policy' | 'event';
-  sourceId: string;
-}
 
 /** Arrays of flat records: one JSON object per line, so git diffs stay readable. */
 function stringifyRows(rows: unknown[]): string {
@@ -58,6 +54,8 @@ function cpiEntry(
   config: CpiSeriesConfig,
   parsed: ParsedCpi,
   coverYears: [number, number],
+  /** Calendar years with a value in another series of the same area, and that series' cpi.json key. */
+  sibling?: { key: string; years: Set<number> },
 ): { entry: Record<string, unknown>; caveats: string[] } {
   const months = [...parsed.monthly.keys()].sort();
   const halves = [...parsed.semiannual.keys()].sort();
@@ -67,7 +65,9 @@ function cpiEntry(
   const firstYear = Number(first.slice(0, 4));
   const lastYear = Number(last.slice(0, 4));
   const fromYear = Math.min(firstYear, coverYears[0]);
-  const coverage = `BLS data for this series in the raw file run from ${first} to ${last}`;
+  const coverage = `this series (${config.id}) has data from ${first} to ${last}`;
+  const siblingHint = (y: number) =>
+    sibling?.years.has(y) ? `; the BLS calendar-year average for ${y} for this area is in cpi.json ${sibling.key}.calendarYear` : '';
 
   // Fiscal-year averages need sub-annual values that line up with Oct-Sep; only the monthly and
   // bimonthly series have them.
@@ -82,7 +82,7 @@ function cpiEntry(
     } else if (!touches) {
       if (fy < coverYears[0] || fy > coverYears[1]) continue;
       fiscalYear[key] = null;
-      fiscalYearUnavailable[key] = `no data: ${coverage}`;
+      fiscalYearUnavailable[key] = `no fiscal-year value: ${coverage}${siblingHint(fy)}`;
     } else {
       const r = fiscalYearAverage(parsed, config, fy);
       fiscalYear[key] = r.ok ? r.value : null;
@@ -91,18 +91,23 @@ function cpiEntry(
   }
 
   const calendarYear: Record<string, number | null> = {};
+  const calendarYearNotes: Record<string, string> = {};
   const calendarYearUnavailable: Record<string, string> = {};
   for (let y = fromYear; y <= Math.max(lastYear, coverYears[1]); y++) {
     const key = String(y);
     const published = parsed.annual.get(y);
     if (published !== undefined) {
       calendarYear[key] = published;
+      if (months.length) {
+        const r = averageOf(parsed, config, calendarYearMonths(y));
+        if (!r.ok) calendarYearNotes[key] = `BLS-published annual average, used as published; ${r.reason.replace(/^missing /, 'months not published: ')}`;
+      }
       continue;
     }
     const hasData = y >= firstYear && y <= lastYear;
     if (!hasData && (y < coverYears[0] || y > coverYears[1])) continue;
     calendarYear[key] = null;
-    if (!hasData) calendarYearUnavailable[key] = `no data: ${coverage}`;
+    if (!hasData) calendarYearUnavailable[key] = `no value: ${coverage}${siblingHint(y)}`;
     else if (months.length) {
       const r = averageOf(parsed, config, calendarYearMonths(y));
       calendarYearUnavailable[key] = r.ok ? 'BLS annual average not published' : `BLS annual average not published; ${r.reason}`;
@@ -128,7 +133,8 @@ function cpiEntry(
       endPeriod: last,
       defaultAlignment: 'fiscalYear',
       alignmentRule:
-        'Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Calendar-year BLS annual averages are kept as an alternative. A year with any missing month is null, never a partial average; no values from another series are spliced in.',
+        'Default deflator is the fiscal-year (Oct-Sep) average (docs/decisions.md O-03). Fiscal-year values are computed by this pipeline only when every month BLS publishes for this series in that fiscal year is present; otherwise the value is null and the reason is in fiscalYearUnavailable (no partial averages). Calendar-year values are BLS-published annual averages, used exactly as published, including any year BLS published despite a missing month (see calendarYearNotes). No values from another series are spliced in.',
+      calendarYearNotes,
       area: config.area,
       basePeriod: config.basePeriod,
       frequency: config.frequency,
@@ -151,7 +157,9 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   const sources: Source[] = [];
   const population: Record<string, unknown> = {};
 
-  for (const { county, revenues, expenditures, population: pop } of inputs.counties) {
+  const generatedAnnotations: Annotation[] = [];
+  const extraCaveats = new Map<string, string[]>();
+  for (const { county, revenues, expenditures, population: pop, countyAfrFiles } of inputs.counties) {
     const revId = sourceIds.afr(county, 'revenue');
     const expId = sourceIds.afr(county, 'expenditure');
     sources.push(afrSource(county, 'revenue', rel(revenues.file), retrievalFor(inputs.retrieval, revenues.file)));
@@ -169,6 +177,24 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     );
 
     const { selected, alternates } = selectPopulation(pop);
+    for (const f of countyAfrFiles) {
+      sources.push(countyAfrSource(county, f.fiscalYear, rel(f.file), retrievalFor(inputs.retrieval, f.file)));
+    }
+    const generated = generateAnomalies({
+      jurisdiction: county.slug,
+      revenues: revenues.sheets,
+      expenditures: expenditures.sheets,
+      revenueSourceId: revId,
+      expenditureSourceId: expId,
+      populationSourceId: sourceIds.population,
+      population: { selected, alternates },
+      countyAfrNotes: countyAfrNotes(county.slug, (fy) => {
+        const f = countyAfrFiles.find((x) => x.fiscalYear === fy);
+        return f ? `source ${sourceIds.countyAfr(county, fy)}` : undefined;
+      }),
+    });
+    generatedAnnotations.push(...generated.annotations);
+    for (const [id, list] of generated.caveats) extraCaveats.set(id, [...(extraCaveats.get(id) ?? []), ...list]);
     population[county.slug] = {
       sourceId: sourceIds.population,
       reference: 'April 1 of the year shown',
@@ -195,7 +221,13 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   const financeYears: [number, number] = [Math.min(...allFy), Math.max(...allFy)];
   const cpi: Record<string, unknown> = {};
   for (const { config, file, parsed } of inputs.cpi) {
-    const { entry, caveats } = cpiEntry(config, parsed, financeYears);
+    const sib = config.key === 'tampa' ? inputs.cpi.find((c) => c.config.key === 'tampa_semiannual') : undefined;
+    const { entry, caveats } = cpiEntry(
+      config,
+      parsed,
+      financeYears,
+      sib ? { key: sib.config.key, years: new Set(sib.parsed.annual.keys()) } : undefined,
+    );
     cpi[config.key] = entry;
     sources.push(cpiSource(config, rel(file), retrievalFor(inputs.retrieval, file), caveats));
   }
@@ -204,10 +236,21 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
     {
       fiscalYear: 2021,
       label: 'Custodial fund reporting begins (GASB 84).',
-      kind: 'methodology',
+      kind: 'methodology' as const,
       sourceId: sourceIds.countyFiscalPage,
     },
-  ];
+    ...generatedAnnotations,
+  ].sort(
+    (a, b) =>
+      a.fiscalYear - b.fiscalYear ||
+      (a.jurisdiction ?? '').localeCompare(b.jurisdiction ?? '') ||
+      (a.flow ?? '').localeCompare(b.flow ?? '') ||
+      a.label.localeCompare(b.label),
+  );
+  for (const src of sources) {
+    const extra = extraCaveats.get(src.id);
+    if (extra) src.caveats = [...src.caveats, ...extra];
+  }
 
   files.set('population.json', stableStringify(population, 2));
   files.set('cpi.json', stableStringify(cpi, 2));

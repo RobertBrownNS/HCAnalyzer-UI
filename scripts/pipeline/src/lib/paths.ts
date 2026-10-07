@@ -24,3 +24,7 @@ export const POPULATION_FILE = path.join(RAW_DIR, 'edr-population', 'FLcopops.xl
 export function blsPath(seriesId: string): string {
   return path.join(RAW_DIR, 'bls', `${seriesId}.json`);
 }
+
+export function countyAfrPath(slug: string, fiscalYear: number): string {
+  return path.join(RAW_DIR, 'county-afr', slug, `afr-fy${fiscalYear}.pdf`);
+}

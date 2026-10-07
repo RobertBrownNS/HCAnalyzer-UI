@@ -27,6 +27,42 @@
       "sha256": "5596c67bd1784c72154658f52069d2c6afda02a0e9a4a1bcb2d27c154c7c6fcc",
       "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/"
     },
+    "data/raw/county-afr/hillsborough/afr-fy2022.pdf": {
+      "bytes": 694070,
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET (PDF; used only to cross-check EDR transcription)",
+      "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+      "retrieved": "2026-10-06",
+      "sha256": "ae6f8165068003880969c8f3c7b2fa9d3a320b27f0369cb8c68e3b0333c10529",
+      "url": "https://hillsclerk.com/documents/d/guest/annual-local-govt-financial-report-2022?download=true"
+    },
+    "data/raw/county-afr/hillsborough/afr-fy2023.pdf": {
+      "bytes": 773267,
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET (PDF; used only to cross-check EDR transcription)",
+      "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+      "retrieved": "2026-10-06",
+      "sha256": "03b62980d46ba99e8bcf6cf58f4b74dd1260da26611418d7b20bc507359ec2d7",
+      "url": "https://hillsclerk.com/documents/d/guest/afr-hillsborough-2023?download=true"
+    },
+    "data/raw/county-afr/hillsborough/afr-fy2024.pdf": {
+      "bytes": 566738,
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET (PDF; used only to cross-check EDR transcription)",
+      "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+      "retrieved": "2026-10-06",
+      "sha256": "091092bb34ca9be55e8f9e29d71a7b03ce1d35a5a9e0c3db3b3e451a6970aa54",
+      "url": "https://hillsclerk.com/documents/d/guest/afr-pdf?download=true"
+    },
+    "data/raw/county-afr/hillsborough/afr-fy2025.pdf": {
+      "bytes": 632732,
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET (PDF; used only to cross-check EDR transcription)",
+      "publisher": "Hillsborough County Clerk of Court & Comptroller (Annual Financial Report filed with the Florida Department of Financial Services)",
+      "retrieved": "2026-10-06",
+      "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2",
+      "url": "https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true"
+    },
     "data/raw/edr-population/FLcopops.xlsx": {
       "bytes": 484693,
       "lastVerified": "2026-10-06",
@@ -37,12 +73,12 @@
       "url": "https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx"
     },
     "data/raw/edr/cntyfiscal.html": {
-      "bytes": 52354,
+      "bytes": 52369,
       "lastVerified": "2026-10-06",
       "method": "HTTP GET (HTML page saved for its data-use notice)",
       "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
       "retrieved": "2026-10-06",
-      "sha256": "e0e7c2d142a2a8306b9feb4344e6ad9176ce2a8ca3094a7574c56337fe986c4a",
+      "sha256": "13261658653bb445e70ea86ce968e1bedd215f93c45b3863f09be6a6d884a82a",
       "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal.cfm"
     },
     "data/raw/edr/hillsboroughcountyexpenditures.xlsx": {

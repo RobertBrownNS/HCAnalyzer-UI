@@ -102,7 +102,8 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | P2-09 | View-as-table toggle | FE | P2-08 | todo |
 | P2-10 | Mobile-first layout, chip row, bottom sheet | FE | P2-07 | todo |
 | P2-11 | Minimal source/provenance display | FE | P2-05 | todo |
-| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11 | todo |
+| P2-12 | QA review of Phase 2 | QA | P2-04..P2-11, P2-13 | todo |
+| P2-13 | Apply theme D "BI dashboard" (decisions D-07) | FE | P2-02 | todo |
 
 ### Acceptance criteria
 
@@ -155,12 +156,20 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 
 **P2-10 Layout**
 - [ ] At phone width (360–430px), the chart is ~60% of viewport height, with a chip row of active settings. Tapping a chip opens a bottom sheet. No horizontal page scroll.
-- [ ] Tablet: collapsible side panel. Desktop: persistent left controls.
+- [ ] Tablet: collapsible side panel. Desktop: persistent filters pane on the **right** (user decision D-07 overrides CLAUDE.md's "left").
 - [ ] All touch targets are ≥ 44×44 CSS px (verified by measuring in devtools for chips, toggles, slider handles, and table toggle).
 
 **P2-11 Provenance display**
 - [ ] A visible "Sources" area lists every Source used by the current view: publisher, title, URL, retrieved date, and caveats.
 - [ ] No number appears on screen without a reachable source.
+
+**P2-13 Apply theme D "BI dashboard"**
+- [ ] All design tokens (color, type, spacing, radius, elevation) are defined in one file. Components use tokens only, with no hard-coded colors.
+- [ ] It matches the mockup in structure: navy top bar, tiles on a grey canvas, KPI cards, filters pane on the right on desktop. It is a single-chart layout; multi-tile layouts are Phase 3+.
+- [ ] Light and dark both work, including the chart, KPI cards and table. Text meets WCAG AA contrast in both.
+- [ ] All touch targets are ≥ 44×44 CSS px at phone width.
+- [ ] **KPI neutrality:** every KPI value derives only from the user's current range, base year, measure and index settings. There are no comparison periods we pick, and no green/red or up/down good/bad coloring. Change values use the same neutral color whatever their sign. A test asserts that KPI values equal `transform.ts` outputs for the current settings.
+- [ ] IBM Plex Sans and IBM Plex Mono are self-hosted from `src/assets`. The network tab shows no requests to Google Fonts or any other third-party font host.
 
 **P2-12 QA review**
 - [ ] Neutrality sweep: no editorial copy, no adjectives about growth ("soaring", "modest"), no verdicts, and no advocacy-group data anywhere in the UI or assets.

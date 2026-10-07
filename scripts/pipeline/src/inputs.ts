@@ -4,7 +4,7 @@ import { CPI_SERIES, parseBlsResponses, type BlsResponse, type CpiSeriesConfig, 
 import { parseAfrWorkbook, type AfrSheet } from './edr/afr.js';
 import { parseCountyPopulation, type PopulationValue } from './edr/population.js';
 import { sha256File } from './lib/hash.js';
-import { blsPath, edrAfrPath, POPULATION_FILE, rel, RETRIEVAL_FILE } from './lib/paths.js';
+import { blsPath, countyAfrPath, edrAfrPath, POPULATION_FILE, rel, RETRIEVAL_FILE } from './lib/paths.js';
 import { readWorkbook } from './lib/xlsx.js';
 import { EDR_COUNTY_FISCAL_PAGE_FILE, type RetrievalLog, type RetrievalRecord } from './sources.js';
 
@@ -16,6 +16,7 @@ export interface Inputs {
     revenues: { file: string; sheets: AfrSheet[] };
     expenditures: { file: string; sheets: AfrSheet[] };
     population: PopulationValue[];
+    countyAfrFiles: Array<{ fiscalYear: number; file: string }>;
   }>;
   populationFile: string;
   countyFiscalPageFile: string;
@@ -52,6 +53,7 @@ export async function loadInputs(): Promise<Inputs> {
       revenues: { file: revFile, sheets: parseAfrWorkbook(await readWorkbook(revFile), 'revenue') },
       expenditures: { file: expFile, sheets: parseAfrWorkbook(await readWorkbook(expFile), 'expenditure') },
       population: parseCountyPopulation(populationWb, county.populationName),
+      countyAfrFiles: (county.countyAfr?.files ?? []).map((f) => ({ fiscalYear: f.fiscalYear, file: verified(retrieval, countyAfrPath(county.slug, f.fiscalYear)) })),
     });
   }
 

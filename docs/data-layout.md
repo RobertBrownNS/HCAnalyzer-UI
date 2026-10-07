@@ -27,6 +27,7 @@ npm run pipeline:refresh  # fetch + pipeline
 | `bls/CUUR0000SA0.json` | BLS | API v2 | CPI-U, U.S. city average, monthly, 2000-01 to 2026-08, plus annual averages |
 | `bls/CUURS35DSA0.json` | BLS | API v2 | CPI-U, Tampa-St. Petersburg-Clearwater, bimonthly, 2017-11 to 2026-07, plus annual averages |
 | `bls/CUUSS35DSA0.json` | BLS | API v2 | CPI-U, Tampa-St. Petersburg-Clearwater, semiannual and annual averages, 2000 to 2026-H1 |
+| `county-afr/hillsborough/afr-fy2022.pdf` … `afr-fy2025.pdf` | Hillsborough County Clerk of Court & Comptroller | hillsclerk.com, County Financial Reports | The county's own Annual Financial Report (Florida DFS form, as filed with the CFO) for FY 2021-22 to FY 2024-25. **Used only to cross-check EDR's transcription**; never a data source |
 | `manifest.json` | (pipeline) | | Raw-file manifest (P1-02): source URL, publisher, method, retrieved date (ISO), last-verified date, sha256 and byte size for each file above. Written by `npm run fetch` |
 
 Both EDR AFR workbooks were already in the repo (`finance_data/`, moved with `git mv`). A fresh download on 2026-10-06 was byte-identical (same sha256), so their retrieval date is 2026-10-06.
@@ -189,7 +190,7 @@ Account names changed wording over the years: 64 revenue codes and 47 expenditur
 | `hillsborough.workbook-totals.json` | The workbook's own cached `Total - All Account Codes` row per FY and flow (per fund, total, per capita, population). Reference values for transform tests and QA |
 | `population.json` | `{ [county]: { byYear: { "2025": { value, basis, sheet } }, alternates, sourceId, ... } }` |
 | `cpi.json` | `{ national, tampa, tampa_semiannual }`, each with `startPeriod`/`endPeriod`, `defaultAlignment: "fiscalYear"`, `alignmentRule` (decisions.md O-03), `monthly`, `missingMonths`, `semiannual`, `calendarYear`, `fiscalYear`, and `*Unavailable` reason maps. Every finance year (FY 2005-2025) has a key in `fiscalYear` and `calendarYear`; a year with no complete value is `null` and its reason is in `fiscalYearUnavailable` / `calendarYearUnavailable`. Partial years are never averaged and no series is spliced into another |
-| `annotations.json` | FY 2021 "Custodial fund reporting begins (GASB 84)", `kind: methodology`, source = EDR index page notice |
+| `annotations.json` | `Annotation` (CLAUDE.md) plus optional `jurisdiction`, `flow`, `custodial` (`'included'`/`'excluded'`: show only in that mode), `measures` (show only for those `Measure`s), `detail` (longer factual text) and `refs` (workbook cells). Contains the GASB 84 marker and annotations generated from the data (see "Generated annotations" below) |
 | `sources.json` | `Source` (CLAUDE.md) for every input, plus `rawFile` and `accessUrl` (the endpoint actually downloaded when `url` is a human-readable page) |
 | `manifest.json` | `schemaVersion`, `dataVersion` (hash of the output hashes), input sha256s, output sha256 and byte counts. No timestamps |
 
@@ -205,13 +206,42 @@ Zero cells are left out of `observations.json`, so a missing (FY, flow, account,
 
 Observations are sorted by jurisdiction, fiscalYear, flow (revenue first), numeric account, then fund order (column order). JSON keys are sorted. Each array element is on its own line, so git diffs stay readable.
 
+## Generated annotations and caveats
+
+`scripts/pipeline/src/edr/anomalies.ts` builds these from the parsed workbooks. Each one is also appended to the relevant `Source.caveats`. The text states amounts and cells only.
+
+| Rule | Hillsborough result | Fields |
+|---|---|---|
+| Inter-fund transfers: \|581 − 381\| (all funds except custodial) > $1,000,000 | FY 2022-23: $624,603,841; FY 2023-24: $535,878,141. Detail gives account 521 and public safety (non-custodial) and General Fund 581 beside FY 2021-22 and FY 2024-25, the cells, and the county-filed AFR values | `flow: expenditure` |
+| More than 90% of a year's non-zero amounts are whole thousands | FY 2020-21 and FY 2021-22, both flows | `flow` |
+| Amount that is not a whole thousand in such a year | `2022!K8` (513, custodial, $6,802,121), with that year's custodial revenue ($6,814,851,000) | `flow: expenditure`, `custodial: included` |
+| Custodial column present but all $0 | FY 2020-21, both flows | `custodial: included` |
+| Accounts holding custodial amounts, per year | Revenue: 311 + 369.9 (FY 2021-22 to FY 2023-24), 369.9 + 361.1 (FY 2024-25). Expenditure: 513 (+581 in FY 2023-24) | `custodial: included` |
+| Population basis changes (census year, or the year after a revised estimate) | FY 2009-10 (+2.7%, 2009 estimate to 2010 census), FY 2020-21 (+0.8%, revised 2020 estimate to 2021 estimate; 2020 census 1,459,762 noted) | `measures: [per_capita, real_per_capita]` |
+
+### Where the FY 2022-23 and FY 2023-24 expenditure break comes from (QA-01)
+
+The county's own Annual Financial Reports, as filed with the Florida CFO and published by the Clerk of Court & Comptroller, show the same figures as EDR. The PDFs are in `data/raw/county-afr/`. Lines checked, all verified by `npm run validate`:
+
+| FY | Account, fund | County AFR (page) | EDR cell |
+|---|---|---|---|
+| 2022-23 | 521 Law Enforcement, General | $200,800 + $3,049 = $203,849 (p. 18) | `2023!D16` = 203,849 |
+| 2022-23 | 581 Transfers Out, General | $787,390,037 (p. 22) | `2023!D57` |
+| 2022-23 | 381 Transfers In, General | $168,326,824 (p. 16) | `2023!D124` |
+| 2023-24 | 521 Law Enforcement, General | $149,313 + $1,433 = $150,746 (p. 8) | `2024!D16` = 150,746 |
+| 2023-24 | 581 Transfers Out, General | $912,284,168 (p. 11) | `2024!D57` |
+| 2023-24 | 381 Transfers In, General | $186,897,223 (p. 7) | `2024!D121` |
+| 2021-22 / 2024-25 | 581 General; 521 General (2024-25) | $121,329,000 (p. 18); $341,118,887 and $680,677,907 (pp. 14, 11) | `2022!D54`, `2025!D56`, `2025!D16` |
+
+So EDR transcribed the county filings faithfully, and the change in classification is in the county's filings. The audited ACFRs for FY 2023 and FY 2024 are on the same Clerk page and were not examined. DFS LOGERX was not needed. Published values are not corrected.
+
 ## Quirks the transform engineer and QA need to know
 
 1. **Custodial column, by year (Hillsborough).** FY 2020-21: the column exists but every cell is 0. Revenues: FY 2021-22 $6.81B, FY 2022-23 $6.79B, FY 2023-24 $2.62B, FY 2024-25 $4.13B. Expenditures: FY 2021-22 $6.8M, FY 2022-23 $6.79B, FY 2023-24 $416M, FY 2024-25 $4.11B.
    - In FY 2021-22 to FY 2023-24 most custodial revenue is booked to **account 311 (Ad Valorem Taxes)**: $6.36B, $6.28B, $2.22B. In FY 2024-25 it is booked to 369.9 (Other Miscellaneous Revenues - Other) instead.
    - Custodial expenditures are almost all account 513 (Financial and Administrative).
    - **With custodial included, "ad valorem" and total-revenue series jump by several times.** Excluding custodial (the default) is required for any comparison across FY 2020-21.
-2. **Apparent scale anomaly, as published (not corrected):** FY 2021-22 expenditure custodial, account 513, cell `2022!K8` = 6,802,121. Every other FY 2021-22 amount is a whole thousand, and custodial revenue that year is $6.81B. This one value looks like it was entered in thousands. It is shown as published. If the UI shows custodial-included expenditures, FY 2021-22 should carry a caveat.
+2. **Apparent scale anomaly, as published (not corrected; annotated):** FY 2021-22 expenditure custodial, account 513, cell `2022!K8` = 6,802,121. Every other FY 2021-22 amount is a whole thousand, and custodial revenue that year is $6.81B. This one value looks like it was entered in thousands. It is shown as published. If the UI shows custodial-included expenditures, FY 2021-22 should carry a caveat.
 3. **FY 2020-21 and FY 2021-22 amounts are whole thousands** (all but one cell), as if reported rounded to $1,000. Other years are reported to the dollar.
 4. **Totals include everything.** "All funds" as EDR prints it includes pension, trust, private purpose, custodial and Component Units. "Governmental funds" = general, special_revenue, debt_service, capital, permanent.
 5. **Transfers double-count.** Inter-fund transfers appear as revenue (381) in the receiving fund and expenditure (581) in the sending fund. All-funds totals include both sides.

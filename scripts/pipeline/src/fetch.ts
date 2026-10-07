@@ -10,7 +10,7 @@ import path from 'node:path';
 import { COUNTIES } from '../config/counties.js';
 import { CPI_SERIES, type BlsResponse } from './bls/cpi.js';
 import { sha256, stableStringify } from './lib/hash.js';
-import { blsPath, edrAfrPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE } from './lib/paths.js';
+import { blsPath, countyAfrPath, edrAfrPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE } from './lib/paths.js';
 import { EDR, EDR_AFR_BASE, EDR_COUNTY_FISCAL_PAGE, EDR_COUNTY_FISCAL_PAGE_FILE, EDR_POPULATION_URL, type RetrievalRecord, type RetrievalLog } from './sources.js';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; fl-county-finance-explorer data pipeline)';
@@ -58,25 +58,70 @@ async function fetchBls(seriesId: string, startYear: number, endYear: number): P
   return body;
 }
 
+function saveLog(log: RetrievalLog) {
+  const sorted: RetrievalLog = { files: Object.fromEntries(Object.entries(log.files).sort(([a], [b]) => a.localeCompare(b))) };
+  writeFileSync(RETRIEVAL_FILE, stableStringify(sorted, 2));
+  console.log(`wrote ${rel(RETRIEVAL_FILE)}`);
+}
+
+/**
+ * Each file is written together with its manifest entry, and the manifest is saved even when a
+ * later download fails, so data/raw/ never holds bytes the manifest doesn't describe. A failed
+ * download leaves the previous file and entry untouched and makes the command exit non-zero.
+ */
 async function main() {
   const log = loadLog();
   mkdirSync(RAW_DIR, { recursive: true });
+  const failures: string[] = [];
+  const attempt = async (what: string, fn: () => Promise<void>) => {
+    try {
+      await fn();
+    } catch (err) {
+      failures.push(`${what}: ${(err as Error).message}`);
+      console.error(`FAILED   ${what}: ${(err as Error).message} (previous file kept)`);
+    }
+  };
+  try {
+    await downloadAll(log, attempt);
+  } finally {
+    saveLog(log);
+  }
+  if (failures.length) {
+    console.error(`\n${failures.length} download(s) failed; previous raw files were kept.`);
+    process.exit(1);
+  }
+}
+
+async function downloadAll(log: RetrievalLog, attempt: (what: string, fn: () => Promise<void>) => Promise<void>) {
 
   for (const county of COUNTIES) {
     for (const flow of ['revenues', 'expenditures'] as const) {
       const url = `${EDR_AFR_BASE}${county.edrFileStem}${flow}.xlsx`;
-      record(log, edrAfrPath(county.edrFileStem, flow), await download(url), { url, publisher: EDR, method: 'HTTP GET' });
+      await attempt(url, async () => record(log, edrAfrPath(county.edrFileStem, flow), await download(url), { url, publisher: EDR, method: 'HTTP GET' }));
     }
   }
-  record(log, POPULATION_FILE, await download(EDR_POPULATION_URL), { url: EDR_POPULATION_URL, publisher: EDR, method: 'HTTP GET' });
-  record(log, EDR_COUNTY_FISCAL_PAGE_FILE, await download(EDR_COUNTY_FISCAL_PAGE), {
+  for (const county of COUNTIES) {
+    for (const f of county.countyAfr?.files ?? []) {
+      await attempt(f.url, async () =>
+        record(log, countyAfrPath(county.slug, f.fiscalYear), await download(f.url), {
+          url: f.url,
+          publisher: county.countyAfr!.publisher,
+          method: 'HTTP GET (PDF; used only to cross-check EDR transcription)',
+        }),
+      );
+    }
+  }
+  await attempt(EDR_POPULATION_URL, async () =>
+    record(log, POPULATION_FILE, await download(EDR_POPULATION_URL), { url: EDR_POPULATION_URL, publisher: EDR, method: 'HTTP GET' }),
+  );
+  await attempt(EDR_COUNTY_FISCAL_PAGE, async () => record(log, EDR_COUNTY_FISCAL_PAGE_FILE, await download(EDR_COUNTY_FISCAL_PAGE), {
     url: EDR_COUNTY_FISCAL_PAGE,
     publisher: EDR,
     method: 'HTTP GET (HTML page saved for its data-use notice)',
-  });
+  }));
 
   const endYear = new Date().getFullYear();
-  for (const series of CPI_SERIES) {
+  for (const series of CPI_SERIES) await attempt(`BLS ${series.id}`, async () => {
     const requests: Array<{ startyear: number; endyear: number; response: BlsResponse }> = [];
     for (let start = CPI_START_YEAR; start <= endYear; start += BLS_YEARS_PER_REQUEST) {
       const end = Math.min(start + BLS_YEARS_PER_REQUEST - 1, endYear);
@@ -89,11 +134,7 @@ async function main() {
       publisher: 'U.S. Bureau of Labor Statistics (BLS)',
       method: `BLS Public Data API v2 (no registration key), POST {seriesid:["${series.id}"], annualaverage:true}, ${CPI_START_YEAR}-${endYear} in ${BLS_YEARS_PER_REQUEST}-year requests; responses stored as JSON without the responseTime field`,
     });
-  }
-
-  const sorted: RetrievalLog = { files: Object.fromEntries(Object.entries(log.files).sort(([a], [b]) => a.localeCompare(b))) };
-  writeFileSync(RETRIEVAL_FILE, stableStringify(sorted, 2));
-  console.log(`wrote ${rel(RETRIEVAL_FILE)}`);
+  });
 }
 
 main().catch((err) => {

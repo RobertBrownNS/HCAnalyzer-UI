@@ -66,6 +66,7 @@ function cpiSeries(
   calendarYear: Record<string, number>,
   fiscalYearUnavailable: Record<string, string> = {},
   calendarYearUnavailable: Record<string, string> = {},
+  calendarYearNotes?: Record<string, string>,
 ): CpiSeriesFile {
   return {
     area: 'x',
@@ -83,6 +84,7 @@ function cpiSeries(
     monthly: {},
     semiannual: {},
     missingMonths: {},
+    ...(calendarYearNotes ? { calendarYearNotes } : {}),
   };
 }
 
@@ -117,6 +119,8 @@ function fixture(): TransformData {
       { '2019': 100, '2020': 110, '2021': 120, '2022': 200 },
       { '2018': 99, '2019': 101, '2020': 111, '2021': 125, '2022': 202 },
       { '2018': 'missing 2017-10 (not in source)' },
+      {},
+      { '2021': 'published as is' },
     ),
     tampa: cpiSeries('cpi-tampa', { '2021': 50, '2022': 60 }, { '2021': 51, '2022': 61 }),
     tampa_semiannual: cpiSeries(
@@ -311,6 +315,19 @@ describe('selectCpi', () => {
     expect(c.valueFor(2017)).toBeUndefined();
     expect(c.unavailableReason(2017)).toBe(
       'No CPI-U, U.S. city average, fiscal-year (Oct-Sep) average for FY 2016-17 (incomplete fiscal year, not averaged: missing 2016-10).',
+    );
+  });
+
+  it('noteFor returns the year note as a sentence, or undefined', () => {
+    const d = fixture();
+    expect(selectCpi(d.cpi, 'cpi-u-us', 'calendar').noteFor(2021)).toBe(
+      'CPI-U, U.S. city average, calendar-year annual average for calendar year 2021: published as is.',
+    );
+    expect(selectCpi(d.cpi, 'cpi-u-us', 'calendar').noteFor(2020)).toBeUndefined();
+    expect(selectCpi(d.cpi, 'cpi-u-us', 'fiscal').noteFor(2021)).toBeUndefined();
+    d.cpi.tampa.fiscalYearNotes = { '2021': 'x' };
+    expect(selectCpi(d.cpi, 'cpi-u-tampa', 'fiscal').noteFor(2021)).toBe(
+      'CPI-U, Tampa-St. Petersburg-Clearwater, fiscal-year (Oct-Sep) average for FY 2020-21: x.',
     );
   });
 
@@ -510,6 +527,26 @@ describe('buildSeries: real', () => {
       const p = byYear(buildSeries(fixture(), settings({ measure: 'real', baseYear })), baseYear);
       expect(p.value).toBe(p.nominal);
     }
+  });
+
+  it('a CPI year note is added for the year and for the base year, once', () => {
+    const note = 'CPI-U, U.S. city average, calendar-year annual average for calendar year 2021: published as is.';
+    const pts = buildSeries(fixture(), settings({ measure: 'real', baseYear: 2021, cpiPeriod: 'calendar' }));
+    expect(byYear(pts, 2019).notes).toEqual([note]);
+    expect(byYear(pts, 2021).notes).toEqual([note]);
+    const other = buildSeries(fixture(), settings({ measure: 'real', baseYear: 2022, cpiPeriod: 'calendar' }));
+    expect(byYear(other, 2019).notes).toEqual([]);
+    expect(byYear(other, 2021).notes).toEqual([note]);
+    // Fiscal period has no notes in the fixture; nominal never shows CPI notes.
+    expect(byYear(buildSeries(fixture(), settings({ measure: 'real', baseYear: 2021 })), 2019).notes).toEqual([]);
+    expect(byYear(buildSeries(fixture(), settings({ cpiPeriod: 'calendar' })), 2021).notes).toEqual([]);
+  });
+
+  it('no CPI year note for a missing value (the unavailable reason is used instead)', () => {
+    const d = fixture();
+    d.cpi.national.calendarYearNotes = { '2017': 'should not appear' };
+    const pts = buildSeries(d, settings({ measure: 'real', baseYear: 2017, cpiPeriod: 'calendar' }));
+    for (const p of pts) expect(p.notes.join(' ')).not.toContain('should not appear');
   });
 
   it('calendar period uses calendar-year CPI', () => {
@@ -996,6 +1033,20 @@ describe('annotationsInRange: conditions', () => {
     expect(labels({ measure: 'real' })).toEqual(['always', 'cust-out', 'rev']);
   });
 
+  it('filters on jurisdiction; absent jurisdiction applies everywhere', () => {
+    const d: TransformData = {
+      ...fixture(),
+      annotations: [ann('everywhere'), ann('hills', { jurisdiction: 'hillsborough' }), ann('pasco', { jurisdiction: 'pasco' })],
+    };
+    expect(annotationsInRange(d, settings()).map((a) => a.label)).toEqual(['everywhere', 'hills']);
+    expect(annotationsInRange(d, settings({ jurisdiction: 'pasco' })).map((a) => a.label)).toEqual(['everywhere', 'pasco']);
+  });
+
+  it('passes detail and refs through unchanged', () => {
+    const a = ann('x', { detail: 'longer text', refs: ['2023!D16'] });
+    expect(annotationsInRange({ ...fixture(), annotations: [a] }, settings())).toEqual([a]);
+  });
+
   it('plain CLAUDE.md Annotations (no conditions) always apply', () => {
     const plain: Annotation = { fiscalYear: 2022, label: 'plain', kind: 'event', sourceId: 's' };
     for (const s of [settings(), settings({ flow: 'expenditure', includeCustodial: true, measure: 'real' })]) {
@@ -1125,6 +1176,35 @@ describe('golden: src/assets/data', () => {
           for (const p of buildSeries(data, full({ measure, cpiIndex, cpiPeriod, indexTo100: true })))
             for (const id of p.sourceIds) expect(ids.has(id)).toBe(true);
     for (const a of data.annotations) expect(ids.has(a.sourceId)).toBe(true);
+  });
+
+  it('annotations.json: conditions select the expected rows', () => {
+    const labels = (s: Partial<TransformSettings>) => annotationsInRange(data, full(s)).map((a) => `${a.fiscalYear} ${a.label}`);
+    const all = data.annotations.length;
+    // Default view: no custodial-only rows, no per-resident rows, revenue only.
+    const def = annotationsInRange(data, full());
+    expect(def.every((a) => a.custodial !== 'included' && a.measures === undefined && a.flow !== 'expenditure')).toBe(true);
+    // The transfer-imbalance rows are expenditure rows.
+    expect(labels({ flow: 'expenditure' }).some((l) => l.startsWith('2023 Transfers out (581)'))).toBe(true);
+    expect(labels({}).some((l) => l.includes('Transfers out (581)'))).toBe(false);
+    // Per-resident rows appear only with a per-resident measure.
+    expect(labels({ measure: 'per_capita' }).filter((l) => l.includes('Population source changes'))).toHaveLength(2);
+    // Every row is reachable by some view, and no view shows a row for another jurisdiction.
+    const seen = new Set<AnnotationRecord>();
+    for (const flow of ['revenue', 'expenditure'] as const)
+      for (const includeCustodial of [false, true])
+        for (const measure of ['nominal', 'per_capita'] as const)
+          annotationsInRange(data, full({ flow, includeCustodial, measure })).forEach((a) => seen.add(a));
+    expect(seen.size).toBe(all);
+    expect(annotationsInRange(data, full({ jurisdiction: 'pasco' })).every((a) => a.jurisdiction === undefined)).toBe(true);
+  });
+
+  it('national calendar CPI for 2025 carries the published-as-is caveat', () => {
+    const p = byYear(buildSeries(data, full({ measure: 'real', cpiPeriod: 'calendar', baseYear: 2025 })), 2025);
+    expect(Number.isFinite(p.value)).toBe(true);
+    expect(p.notes.some((n) => n.startsWith('CPI-U, U.S. city average, calendar-year annual average for calendar year 2025: '))).toBe(true);
+    const q = byYear(buildSeries(data, full({ measure: 'real', cpiPeriod: 'calendar', baseYear: 2025 })), 2010);
+    expect(q.notes.some((n) => n.includes('calendar year 2025'))).toBe(true);
   });
 
   it('GASB 84 annotation is at FY 2020-21', () => {

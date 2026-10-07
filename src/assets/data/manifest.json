@@ -1,5 +1,5 @@
 {
-  "dataVersion": "33dd02624aae67b7",
+  "dataVersion": "1cf8e3b083052520",
   "generator": "scripts/pipeline (npm run build)",
   "inputs": [
     {
@@ -15,12 +15,28 @@
       "sha256": "5596c67bd1784c72154658f52069d2c6afda02a0e9a4a1bcb2d27c154c7c6fcc"
     },
     {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2022.pdf",
+      "sha256": "ae6f8165068003880969c8f3c7b2fa9d3a320b27f0369cb8c68e3b0333c10529"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2023.pdf",
+      "sha256": "03b62980d46ba99e8bcf6cf58f4b74dd1260da26611418d7b20bc507359ec2d7"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2024.pdf",
+      "sha256": "091092bb34ca9be55e8f9e29d71a7b03ce1d35a5a9e0c3db3b3e451a6970aa54"
+    },
+    {
+      "path": "data/raw/county-afr/hillsborough/afr-fy2025.pdf",
+      "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2"
+    },
+    {
       "path": "data/raw/edr-population/FLcopops.xlsx",
       "sha256": "4cd06da54bfa7dacc2e66715451c66173170554fa60445736e803d6938c73b6f"
     },
     {
       "path": "data/raw/edr/cntyfiscal.html",
-      "sha256": "e0e7c2d142a2a8306b9feb4344e6ad9176ce2a8ca3094a7574c56337fe986c4a"
+      "sha256": "13261658653bb445e70ea86ce968e1bedd215f93c45b3863f09be6a6d884a82a"
     },
     {
       "path": "data/raw/edr/hillsboroughcountyexpenditures.xlsx",
@@ -36,14 +52,14 @@
   ],
   "outputs": [
     {
-      "bytes": 131,
+      "bytes": 9515,
       "path": "annotations.json",
-      "sha256": "430ef969268490b3b7dfe226c2d48761930c1f4b38e9ee53c78b569f15101365"
+      "sha256": "6ee67dd71855acab6f0d42bab691ea45a10384defdbf05f88b6591017ec73576"
     },
     {
-      "bytes": 23236,
+      "bytes": 26686,
       "path": "cpi.json",
-      "sha256": "8eb5e8374be3a89523ea9e0fbe308be4314d1ae604711e749526b5a0bba38aa9"
+      "sha256": "274a7fa1b3b209a33d03af3d2626ca27be03a808b76faea671675343aaf53933"
     },
     {
       "bytes": 103537,
@@ -66,9 +82,9 @@
       "sha256": "c92ecccf128c3b7ed4a30cfba3b07113172f92a0ea3520f1b61f11cfaafa6bee"
     },
     {
-      "bytes": 10426,
+      "bytes": 19368,
       "path": "sources.json",
-      "sha256": "0cbc65af3b6091d4ad4fd8e7f180fce09645615a03185075f5534212f6540c26"
+      "sha256": "e6a3f81c2092411a1c5a94060b76e632c1df89510af65af8becc8cca909560c4"
     }
   ],
   "schemaVersion": 1

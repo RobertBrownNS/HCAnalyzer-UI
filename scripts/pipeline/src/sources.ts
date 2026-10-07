@@ -54,6 +54,7 @@ export const sourceIds = {
   afr: (county: CountyConfig, flow: 'revenue' | 'expenditure') => `edr-afr-${flow}s-${county.slug}`,
   population: 'edr-population-flcopops',
   countyFiscalPage: 'edr-cntyfiscal-page',
+  countyAfr: (county: CountyConfig, fiscalYear: number) => `county-afr-${county.slug}-fy${fiscalYear}`,
   cpi: (series: CpiSeriesConfig) => `bls-cpi-${series.id}`,
 };
 
@@ -74,6 +75,23 @@ export function afrSource(county: CountyConfig, flow: 'revenue' | 'expenditure',
       `Amounts are as reported by the county in its Annual Financial Report; ${years} include inter-fund transfers (${flow === 'revenue' ? 'account 381' : 'account 581'}), so summing across funds counts money moved between county funds in both the sending and receiving fund.`,
       'Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (e.g. 312.30 appears as 312.3).',
       'Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends.',
+    ],
+  };
+}
+
+export function countyAfrSource(county: CountyConfig, fiscalYear: number, rawFile: string, r: RetrievalRecord): Source {
+  return {
+    id: sourceIds.countyAfr(county, fiscalYear),
+    publisher: county.countyAfr!.publisher,
+    title: `${county.name} Annual Financial Report, fiscal year ${fiscalYear - 1}-${fiscalYear} (Florida Department of Financial Services form, as filed by the county)`,
+    url: county.countyAfr!.indexUrl,
+    accessUrl: r.url,
+    retrieved: r.retrieved,
+    sha256: r.sha256,
+    rawFile,
+    caveats: [
+      'Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.',
+      'Values were read from text extracted from the PDF; the lines checked are listed in scripts/pipeline/src/edr/county-afr-checks.ts and verified in data/validation.md.',
     ],
   };
 }
