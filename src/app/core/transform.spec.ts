@@ -290,6 +290,17 @@ describe('selectCpi', () => {
     );
   });
 
+  it('treats an explicit null (current cpi.json format) as missing and reports its reason', () => {
+    const d = fixture();
+    d.cpi.national.fiscalYear['2017'] = null;
+    d.cpi.national.fiscalYearUnavailable['2017'] = 'incomplete fiscal year, not averaged: missing 2016-10';
+    const c = selectCpi(d.cpi, 'cpi-u-us', 'fiscal');
+    expect(c.valueFor(2017)).toBeUndefined();
+    expect(c.unavailableReason(2017)).toBe(
+      'No CPI-U, U.S. city average, fiscal-year (Oct-Sep) average for FY 2016-17 (incomplete fiscal year, not averaged: missing 2016-10).',
+    );
+  });
+
   it('treats zero, negative and non-numeric levels as missing', () => {
     const bad = fixture().cpi;
     (bad.national.fiscalYear as Record<string, unknown>)['2019'] = 0;
@@ -783,11 +794,15 @@ describe('golden: src/assets/data', () => {
     }
   });
 
-  it('Tampa fiscal: null before FY 2017-18, values from FY 2017-18', () => {
+  it('Tampa fiscal: null before FY 2017-18 with the published reason, values from FY 2017-18', () => {
     const pts = buildSeries(data, full({ measure: 'real', cpiIndex: 'cpi-u-tampa' }));
     for (const p of pts) {
-      if (p.fiscalYear < 2018) expect(p.value).toBeNull();
-      else expect(Number.isFinite(p.value)).toBe(true);
+      if (p.fiscalYear < 2018) {
+        expect(p.value).toBeNull();
+        const reason = data.cpi.tampa.fiscalYearUnavailable[String(p.fiscalYear)];
+        expect(reason).toBeTruthy();
+        expect(p.notes.some((n) => n.includes(reason))).toBe(true);
+      } else expect(Number.isFinite(p.value)).toBe(true);
     }
   });
 

@@ -92,12 +92,19 @@ export interface CpiSeriesFile {
   sourceId: string;
   title: string;
   frequency: string;
-  /** Oct-Sep mean keyed by fiscalYear (computed by the pipeline). */
-  fiscalYear: Record<string, number>;
+  startPeriod?: string;
+  endPeriod?: string;
+  defaultAlignment?: string;
+  alignmentRule?: string;
+  /**
+   * Oct-Sep mean keyed by fiscalYear (computed by the pipeline). null means no
+   * value; the reason is in fiscalYearUnavailable.
+   */
+  fiscalYear: Record<string, number | null>;
   fiscalYearBasis: string;
   fiscalYearUnavailable: Record<string, string>;
-  /** BLS-published annual average keyed by calendar year. */
-  calendarYear: Record<string, number>;
+  /** BLS-published annual average keyed by calendar year; null as above. */
+  calendarYear: Record<string, number | null>;
   calendarYearBasis: string;
   calendarYearUnavailable: Record<string, string>;
   monthly: Record<string, number>;
