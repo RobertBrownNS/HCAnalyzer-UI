@@ -586,17 +586,14 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
   - a11y and contrast.
 
 **P3-14 Desktop Filters pane: accordion, single page scrollbar (FE; D-24)**
-- [ ] The desktop Filters pane is an accordion with these sections, in order:
-  - **View**, open by default;
-  - **Inflation**, collapsed by default;
-  - **Funds & transfers**, collapsed by default;
-  - **Categories**, collapsed by default.
-
-  Several sections can be open at once.
+- [ ] The desktop Filters pane is an accordion with these sections, in order: **View**, **Inflation**, **Funds & transfers**, **Categories**. View is open by default.
+- [ ] **Only one section is open at a time** (D-24 as amended on 2026-10-07):
+  - opening a section closes whichever one was open;
+  - closing the open section leaves all of them collapsed, which is allowed.
 - [ ] **Methodology stays visible:** every collapsed header shows a summary of its current settings. Across the four headers, every active setting is readable without expanding anything: measure, base year/range, index-to-100, inflation index and period, fund scope or "Custom selection.", transfers gross/net, custodial include/exclude, and categories. The summary wording is neutral and follows DR-54.
 - [ ] **One scrollbar:** the pane has no internal scrollbar (`overflow` is not set to scroll or auto). It is sticky only while its full height fits the viewport. When it is taller, it scrolls with the page. There are never two scrollbars.
-- [ ] The open state is stored in `localStorage`, with every read and write wrapped in try/catch. If storage is unavailable, the defaults above apply with no error. The open state is **not in the URL**: opening or closing changes no query param, history entry or data.
-- [ ] A custom fund selection (from the URL or a P3-13 edit) **auto-opens Funds & transfers**, whatever the stored state. This works together with D-23 (a custom selection also forces Advanced mode).
+- [ ] The **open section id** (or "none") is stored in `localStorage`, with every read and write wrapped in try/catch. If storage is unavailable or holds an unknown id, it falls back to View open, with no error. The open state is **not in the URL**: opening or closing changes no query param, history entry or data.
+- [ ] A custom fund selection (from the URL or a P3-13 edit) **opens Funds & transfers and closes the others**, whatever the stored state. This works together with D-23 (a custom selection also forces Advanced mode).
 - [ ] Phone is unchanged: the chip row and bottom sheets stay as before, and the existing tests pass.
 - [ ] Accessibility:
   - headers are buttons with `aria-expanded` and `aria-controls`;
@@ -605,10 +602,12 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
   - they work in light and dark, using tokens only.
 - [ ] Expanding or collapsing causes no layout shift in the chart area. CLS stays 0 on load with the stored state applied before first paint, with no visible jump.
 - [ ] **QA check** at **1366×768** and **1920×1080**, in light and dark:
-  - no double scrollbars with all sections open or all closed;
+  - only one section is ever open: opening each section in turn closes the previous one, and collapsing the open one leaves all closed;
+  - the stored section id survives a reload, and an unknown id falls back to View;
+  - no double scrollbars with each single section open (especially the tallest) and with all closed;
   - sticky behaviour switches correctly when the pane stops fitting;
   - every active setting is readable from collapsed headers;
-  - the custom-selection link opens Funds;
+  - the custom-selection link opens Funds & transfers with the others closed;
   - blocked-storage fallback;
   - the URL is unchanged on toggle;
   - CLS 0;
