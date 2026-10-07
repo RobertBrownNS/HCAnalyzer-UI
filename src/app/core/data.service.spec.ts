@@ -2,9 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { DATA_BASE_URL, DataService, ManifestFile } from './data.service';
+import { DATA_BASE_URL, DataService, ManifestFile, SUPPORTED_SCHEMA_VERSION } from './data.service';
 
-const manifest: ManifestFile = { schemaVersion: 1, dataVersion: 'abc123', jurisdictions: ['hillsborough'], outputs: [] };
+const manifest: ManifestFile = { schemaVersion: SUPPORTED_SCHEMA_VERSION, dataVersion: 'abc123', jurisdictions: ['hillsborough'], outputs: [] };
 
 const files = {
   'hillsborough.observations.json': [
@@ -81,6 +81,25 @@ describe('DataService', () => {
     await a;
     await service.load();
     http.expectNone(DATA_BASE_URL + 'manifest.json');
+  });
+
+  it('rejects a manifest with an unsupported schemaVersion, with a clear message and no data requests', async () => {
+    const done = service.load();
+    http.expectOne(DATA_BASE_URL + 'manifest.json').flush({ ...manifest, schemaVersion: 99 });
+    await done;
+    expect(service.status()).toBe('error');
+    expect(service.error()).toContain('schema version 99');
+    expect(service.error()).toContain(`schema version ${SUPPORTED_SCHEMA_VERSION}`);
+    expect(service.data()).toBeNull();
+    http.expectNone((req) => req.url.includes('observations'));
+  });
+
+  it('rejects a manifest without a schemaVersion', async () => {
+    const done = service.load();
+    http.expectOne(DATA_BASE_URL + 'manifest.json').flush({ dataVersion: 'x' });
+    await done;
+    expect(service.status()).toBe('error');
+    expect(service.error()).toContain('schema version undefined');
   });
 
   it('reports an error and allows a retry', async () => {

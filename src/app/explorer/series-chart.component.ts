@@ -1,5 +1,5 @@
-import { Component, ElementRef, computed, inject, input } from '@angular/core';
-import type { EChartsCoreOption } from 'echarts/core';
+import { Component, DestroyRef, ElementRef, computed, inject, input, output, signal } from '@angular/core';
+import type { ECharts, EChartsCoreOption } from 'echarts/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 
 import { readChartColors, readChartMetrics } from '../core/chart-palette';
@@ -7,6 +7,7 @@ import { ColorSchemeService } from '../core/color-scheme.service';
 import { formatAxisValue, formatCount, formatCpi, formatUsd, formatValue } from '../core/format';
 import { isPerCapita, isReal } from '../core/labels';
 import { SeriesPoint, TransformSettings, fiscalYearLabel } from '../core/transform';
+import { ZOOM_SETTLE_MS, zoomWindowToRange } from './chart-zoom';
 import { AnnotationNote, annotationsForTooltip, markLineGroups } from './view-notes';
 
 // ECharts renders the tooltip as HTML in the page, so tokens apply.
@@ -42,7 +43,15 @@ export function tooltipHtml(
 @Component({
   selector: 'app-series-chart',
   imports: [NgxEchartsDirective],
-  template: `<div class="chart" echarts [options]="options()" role="img" [attr.aria-label]="ariaLabel()"></div>`,
+  template: `<div
+    class="chart"
+    echarts
+    [options]="options()"
+    role="img"
+    [attr.aria-label]="ariaLabel()"
+    (chartInit)="chart = $event"
+    (chartDataZoom)="onDataZoom()"
+  ></div>`,
   styles: `
     :host {
       display: block;
@@ -64,7 +73,51 @@ export class SeriesChartComponent {
   /** Palette slot for the line: 1 = revenue, 2 = spending (see _tokens.scss $series). */
   readonly seriesIndex = input<number>(1);
 
+  /** A pinch (or slider) zoom, snapped to whole fiscal years, once the gesture settles. */
+  readonly rangeChange = output<[number, number]>();
+
   private readonly host = inject(ElementRef<HTMLElement>);
+  protected chart?: ECharts;
+  private zoomTimer?: ReturnType<typeof setTimeout>;
+
+  /** Narrow screens: annotation lines carry note numbers only; full labels go in the caption. */
+  readonly compact = signal(false);
+
+  constructor() {
+    const win = this.host.nativeElement.ownerDocument?.defaultView;
+    const bp = win ? getComputedStyle(win.document.documentElement).getPropertyValue('--fx-breakpoint-tablet').trim() : '';
+    const mql = bp ? win?.matchMedia?.(`(min-width: ${bp})`) : undefined;
+    if (mql) {
+      const sync = () => this.compact.set(!mql.matches);
+      sync();
+      mql.addEventListener('change', sync);
+      inject(DestroyRef).onDestroy(() => mql.removeEventListener('change', sync));
+    }
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.zoomTimer));
+
+    // QA-11: ECharts' inside dataZoom cancels every wheel event over the plot, even with
+    // wheel zoom/move off, which traps page scrolling. Stop wheel events before they reach
+    // ECharts (capture phase, passive) so the browser scrolls the page. Pinch uses touch events.
+    const stopWheel = (e: Event) => e.stopPropagation();
+    this.host.nativeElement.addEventListener('wheel', stopWheel, { capture: true, passive: true });
+    inject(DestroyRef).onDestroy(() =>
+      this.host.nativeElement.removeEventListener('wheel', stopWheel, { capture: true }),
+    );
+  }
+
+  onDataZoom(): void {
+    clearTimeout(this.zoomTimer);
+    this.zoomTimer = setTimeout(() => {
+      const dz = (this.chart?.getOption() as { dataZoom?: { start?: number; end?: number }[] } | undefined)
+        ?.dataZoom?.[0];
+      const range = zoomWindowToRange(
+        this.points().map((p) => p.fiscalYear),
+        dz?.start ?? 0,
+        dz?.end ?? 100,
+      );
+      if (range) this.rangeChange.emit(range);
+    }, ZOOM_SETTLE_MS);
+  }
   private readonly scheme = inject(ColorSchemeService).scheme;
 
   private readonly colors = computed(() => {
@@ -91,7 +144,7 @@ export class SeriesChartComponent {
     const label = this.valueLabel();
 
     const notes = this.annotations();
-    const markLines = markLineGroups(notes).map((g) => ({
+    const markLines = markLineGroups(notes, this.compact()).map((g) => ({
       xAxis: fiscalYearLabel(g.fiscalYear),
       label: { formatter: g.label },
       lineStyle: { color: c.annotation[g.kind] ?? c.annotation.methodology },
@@ -117,8 +170,17 @@ export class SeriesChartComponent {
         },
       },
       dataZoom: [
-        // Pinch to zoom on touch, wheel on desktop. One-finger drag scrolls the page.
-        { type: 'inside', xAxisIndex: 0, moveOnMouseMove: false, start: 0, end: 100 },
+        // Pinch to zoom on touch. The wheel and one-finger drag scroll the page (QA-11); a
+        // settled zoom becomes the fiscal-year range (see onDataZoom).
+        {
+          type: 'inside',
+          xAxisIndex: 0,
+          zoomOnMouseWheel: false,
+          moveOnMouseWheel: false,
+          moveOnMouseMove: false,
+          start: 0,
+          end: 100,
+        },
       ],
       xAxis: {
         type: 'category',

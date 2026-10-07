@@ -35,6 +35,10 @@ $desktop: map.get(tokens.$breakpoints, desktop);
   // Let the row scroll edge to edge inside the gutter.
   margin: 0 calc(-1 * var(--fx-page-gutter));
   padding: 0 var(--fx-page-gutter);
+  // Scroll cue (QA-22): the row fades out at the right edge; the end padding lets the last
+  // chip scroll clear of the fade. The mask uses alpha only, not a theme color.
+  padding-right: var(--fx-space-6);
+  mask-image: linear-gradient(to right, black calc(100% - var(--fx-space-6)), transparent);
 }
 
 .chart-tile {
@@ -90,6 +94,20 @@ $desktop: map.get(tokens.$breakpoints, desktop);
 
 .source {
   margin: 0;
+}
+
+// Phones: chart lines carry note numbers only; this key spells out the always-on ones.
+.chart-key {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fx-space-0);
+}
+
+@media (min-width: map.get(tokens.$breakpoints, tablet)) {
+  .chart-key {
+    display: none;
+  }
 }
 
 app-view-notes:empty {

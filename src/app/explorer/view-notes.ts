@@ -105,11 +105,18 @@ function spelledOut(note: AnnotationNote): boolean {
   return note.universal && note.label.length <= MAX_CHART_LABEL;
 }
 
-/** One markLine per fiscal year: full labels first, then "Note 2" / "Notes 2, 3". */
-export function markLineGroups(notes: readonly AnnotationNote[]): MarkLineGroup[] {
+/**
+ * One markLine per fiscal year: full labels first, then "Note 2" / "Notes 2, 3".
+ * Compact (narrow screens): note numbers only ("1, 2"); the caption under the chart spells out
+ * the view-independent ones.
+ */
+export function markLineGroups(notes: readonly AnnotationNote[], compact = false): MarkLineGroup[] {
   const groups = new Map<number, AnnotationNote[]>();
   for (const n of notes) groups.set(n.fiscalYear, [...(groups.get(n.fiscalYear) ?? []), n]);
   return [...groups].map(([fiscalYear, list]) => {
+    if (compact) {
+      return { fiscalYear, kind: (list.find(spelledOut) ?? list[0]).kind, label: list.map((n) => n.n).join(', ') };
+    }
     const full = list.filter(spelledOut).map((n) => n.label);
     const numbered = list.filter((n) => !spelledOut(n)).map((n) => n.n);
     if (numbered.length) full.push(`${numbered.length === 1 ? 'Note' : 'Notes'} ${numbered.join(', ')}`);
@@ -141,11 +148,84 @@ export function annotationsForTooltip(p: SeriesPoint, annotations: readonly Anno
   return annotations.filter((a) => a.fiscalYear === p.fiscalYear && !(covered && isTransferImbalanceAnnotation(a)));
 }
 
-/** Groups identical per-point notes and lists the fiscal years each applies to. */
-export function groupPointNotes(points: readonly SeriesPoint[], annotations: readonly AnnotationNote[] = []): PointNote[] {
-  const byNote = new Map<string, string[]>();
-  for (const p of points) {
-    for (const n of notesForView(p, annotations)) byNote.set(n, [...(byNote.get(n) ?? []), p.label]);
+/** Years that share a note, as ranges of consecutive fiscal years: "FY 2005-06 – FY 2016-17, FY 2019-20". */
+export function yearRanges(fiscalYears: readonly number[]): string {
+  const ys = [...new Set(fiscalYears)].sort((a, b) => a - b);
+  const parts: string[] = [];
+  for (let i = 0; i < ys.length; ) {
+    let j = i;
+    while (j + 1 < ys.length && ys[j + 1] === ys[j] + 1) j++;
+    parts.push(j === i ? fiscalYearLabel(ys[i]) : `${fiscalYearLabel(ys[i])} – ${fiscalYearLabel(ys[j])}`);
+    i = j + 1;
   }
-  return [...byNote].map(([note, labels]) => ({ note, years: labels.join(', ') }));
+  return parts.join(', ');
+}
+
+/** A per-year sentence groups with others when it differs only by its own year or dollar amounts. */
+export const MIN_YEARS_TO_GENERALIZE = 3;
+const FY_SLOT = '\u0000FY\u0000';
+const USD_SLOT = '\u0000USD\u0000';
+const USD_PATTERN = /-?\$[\d,]+(?:\.\d+)?/g;
+
+function template(note: string, ownLabel: string): string {
+  return note.split(ownLabel).join(FY_SLOT).replace(USD_PATTERN, USD_SLOT);
+}
+
+function renderTemplate(t: string): string {
+  return t.split(FY_SLOT).join('each of these years').split(USD_SLOT).join('amount by year in the table');
+}
+
+/**
+ * Per-point notes for "By year". Identical notes list their years as ranges. Notes that repeat
+ * the same sentence with only their own year or dollar amount changed (e.g. one per year in
+ * net-transfer or Tampa views) are shown once when at least MIN_YEARS_TO_GENERALIZE years share
+ * them; the per-year figures stay in the table and tooltip.
+ */
+export function groupPointNotes(points: readonly SeriesPoint[], annotations: readonly AnnotationNote[] = []): PointNote[] {
+  // A sentence repeated verbatim in several years groups as itself; only sentences unique to
+  // one year are matched by template (so the base-year note isn't split off at the base year).
+  const yearsByNote = new Map<string, number>();
+  for (const p of points) for (const n of notesForView(p, annotations)) yearsByNote.set(n, (yearsByNote.get(n) ?? 0) + 1);
+
+  const groups = new Map<string, { notes: Set<string>; years: number[] }>();
+  for (const p of points) {
+    for (const n of notesForView(p, annotations)) {
+      const key = (yearsByNote.get(n) ?? 0) > 1 ? `=${n}` : template(n, p.label);
+      const g = groups.get(key) ?? { notes: new Set<string>(), years: [] };
+      g.notes.add(n);
+      g.years.push(p.fiscalYear);
+      groups.set(key, g);
+    }
+  }
+  const out: PointNote[] = [];
+  for (const [key, g] of groups) {
+    if (g.notes.size === 1) {
+      out.push({ note: [...g.notes][0], years: yearRanges(g.years) });
+    } else if (g.years.length >= MIN_YEARS_TO_GENERALIZE) {
+      out.push({ note: renderTemplate(key.startsWith('=') ? key.slice(1) : key), years: yearRanges(g.years) });
+    } else {
+      // Too few to generalize: keep each sentence with its own year.
+      const byNote = new Map<string, number[]>();
+      for (const p of points) for (const n of notesForView(p, annotations)) if (g.notes.has(n)) byNote.set(n, [...(byNote.get(n) ?? []), p.fiscalYear]);
+      for (const [note, ys] of byNote) out.push({ note, years: yearRanges(ys) });
+    }
+  }
+  return out;
+}
+
+/**
+ * Labels a CPI gap note about the base year as such: "... for base year FY 2009-10 ...". The
+ * transform's sentence names the year but not its role, which reads as a gap in every row.
+ */
+export function labelBaseYearNotes(
+  points: readonly SeriesPoint[],
+  baseReason: string | null,
+  baseYearText: string,
+): SeriesPoint[] {
+  if (!baseReason) return [...points];
+  const relabelled = baseReason.replace(`for ${baseYearText}`, `for base year ${baseYearText}`);
+  if (relabelled === baseReason) return [...points];
+  return points.map((p) =>
+    p.notes.includes(baseReason) ? { ...p, notes: p.notes.map((n) => (n === baseReason ? relabelled : n)) } : p,
+  );
 }

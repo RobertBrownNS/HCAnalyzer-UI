@@ -47,6 +47,19 @@ describe('AppComponent header actions', () => {
     expect(fixture.componentInstance.shareLabel()).toBe('Link copied');
   });
 
+  it('on copy failure, shows the URL in a visible, selectable field (QA-20)', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: () => Promise.reject(new Error('denied')) },
+      configurable: true,
+    });
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.componentInstance.share();
+    await fixture.whenStable();
+    const field = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('.share-fallback input');
+    expect(field?.value).toBe(location.href);
+    expect(field?.readOnly).toBe(true);
+  });
+
   it('Export is present but disabled', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();
@@ -54,6 +67,10 @@ describe('AppComponent header actions', () => {
       (b) => b.textContent?.trim() === 'Export',
     );
     expect(exportBtn?.disabled).toBe(true);
+    // Visible hint, not only a title attribute (QA-20).
+    const hint = (fixture.nativeElement as HTMLElement).querySelector('#export-hint');
+    expect(hint?.textContent).toContain('Not available yet');
+    expect(exportBtn?.getAttribute('aria-describedby')).toBe('export-hint');
   });
 
   it('theme button cycles Auto -> Light -> Dark and sets html[data-theme]', async () => {

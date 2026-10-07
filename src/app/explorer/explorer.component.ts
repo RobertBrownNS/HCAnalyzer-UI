@@ -68,6 +68,9 @@ export class ExplorerComponent {
 
   readonly chartTitle = computed(() => `${FLOW_LABELS[this.store.settings().flow]} by fiscal year`);
   readonly caption = computed(() => measureCaption(this.store.settings()));
+  /** Annotations that apply to every view (e.g. GASB 84), spelled out under the chart on phones. */
+  readonly keyAnnotations = computed(() => this.store.annotationNotes().filter((a) => a.universal));
+
   readonly kpis = computed(() => kpiCards(this.store.points(), this.store.settings()));
 
   /** The AFR workbook behind the selected flow, for the line under the chart. */

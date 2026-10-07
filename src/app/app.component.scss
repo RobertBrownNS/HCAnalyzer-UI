@@ -84,15 +84,40 @@
   }
 }
 
-// Export is disabled until Phase 5; keep the phone bar uncluttered.
+// Export is disabled until Phase 5 (a visible hint says so); keep the phone bar uncluttered.
 .export {
   display: none;
+  align-items: center;
+  gap: var(--fx-space-2);
+}
+
+.bar-hint {
+  font: var(--fx-type-caption);
+  color: var(--fx-color-header-text-muted);
+  white-space: nowrap;
+}
+
+.share-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--fx-space-2);
+  padding: var(--fx-space-3) var(--fx-page-gutter);
+  background: var(--fx-color-tile);
+  border-bottom: var(--fx-border-width) solid var(--fx-color-border);
+
+  .fx-field {
+    flex: 1 1 var(--fx-panel-width);
+  }
 }
 
 @media (min-width: map.get(tokens.$breakpoints, desktop)) {
-  .jurisdiction,
-  .export {
+  .jurisdiction {
     display: inline-block;
+  }
+
+  .export {
+    display: inline-flex;
   }
 }
 

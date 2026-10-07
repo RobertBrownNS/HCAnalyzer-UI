@@ -78,11 +78,19 @@ const indexSigned = new Intl.NumberFormat('en-US', {
   signDisplay: 'exceptZero',
 });
 
-/** Headline value for a KPI card: compact totals ($5.47B), full per-resident, index to 0.1. */
+const usdCompactFixed = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  notation: 'compact',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** Headline value for a KPI card: compact totals ($5.47B, $3.00B), full per-resident, index to 0.1. */
 export function formatKpiValue(v: number | null | undefined, s: ValueSettings): string {
   if (missing(v)) return EM_DASH;
   if (s.indexTo100) return indexFmt.format(v);
-  return isPerCapita(s.measure) ? usdCents.format(v) : usdCompact.format(v);
+  return isPerCapita(s.measure) ? usdCents.format(v) : usdCompactFixed.format(v);
 }
 
 /** Signed difference in the unit of the measure: "+$1.63B", "+$412.10", "+12.4". */

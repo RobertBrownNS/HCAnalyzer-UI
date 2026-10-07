@@ -16,9 +16,10 @@ import { ColorSchemeService } from './core/color-scheme.service';
       </a>
       <span class="jurisdiction">Hillsborough County</span>
       <div class="actions">
-        <button type="button" class="bar-button export" disabled title="Export (CSV, PNG) is not available yet">
-          Export
-        </button>
+        <span class="export">
+          <button type="button" class="bar-button" disabled aria-describedby="export-hint">Export</button>
+          <span id="export-hint" class="bar-hint">Not available yet</span>
+        </span>
         <button
           type="button"
           class="bar-button"
@@ -31,6 +32,15 @@ import { ColorSchemeService } from './core/color-scheme.service';
         <span class="sr-only" aria-live="polite">{{ shareStatus() }}</span>
       </div>
     </header>
+    @if (fallbackUrl(); as url) {
+      <div class="share-fallback" role="region" aria-label="Link to this view">
+        <label class="fx-field">
+          The link could not be copied automatically. Select and copy it:
+          <input #linkField class="fx-select" readonly [value]="url" (focus)="linkField.select()" />
+        </label>
+        <button type="button" class="fx-button" (click)="fallbackUrl.set(null)">Close</button>
+      </div>
+    }
     <main class="site-main">
       <router-outlet />
     </main>
@@ -45,6 +55,8 @@ export class AppComponent {
   readonly themeLabel = computed(() => ({ system: 'Auto', light: 'Light', dark: 'Dark' })[this.colorScheme.mode()]);
   readonly shareStatus = signal('');
   readonly shareLabel = signal('Share view');
+  /** Shown in a visible, selectable field when the clipboard is unavailable. */
+  readonly fallbackUrl = signal<string | null>(null);
   private resetTimer?: ReturnType<typeof setTimeout>;
 
   /** Copies the current URL; every setting is in its query string. */
@@ -58,7 +70,8 @@ export class AppComponent {
       ok = false;
     }
     this.shareLabel.set(ok ? 'Link copied' : 'Copy failed');
-    this.shareStatus.set(ok ? 'Link to this view copied to the clipboard.' : `Copy this link: ${url}`);
+    this.shareStatus.set(ok ? 'Link to this view copied to the clipboard.' : 'Copy failed. The link is shown below.');
+    this.fallbackUrl.set(ok ? null : url);
     clearTimeout(this.resetTimer);
     this.resetTimer = setTimeout(() => this.shareLabel.set('Share view'), 2500);
   }

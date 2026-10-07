@@ -51,6 +51,10 @@ describe('kpiCards (neutral summary of the selected range)', () => {
     expect(byId(kpiCards([pt(2025, 5)], s()))['change'].sub).toBe('Select more than one year');
   });
 
+  it('shows compact totals with two decimals, even when round', () => {
+    expect(byId(kpiCards([pt(2020, 1), pt(2025, 3_000_000_000)], s()))['end'].value).toBe('$3.00B');
+  });
+
   it('formats per-resident and index values in their own units', () => {
     const per = byId(kpiCards([pt(2020, 3000), pt(2025, 3470.55)], s({ measure: 'real_per_capita' })));
     expect(per['end'].value).toBe('$3,470.55');

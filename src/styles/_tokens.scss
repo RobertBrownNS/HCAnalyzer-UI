@@ -317,4 +317,8 @@ $font-files: (
   @each $name, $v in $layout {
     --fx-#{$name}: #{$v};
   }
+  // Read-only copies for scripts (matchMedia); media queries use the Sass map.
+  @each $name, $v in $breakpoints {
+    --fx-breakpoint-#{$name}: #{$v};
+  }
 }

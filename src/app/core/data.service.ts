@@ -15,6 +15,20 @@ export interface ManifestFile {
 
 export const DATA_BASE_URL = 'assets/data/';
 
+/** manifest.json schemaVersion this build understands. Bump together with the pipeline. */
+export const SUPPORTED_SCHEMA_VERSION = 1;
+
+export class DataVersionError extends Error {
+  constructor(readonly found: unknown) {
+    super(
+      `The data files use schema version ${String(found)}, but this version of the site reads schema version ` +
+        `${SUPPORTED_SCHEMA_VERSION}. The site and its data are out of step; reload the page, and if this persists ` +
+        `the site needs to be rebuilt.`,
+    );
+    this.name = 'DataVersionError';
+  }
+}
+
 export type DataStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 /**
@@ -48,6 +62,7 @@ export class DataService {
     this._error.set(null);
     try {
       const manifest = await this.get<ManifestFile>('manifest.json');
+      if (manifest?.schemaVersion !== SUPPORTED_SCHEMA_VERSION) throw new DataVersionError(manifest?.schemaVersion);
       const v = `?v=${encodeURIComponent(manifest.dataVersion)}`;
       const [observations, population, cpi, annotations, sources] = await Promise.all([
         this.get<AfrObservation[]>(`${jurisdiction}.observations.json${v}`),

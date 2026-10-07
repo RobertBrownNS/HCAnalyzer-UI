@@ -12,9 +12,10 @@ import {
   availableYears,
   buildSeries,
   defaultSettingsFor,
+  fiscalYearLabel,
   selectCpi,
 } from '../core/transform';
-import { Workbook, annotationNotes } from './view-notes';
+import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
   QUERY_KEYS,
   QueryParams,
@@ -63,9 +64,17 @@ export class ExplorerStore {
 
   readonly years = computed(() => this.yearsFor(this.settings().flow));
 
+  /** buildSeries output; a CPI gap note about the base year is labelled as such (QA-19). */
   readonly points = computed(() => {
     const data = this.data();
-    return data ? buildSeries(data, this.settings()) : [];
+    if (!data) return [];
+    const s = this.settings();
+    const points = buildSeries(data, s);
+    if (s.measure !== 'real' && s.measure !== 'real_per_capita') return points;
+    const cpi = selectCpi(data.cpi, s.cpiIndex, s.cpiPeriod);
+    if (cpi.valueFor(s.baseYear) !== undefined) return points;
+    const yearText = s.cpiPeriod === 'fiscal' ? fiscalYearLabel(s.baseYear) : `calendar year ${s.baseYear}`;
+    return labelBaseYearNotes(points, cpi.unavailableReason(s.baseYear), yearText);
   });
 
   readonly annotations = computed(() => {
@@ -103,19 +112,22 @@ export class ExplorerStore {
     effect(() => {
       const canonical = serializeSettings(this.settings());
       const current = paramsOf(this.queryParams());
-      if (!sameParams(canonical, current)) untracked(() => this.navigate(canonical));
+      // Replace, don't push: canonicalizing isn't a user action, so Back skips it.
+      if (!sameParams(canonical, current)) untracked(() => this.navigate(canonical, { replace: true }));
     });
   }
 
+  /** User change: pushes a history entry, so Back/Forward restore earlier views. */
   update(patch: Partial<TransformSettings>): void {
     const merged = { ...this.settings(), ...patch };
     const next = normalizeSettings(merged, this.yearsFor(merged.flow), this.defaultsFor(merged.flow));
-    this.navigate(serializeSettings(next));
+    const params = serializeSettings(next);
+    if (!sameParams(params, serializeSettings(this.settings()))) this.navigate(params, { replace: false });
   }
 
   /** Resets every setting to the data-derived defaults for the current flow. */
   reset(): void {
-    this.navigate(serializeSettings(this.defaultsFor(this.settings().flow)));
+    this.navigate(serializeSettings(this.defaultsFor(this.settings().flow)), { replace: false });
   }
 
   private defaultsFor(flow: Flow): TransformSettings {
@@ -132,12 +144,12 @@ export class ExplorerStore {
     return data ? availableYears(data, flow) : [];
   }
 
-  private navigate(queryParams: QueryParams): void {
+  private navigate(queryParams: QueryParams, opts: { replace: boolean }): void {
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams,
       queryParamsHandling: 'merge',
-      replaceUrl: true,
+      replaceUrl: opts.replace,
     });
   }
 }

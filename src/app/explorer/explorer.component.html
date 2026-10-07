@@ -58,6 +58,7 @@
                 [settings]="store.settings()"
                 [valueLabel]="valueLabel()"
                 [seriesIndex]="seriesIndex()"
+                (rangeChange)="store.update({ range: $event })"
               />
             } @else {
               <app-series-table
@@ -75,6 +76,15 @@
           }
         }
       </div>
+
+      @if (view() === 'chart' && store.annotationNotes().length) {
+        <p class="fx-caption chart-key">
+          @for (a of keyAnnotations(); track a.n) {
+            <span><span class="num">{{ a.n }}</span> {{ a.yearLabel }}: {{ a.label }}</span>
+          }
+          <span>Numbered lines are listed under Notes for this view.</span>
+        </p>
+      }
 
       <app-range-control class="range" />
 

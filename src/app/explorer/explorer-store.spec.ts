@@ -1,3 +1,5 @@
+import { Location } from '@angular/common';
+import { provideLocationMocks } from '@angular/common/testing';
 import { Component, inject, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
@@ -61,6 +63,7 @@ describe('ExplorerStore URL state', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([{ path: '', component: HostComponent }]),
+        provideLocationMocks(),
         { provide: DataService, useClass: FakeDataService },
       ],
     });
@@ -161,6 +164,61 @@ describe('ExplorerStore URL state', () => {
     store.reset();
     await harness.fixture.whenStable();
     expect(query()).toMatchObject({ measure: 'nominal', cust: '0', from: '2018', to: '2021', base: '2021', xfer: 'gross' });
+  });
+
+  describe('history (QA-12)', () => {
+    /** Lets the router finish the navigation a popstate (Back/Forward) starts. */
+    async function settle(): Promise<void> {
+      for (let i = 0; i < 5; i++) {
+        await new Promise((r) => setTimeout(r, 10));
+        await harness.fixture.whenStable();
+      }
+    }
+
+    it('Back and Forward restore earlier views after user changes', async () => {
+      // In the app, bootstrap starts the router's popstate listener; TestBed doesn't bootstrap.
+      router.setUpLocationChangeListener();
+      const store = await open('/');
+      const location = TestBed.inject(Location);
+      store.update({ measure: 'per_capita' });
+      await settle();
+      store.update({ range: [2019, 2020] });
+      await settle();
+      expect(store.settings()).toMatchObject({ measure: 'per_capita', range: [2019, 2020] });
+
+      location.back();
+      await settle();
+      expect(store.settings()).toMatchObject({ measure: 'per_capita', range: [2018, 2021] });
+
+      location.back();
+      await settle();
+      expect(store.settings()).toMatchObject({ measure: 'nominal', range: [2018, 2021] });
+
+      location.forward();
+      await settle();
+      expect(store.settings().measure).toBe('per_capita');
+    });
+
+    it('canonicalizing the URL replaces the entry instead of pushing one', async () => {
+      router.setUpLocationChangeListener();
+      await open('/?measure=bogus');
+      const location = TestBed.inject(Location);
+      const before = location.path();
+      expect(before).toContain('measure=nominal');
+      // Going back from the canonical URL must not land on the invalid or bare one we replaced.
+      location.back();
+      await settle();
+      expect(location.path()).not.toContain('measure=bogus');
+    });
+
+    it('an update that changes nothing pushes no entry', async () => {
+      const store = await open('/');
+      const location = TestBed.inject(Location);
+      const navigate = vi.spyOn(router, 'navigate');
+      store.update({ measure: 'nominal' });
+      expect(navigate).not.toHaveBeenCalled();
+      expect(location.path()).toContain('measure=nominal');
+    });
   });
 
   it('computes points and in-range annotations from settings', async () => {

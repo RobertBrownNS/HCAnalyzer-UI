@@ -7,7 +7,9 @@ import {
   annotationsForTooltip,
   groupPointNotes,
   isTransferImbalanceAnnotation,
+  labelBaseYearNotes,
   parseRef,
+  yearRanges,
   markLineGroups,
 } from './view-notes';
 import { tooltipHtml } from './series-chart.component';
@@ -58,7 +60,7 @@ describe('groupPointNotes', () => {
   it('groups identical notes with the years they apply to', () => {
     const groups = groupPointNotes([point(2021, ['a']), point(2022, ['a', 'b']), point(2023)]);
     expect(groups).toEqual([
-      { note: 'a', years: 'FY 2020-21, FY 2021-22' },
+      { note: 'a', years: 'FY 2020-21 – FY 2021-22' },
       { note: 'b', years: 'FY 2021-22' },
     ]);
   });
@@ -186,5 +188,71 @@ describe('parseRef', () => {
     expect(parseRef('population:2010 Census!B31')).toEqual({ workbook: 'population', cell: '2010 Census!B31' });
     expect(parseRef('2023!D16')).toBeNull();
     expect(parseRef('budget:2023!D16')).toBeNull();
+  });
+});
+
+describe('phone chart labels (QA-22)', () => {
+  it('compact mode labels lines with note numbers only', () => {
+    const gasb = { fiscalYear: 2021, kind: 'methodology', label: 'Custodial fund reporting begins (GASB 84).', sourceId: 'p', topic: 'gasb84' } as AnnotationRecord;
+    const r = { ...gasb, label: 'Amounts reported rounded to $1,000', flow: 'revenue', topic: 'rounding' } as AnnotationRecord;
+    const notes = annotationNotes([gasb, r], []);
+    expect(markLineGroups(notes, true)).toEqual([{ fiscalYear: 2021, kind: 'methodology', label: '1, 2' }]);
+    expect(markLineGroups(notes, false)[0].label).toBe('Custodial fund reporting begins (GASB 84). · Note 2');
+  });
+});
+
+describe('"By year" grouping (QA-19)', () => {
+  const DASH = '–';
+
+  it('writes consecutive years as ranges', () => {
+    expect(yearRanges([2006, 2007, 2008, 2012, 2014, 2015])).toBe(
+      `FY 2005-06 ${DASH} FY 2007-08, FY 2011-12, FY 2013-14 ${DASH} FY 2014-15`,
+    );
+    expect(yearRanges([2021])).toBe('FY 2020-21');
+  });
+
+  it('shows a sentence repeated for every year once, with the years as a range', () => {
+    const pts = [2006, 2007, 2008, 2009].map((fy) => {
+      const label = `FY ${fy - 1}-${String(fy % 100).padStart(2, '0')}`;
+      return point(fy, [`No CPI-U, Tampa for ${label} (no data before FY 2017-18).`, 'Same for all.']);
+    });
+    const groups = groupPointNotes(pts);
+    expect(groups).toEqual([
+      { note: 'No CPI-U, Tampa for each of these years (no data before FY 2017-18).', years: `FY 2005-06 ${DASH} FY 2008-09` },
+      { note: 'Same for all.', years: `FY 2005-06 ${DASH} FY 2008-09` },
+    ]);
+  });
+
+  it('generalizes per-year dollar amounts and points to the table', () => {
+    const pts = [2010, 2011, 2012].map((fy, i) => point(fy, [`Interfund transfers (account 381, $${(i + 1) * 100},000) are excluded.`]));
+    expect(groupPointNotes(pts)).toEqual([
+      { note: 'Interfund transfers (account 381, amount by year in the table) are excluded.', years: `FY 2009-10 ${DASH} FY 2011-12` },
+    ]);
+  });
+
+  it('keeps a note repeated verbatim (e.g. about the base year) as one line, even in the year it names', () => {
+    const base = 'No CPI for base year FY 2009-10 (no data).';
+    const pts = [2009, 2010, 2011].map((fy) => point(fy, [base]));
+    expect(groupPointNotes(pts)).toEqual([{ note: base, years: `FY 2008-09 ${DASH} FY 2010-11` }]);
+  });
+
+  it('keeps sentences with their own figures when fewer than three years share them', () => {
+    const pts = [point(2023, ['Gap in FY 2022-23: $5.']), point(2024, ['Gap in FY 2023-24: $6.'])];
+    expect(groupPointNotes(pts).map((g) => g.note)).toEqual(['Gap in FY 2022-23: $5.', 'Gap in FY 2023-24: $6.']);
+  });
+});
+
+describe('labelBaseYearNotes (QA-19)', () => {
+  const reason = 'No CPI-U, Tampa, fiscal-year (Oct-Sep) average for FY 2009-10 (no data).';
+
+  it('says "base year" in the gap note that is about the base year', () => {
+    const out = labelBaseYearNotes([point(2015, [reason, 'Other.']), point(2016, ['Other.'])], reason, 'FY 2009-10');
+    expect(out[0].notes).toEqual(['No CPI-U, Tampa, fiscal-year (Oct-Sep) average for base year FY 2009-10 (no data).', 'Other.']);
+    expect(out[1].notes).toEqual(['Other.']);
+  });
+
+  it('leaves points unchanged without a base-year gap', () => {
+    const pts = [point(2015, ['x'])];
+    expect(labelBaseYearNotes(pts, null, 'FY 2009-10')).toEqual(pts);
   });
 });
