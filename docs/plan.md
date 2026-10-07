@@ -940,8 +940,45 @@ Method: clean clone of `cb9579b`. 434 app tests and 69 pipeline tests pass. `tra
 | | | | *Suggested fix:* add a 10th category colour (or group beyond 9 with a label), and give the total line in category charts a colour outside the category palette (e.g. the neutral text colour). Update the comment. **Condition.** | | |
 | QA-42 | P3-02 / QA-07 | note | The preset is labelled "All funds", where D-18 and P3-02 say "All funds as reported by EDR". The chart caption for the default scope says "All funds, excluding custodial." without the "Includes …" list. That list is shown in the filters pane, the phone Funds sheet and the methodology entry, so QA-07 is met in substance. | FE, PM | open |
 | QA-43 | P3-01 / DR-51 caveat | note | The 2025 UAS source caveat says the earlier editions "were not available to compare". DR-51 says they "were not checked", and a damaged 2014 capture exists. Suggest "were not checked" for accuracy. | DE | open |
-| QA-44 | P3-03 / DR-50 scope | note | The Pinellas FY 2013-14 note is scoped `categories: [intergovernmental]`, but 335.8 and 335.9 are both Intergovernmental and Special Revenue. No category or fund value changes; only the account rows in the drawer do. P3-03 says "only where the difference changes what is on screen", so the category-view appearance is one surface more than needed. Decided by DR-50; noted for the record. | DE, PM | open |
+| QA-44 | P3-03 / DR-50 scope | note | The Pinellas FY 2013-14 note is scoped `categories: [intergovernmental]`, but 335.8 and 335.9 are both Intergovernmental and Special Revenue. No category or fund value changes; only the account rows in the drawer do. P3-03 says "only where the difference changes what is on screen", so the category-view appearance is one surface more than needed. Decided by DR-50; noted for the record.<br>**Re-check at `a34887f`:** resolved by `drawerOnly` (`83e9646`). See the addendum below. | DE, PM | **verified** |
 | QA-45 | P3-06 legend | note | The legend pages at 11 series: "1/2" on desktop, **"1/8"** on phone (390 px). It is usable, but on phone most series names are behind paging. The table view lists them all. | FE | open |
 
 **Phase 3 sign-off:** **APPROVE WITH CONDITIONS**. Conditions: QA-39 (major), QA-40 and QA-41 (stated criteria). The data side (P3-09) has no defects: every category, fund and preset sum equals EDR and `transform.ts`. Not verifiable here: real devices, screen-reader output, pointer clicks on chart bands (drawer tested from table cells and rows; `pointSelect` from the canvas was not exercised).
+
+#### Phase 3 addendum (2026-10-07, `a34887f`): drawerOnly, DR-52/53/54, P3-11 live
+
+Method: clean clone at `a34887f`. **446** app tests pass. The production build was served with gzip and driven in headless Chrome. New QA scripts:
+- `qa/phase3/drawer-only.mjs`;
+- `qa/phase3/dr52.mjs`;
+- `qa/phase3/dr53-54.mjs`;
+- `qa/phase3/analytics-live.mjs` (blocks `cloudflareinsights.com/cdn-cgi/*` in every run, including on pagehide, so QA visits are not counted).
+
+- **drawerOnly (QA-44): verified.**
+  - **Chart surfaces:** the Pinellas 335.8/335.9 note is in neither the chart key nor "Notes for this view" in any of 8 views tried. They cover line, lines, stacked, share and bars; all funds, Special Revenue only, and `cats=intergovernmental`; and per resident real.
+  - **Drawer:** it still shows the note on FY 2013-14 for the Intergovernmental cell (desktop and phone), the Special Revenue total and the all-funds total. It does not show it for Ad Valorem or for the General Fund total.
+  - **Drawer checks:** rows sum exactly in all 6 cases; focus trap, Escape and focus return work.
+  - **Hillsborough 559 keeps its funds scope:** the note is listed with Internal Service or Component Units selected (line and stacked), and not with all funds or General Fund.
+- **DR-52: verified, both counties, both flows.**
+  - An old Phase 2/4a link (no Phase 3 params) and the same view with every fund listed and `chart=line` render identical KPIs, captions, pressed preset and table text.
+  - Stacked with `funds`/`cats` omitted equals stacked with every fund and category listed.
+  - Unticking and re-ticking a category removes `cats` from the URL again. `funds` stays omitted and `chart` is still written.
+- **DR-53: not met. QA-39 still open at `a34887f`.**
+  - With `idx=1` on stacked, share and bars (both counties), the chart caption and KPI cards still read "Index, FY 2009-10 = 100 · Nominal dollars" (KPI 188.0 or 206.5).
+  - No text on the page says the index isn't applied to these chart types. (The only "Not applied" on the page belongs to the inflation-index methodology entry.)
+  - The share view's caption says "Index … · Nominal dollars" over percentages.
+- **DR-54: verified.**
+  - The rendered strings equal the template text. None of these strings changed between `cb9579b` and `a34887f`.
+  - Net-disabled hint (exact): "Excluded (net) needs all funds selected (every fund with data for this county): with only some funds, transfers to and from the others are real inflows and outflows."
+  - Also shown as written: "Custom selection.", "Includes … ." (from `fundsIncludedText`), the mapping intro "Categories are the Florida Uniform Accounting System (UAS) account classes, as published by the Department of Financial Services, with Ad Valorem Taxes (311) shown separately." and "UAS Manual editions used:".
+  - "Share of selected total" is the share chart's y-axis name (canvas, checked by screenshot).
+- **QA-40 addendum (minor, same fix):** the cross-check status is county-wide, not scope-wide. Pinellas FY 2013-14 with only the General Fund (or the Ad Valorem cell) shows "Total matches; 1 amount classified differently" even though no reclassified amount is in that scope. It is true of the county filing but reads as if it were about the selection.
+- **P3-11 analytics, LIVE at https://robertbrownns.github.io/HCAnalyzer-UI/ (`main` `7c4320c`): verified.** Six runs: plain, DNT and GPC, each on desktop and phone (390 px), with the cache disabled.
+  - **Plain:** exactly one script request to `static.cloudflareinsights.com/beacon.min.js` (`defer`) with `data-cf-beacon` `{"token":"…","spa":false}`, and one RUM report to `cloudflareinsights.com/cdn-cgi/rum`, which QA blocked. There are no other third-party requests and no extra reports on pagehide.
+  - **`navigator.doNotTrack === "1"` or `navigator.globalPrivacyControl === true`:** no script and no Cloudflare request.
+  - **Storage:** no cookies on any origin; `localStorage` and `sessionStorage` are empty in every run.
+  - **Privacy line** (exact, as in D-21): "This site counts page views with Cloudflare Web Analytics. It sets no cookies and collects no personal information. Do Not Track and Global Privacy Control are respected."
+  - **CLS:** 0.000014 desktop and 0 phone. The same in DNT and GPC runs (no script) and on the token-absent local build, so analytics adds no shift. One live DNT phone run showed 0.0042 once and did not repeat.
+  - **Token-absent build** (default config, as for IIS/root): no Cloudflare request, no beacon script and no Privacy line.
+
+**Phase 3 sign-off unchanged: APPROVE WITH CONDITIONS** (QA-39 major; QA-40 and QA-41). QA-44 verified. P3-11 verified live.
 
