@@ -210,6 +210,7 @@ function reclassificationAnnotations(c: Inputs['counties'][number], rev: FlowCro
       ...(a.funds ? { funds: a.funds } : {}),
       ...(a.categories ? { categories: a.categories } : {}),
       ...(!a.funds && !a.categories ? { drawerOnly: true } : {}),
+      amount: pair.amount,
       // The EDR cell the drawer lists for this point (the LOGERX side has no EDR observation).
       cells: [{ account: pair.edr.account, fundType: pair.edr.fundType }],
       detail:

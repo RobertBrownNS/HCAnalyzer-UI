@@ -543,7 +543,8 @@ async function main() {
       (a.funds ?? []).some((f) => !FUND_METADATA.some((m) => m.id === f)) ||
       (a.categories ?? []).some((c) => !CATEGORIES.some((d) => d.id === c)) ||
       (a.cells ?? []).some((c) => !c.account || !FUND_METADATA.some((m) => m.id === c.fundType)) ||
-      (a.drawerOnly === true && !(a.cells ?? []).length),
+      (a.drawerOnly === true && !(a.cells ?? []).length) ||
+      (a.topic === 'reconciliation-difference' && !(typeof a.amount === 'number' && Number.isInteger(a.amount) && a.amount > 0)),
   );
   add('Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed', !badAnnotations.length,
     badAnnotations.length ? badAnnotations.map((a) => `${a.fiscalYear} ${a.label}`).join('; ') : `${annotationsJson.length} annotations`);

@@ -363,6 +363,7 @@ Differences from the earlier prefix rules:
 - `funds`: show in fund-scope views when the selected funds include some, but not all, of the listed funds. Hillsborough FY 2014-15, $1,164,281, account 559: Internal Service in EDR, Component Units in LOGERX.
 - `categories`: show in category views showing that category, not on total charts. Not used today.
 - Pinellas FY 2013-14, $2,309,587 (account 335.8 in EDR, 335.9 in LOGERX, both intergovernmental): `drawerOnly: true` with `cells`, because no category or fund total changes. `drawerOnly` rows are never chart markers.
+- `amount`: the reclassified amount in dollars (1164281 and 2309587), validated to be a positive whole number.
 - `cells`: show in the source drawer for points whose observations include one of these EDR cells, matched by account and fund (Hillsborough [559 Internal Service]; Pinellas [335.8 Special Revenue]).
 The build fails if an approved difference is not found; validation fails if any difference is not approved.
 
