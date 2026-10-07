@@ -465,7 +465,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-13 | Desktop fund filter: Simple / Advanced modes (D-23) | FE | P3-05 | todo |
 | P3-14 | Desktop Filters pane: accordion, single page scrollbar (D-24) | FE | P3-13 | todo |
 
-Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) and **P3-14** (D-24, Filters accordion) were added after approval and ship with Phase 3; both `todo`.
+Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) and **P3-14** (D-24, Filters accordion) were added after approval and ship with Phase 3; both `todo`. (D-25, a table-mode switch, was withdrawn by the user.)
 
 ### Acceptance criteria
 
