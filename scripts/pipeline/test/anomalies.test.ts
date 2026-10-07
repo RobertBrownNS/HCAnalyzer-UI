@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Flow } from '../src/edr/accounts.js';
 import type { AfrSheet } from '../src/edr/afr.js';
-import { generateAnomalies, transferBalances, yearOverYearSwings } from '../src/edr/anomalies.js';
+import { findGaps, generateAnomalies, transferBalances, yearOverYearSwings } from '../src/edr/anomalies.js';
 import type { PopulationValue } from '../src/edr/population.js';
 
 const FUNDS = ['general', 'custodial'];
@@ -62,7 +62,7 @@ describe('transfer balance', () => {
     const { annotations, caveats } = generateAnomalies(input(rev, exp));
     const a = annotations.find((x) => x.fiscalYear === 2024 && x.flow === 'expenditure' && x.label.startsWith('Transfers'));
     expect(a?.label).toContain('$600.0M');
-    expect(a?.refs).toContain('2024!K6'); // custodial 581 cell cited because it is excluded
+    expect(a?.refs).toContain('expenditures:2024!K6'); // custodial 581 cell cited because it is excluded
     expect(caveats.get('exp')?.some((c) => c.includes('$600,000,000'))).toBe(true);
   });
 });
@@ -75,7 +75,7 @@ describe('rounding and custodial annotations', () => {
     const exp = sheet('expenditure', 2022, accounts);
     const rev = sheet('revenue', 2022, { '311': [1_000_000_000, 6_000_000_000] });
     const { annotations } = generateAnomalies(input([rev], [exp]));
-    const odd = annotations.find((a) => a.refs?.includes('2022!K' + exp.accounts.find((r) => r.account === '513')!.row));
+    const odd = annotations.find((a) => a.refs?.includes('expenditures:2022!K' + exp.accounts.find((r) => r.account === '513')!.row));
     expect(odd?.custodial).toBe('included');
     expect(odd?.detail).toContain('$6,802,121');
     expect(odd?.detail).toContain('Custodial revenue that year is $6,000,000,000');
@@ -126,5 +126,37 @@ describe('year-over-year swings', () => {
       ['total (excl. custodial)', -0.4],
       ['public_safety', -0.9],
     ]);
+  });
+});
+
+describe('drop-and-recover gaps', () => {
+  const years = (vals: Array<[number, number]>) => vals.map(([fy, v]) => sheet('expenditure', fy, { '536': [v, 0] }));
+
+  it('finds a one-year gap that recovers', () => {
+    const g = findGaps(years([[2022, 200e6], [2023, 10e6], [2024, 190e6]])).filter((x) => x.scope === 'fund:general');
+    expect(g.map((x) => [x.years, x.before.value, x.after.value])).toEqual([[[2023], 200e6, 190e6]]);
+  });
+
+  it('finds a two-year gap but not a three-year one or a permanent drop', () => {
+    expect(findGaps(years([[2021, 100e6], [2022, 1e6], [2023, 2e6], [2024, 90e6]])).find((x) => x.scope === 'fund:general')?.years).toEqual([2022, 2023]);
+    expect(findGaps(years([[2020, 100e6], [2021, 1e6], [2022, 1e6], [2023, 1e6], [2024, 90e6]])).filter((x) => x.scope === 'fund:general')).toEqual([]);
+    expect(findGaps(years([[2022, 100e6], [2023, 10e6], [2024, 10e6]])).filter((x) => x.scope === 'fund:general')).toEqual([]);
+  });
+
+  it('ignores small baselines and moderate dips', () => {
+    expect(findGaps(years([[2022, 900_000], [2023, 0], [2024, 900_000]]))).toEqual([]);
+    expect(findGaps(years([[2022, 100e6], [2023, 60e6], [2024, 100e6]]))).toEqual([]);
+  });
+
+  it('annotates an approved gap and rejects an approval the scan no longer finds', () => {
+    const exp = years([[2023, 200e6], [2024, 0], [2025, 210e6]]);
+    const ok = generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2024, scopes: ['fund:general'] }] });
+    const a = ok.annotations.find((x) => x.label.startsWith('General funds'));
+    expect(a?.label).toBe('General funds $0');
+    expect(a?.detail).toContain('account 536');
+    expect(a?.refs).toEqual(['expenditures:2024!D6']);
+    expect(() =>
+      generateAnomalies({ ...input([], exp), approvedGaps: [{ jurisdiction: 'test', flow: 'expenditure', fiscalYear: 2023, scopes: ['fund:general'] }] }),
+    ).toThrow(/not found/);
   });
 });

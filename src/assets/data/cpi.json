@@ -37,7 +37,7 @@
       "2025": "BLS-published annual average, used as published; months not published: 2025-10 (Data unavailable due to the 2025 lapse in appropriations)"
     },
     "calendarYearUnavailable": {
-      "2026": "BLS annual average not published; missing 2026-09 (not in source), 2026-10 (not in source), 2026-11 (not in source), 2026-12 (not in source)"
+      "2026": "BLS annual average not published for this series; missing 2026-09 (not in source), 2026-10 (not in source), 2026-11 (not in source), 2026-12 (not in source)"
     },
     "defaultAlignment": "fiscalYear",
     "endPeriod": "2026-08",
@@ -449,8 +449,8 @@
       "2014": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2014 for this area is in cpi.json tampa_semiannual.calendarYear",
       "2015": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2015 for this area is in cpi.json tampa_semiannual.calendarYear",
       "2016": "no value: this series (CUURS35DSA0) has data from 2017-11 to 2026-07; the BLS calendar-year average for 2016 for this area is in cpi.json tampa_semiannual.calendarYear",
-      "2017": "BLS annual average not published; missing 2017-01 (not in source), 2017-03 (not in source), 2017-05 (not in source), 2017-07 (not in source), 2017-09 (not in source)",
-      "2026": "BLS annual average not published; missing 2026-09 (not in source), 2026-11 (not in source)"
+      "2017": "BLS annual average not published for this series; missing 2017-01 (not in source), 2017-03 (not in source), 2017-05 (not in source), 2017-07 (not in source), 2017-09 (not in source); the BLS calendar-year average for 2017 for this area is in cpi.json tampa_semiannual.calendarYear",
+      "2026": "BLS annual average not published for this series; missing 2026-09 (not in source), 2026-11 (not in source)"
     },
     "defaultAlignment": "fiscalYear",
     "endPeriod": "2026-07",

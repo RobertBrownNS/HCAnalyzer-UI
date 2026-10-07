@@ -92,6 +92,7 @@ export function countyAfrSource(county: CountyConfig, fiscalYear: number, rawFil
     caveats: [
       'Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.',
       'Values were read from text extracted from the PDF; the lines checked are listed in scripts/pipeline/src/edr/county-afr-checks.ts and verified in data/validation.md.',
+      ...(county.countyAfr!.files.find((f) => f.fiscalYear === fiscalYear)?.caveats ?? []),
     ],
   };
 }

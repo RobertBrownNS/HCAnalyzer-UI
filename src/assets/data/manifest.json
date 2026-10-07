@@ -1,5 +1,5 @@
 {
-  "dataVersion": "1cf8e3b083052520",
+  "dataVersion": "e2ea1ff5e20be1b0",
   "generator": "scripts/pipeline (npm run build)",
   "inputs": [
     {
@@ -52,14 +52,14 @@
   ],
   "outputs": [
     {
-      "bytes": 9515,
+      "bytes": 11899,
       "path": "annotations.json",
-      "sha256": "6ee67dd71855acab6f0d42bab691ea45a10384defdbf05f88b6591017ec73576"
+      "sha256": "d3d7326036dd9dac70edab710317dcc53f3902315cc54b770c7a21be27bfdaca"
     },
     {
-      "bytes": 26686,
+      "bytes": 26833,
       "path": "cpi.json",
-      "sha256": "274a7fa1b3b209a33d03af3d2626ca27be03a808b76faea671675343aaf53933"
+      "sha256": "e6e98856106ac70ab1f2e3de6f6a610886d5e2dd52c7aea364d133d63dd92737"
     },
     {
       "bytes": 103537,
@@ -82,9 +82,9 @@
       "sha256": "c92ecccf128c3b7ed4a30cfba3b07113172f92a0ea3520f1b61f11cfaafa6bee"
     },
     {
-      "bytes": 19368,
+      "bytes": 21543,
       "path": "sources.json",
-      "sha256": "e6a3f81c2092411a1c5a94060b76e632c1df89510af65af8becc8cca909560c4"
+      "sha256": "5c5491656f91d355f07895eaecf4019c1807bef273cfabed73a950ab72fab99f"
     }
   ],
   "schemaVersion": 1

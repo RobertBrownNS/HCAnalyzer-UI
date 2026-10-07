@@ -18,7 +18,8 @@ export interface CountyConfig {
     publisher: string;
     /** Page that lists the files. */
     indexUrl: string;
-    files: Array<{ fiscalYear: number; url: string }>;
+    /** `caveats`: facts about a specific filing, copied into its Source record. */
+    files: Array<{ fiscalYear: number; url: string; caveats?: string[] }>;
   };
 }
 
@@ -35,7 +36,13 @@ export const COUNTIES: CountyConfig[] = [
         { fiscalYear: 2022, url: 'https://hillsclerk.com/documents/d/guest/annual-local-govt-financial-report-2022?download=true' },
         { fiscalYear: 2023, url: 'https://hillsclerk.com/documents/d/guest/afr-hillsborough-2023?download=true' },
         { fiscalYear: 2024, url: 'https://hillsclerk.com/documents/d/guest/afr-pdf?download=true' },
-        { fiscalYear: 2025, url: 'https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true' },
+        {
+          fiscalYear: 2025,
+          url: 'https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true',
+          caveats: [
+            'The header of this filing shows no audit-received date: page 1 reads "AUDIT RECEIVED DATE: unresolved: @afr.auditreceiveddate" (AFR received date 6/30/2026). The FY 2021-22, FY 2022-23 and FY 2023-24 filings show audit-received dates of 6/15/2023, 6/28/2024 and 6/30/2025.',
+          ],
+        },
       ],
     },
   },

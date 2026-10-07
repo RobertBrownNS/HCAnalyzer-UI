@@ -51,9 +51,22 @@ export function money(n: number): string {
 
 const exact = (n: number) => `${n < 0 ? '-' : ''}$${Math.abs(n).toLocaleString('en-US')}`;
 
+/** Workbook names used in refs: "revenues:2023!P124", "expenditures:2023!D16", "population:2010 Census!B31". */
+export type RefWorkbook = 'revenues' | 'expenditures' | 'population';
+
+/** Qualified cell reference into one of the EDR AFR workbooks. */
+export function qref(sheet: AfrSheet, address: string): string {
+  return `${sheet.flow === 'revenue' ? 'revenues' : 'expenditures'}:${sheet.sheetName}!${address}`;
+}
+
+/** FLcopops.xlsx keeps countywide population in column B. */
+export function populationRef(v: PopulationValue): string {
+  return `population:${v.sheet}!B${v.row}`;
+}
+
 function rowTotalRef(sheet: AfrSheet, account: string): string | null {
   const row = sheet.accounts.find((a) => a.account === account);
-  return row ? `${sheet.sheetName}!${colLetter(sheet.totalCol)}${row.row}` : null;
+  return row ? qref(sheet, `${colLetter(sheet.totalCol)}${row.row}`) : null;
 }
 
 function accountTotal(sheet: AfrSheet | undefined, account: string, excludeCustodial = false): number {
@@ -116,8 +129,10 @@ export interface AnomalyInput {
   expenditureSourceId: string;
   populationSourceId: string;
   population: { selected: Map<number, PopulationValue>; alternates: Map<number, PopulationValue[]> };
-  /** Optional: sentence describing a cross-check against the county-filed AFR, keyed by fiscal year. */
-  countyAfrNotes?: Map<number, string>;
+  /** Optional: sentence describing the cross-check against the county-filed AFR for a year and topic. */
+  countyAfrNote?: (fiscalYear: number, topic: 'transfers' | 'proprietary') => string | undefined;
+  /** Gaps (see findGaps) that have been approved for annotation. */
+  approvedGaps?: ApprovedGap[];
 }
 
 export function generateAnomalies(input: AnomalyInput): Generated {
@@ -162,7 +177,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       `${fiscalYearLabel(b.fiscalYear)}, excluding custodial amounts: expenditure account 581 (inter-fund transfers out, ${exact(b.transfersOut)}) ${verb} revenue account 381 (transfers in, ${exact(b.transfersIn)}) by ${exact(Math.abs(b.difference))}. ` +
       `Non-custodial figures, ${side(b.fiscalYear)}` +
       (neighbours.length ? `; compared with ${neighbours.map(side).join('; ')}.` : '.') +
-      (input.countyAfrNotes?.get(b.fiscalYear) ? ` ${input.countyAfrNotes.get(b.fiscalYear)}` : '');
+      (input.countyAfrNote?.(b.fiscalYear, 'transfers') ? ` ${input.countyAfrNote(b.fiscalYear, 'transfers')}` : '');
     annotations.push({
       fiscalYear: b.fiscalYear,
       label: `Transfers out (581) ${direction} transfers in (381) by ${money(Math.abs(b.difference))}; account 521 Law Enforcement ${money(accountTotal(sheet, '521', true))}`,
@@ -186,7 +201,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       annotations.push({ fiscalYear: s.fiscalYear, label: 'Amounts reported rounded to $1,000', kind: 'methodology', sourceId, jurisdiction, flow, detail: text });
       pushCaveat(caveats, sourceId, text);
       for (const { a, v } of cells.filter(({ v }) => v.amount % 1000 !== 0)) {
-        const ref = `${s.sheetName}!${v.address}`;
+        const ref = qref(s, v.address);
         let detail = `${fiscalYearLabel(s.fiscalYear)}: account ${a.account} (${a.name}), ${v.fundType} fund, is ${exact(v.amount)} (${ref}), the only ${flow} amount that year that is not a whole multiple of $1,000.`;
         if (v.fundType === 'custodial') {
           const other = flow === 'expenditure' ? rev.get(s.fiscalYear) : exp.get(s.fiscalYear);
@@ -214,7 +229,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
     for (const s of [...sheets].sort((x, y) => x.fiscalYear - y.fiscalYear)) {
       const col = s.fundColumns.find((f) => f.fundType === 'custodial');
       if (!col) continue;
-      const ref = `${s.sheetName}!${colLetter(col.col)}${s.grandTotal.row}`;
+      const ref = qref(s, `${colLetter(col.col)}${s.grandTotal.row}`);
       const total = s.grandTotal.cached['custodial'] ?? 0;
       if (total === 0) {
         const detail = `${fiscalYearLabel(s.fiscalYear)}: the Custodial column is present and every custodial ${flow} amount is $0 (${ref}).`;
@@ -230,7 +245,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       const rest = parts.length - listed.length;
       const detail =
         `${fiscalYearLabel(s.fiscalYear)}: custodial ${flow}s total ${exact(total)} (${ref}), reported under ` +
-        listed.map(({ a, v }) => `account ${a.account} ${a.name} ${exact(v.amount)} (${s.sheetName}!${v.address})`).join('; ') +
+        listed.map(({ a, v }) => `account ${a.account} ${a.name} ${exact(v.amount)} (${qref(s, v.address)})`).join('; ') +
         (rest ? `; and ${rest} other account${rest > 1 ? 's' : ''} (each under $1M)` : '') +
         '.';
       annotations.push({
@@ -242,13 +257,59 @@ export function generateAnomalies(input: AnomalyInput): Generated {
         flow,
         custodial: 'included',
         detail,
-        refs: [ref, ...listed.map(({ v }) => `${s.sheetName}!${v.address}`)],
+        refs: [ref, ...listed.map(({ v }) => qref(s, v.address))],
       });
       pushCaveat(caveats, sourceId, detail);
     }
   }
 
-  // --- 4. Population basis changes (QA-05) ------------------------------------------------------
+  // --- 4. Approved drop-and-recover gaps (QA-09) ----------------------------------------------
+  const gapsByFlow = new Map<Flow, Gap[]>([
+    ['revenue', findGaps(input.revenues)],
+    ['expenditure', findGaps(input.expenditures)],
+  ]);
+  for (const approved of (input.approvedGaps ?? []).filter((g) => g.jurisdiction === jurisdiction)) {
+    const sheets = byYear(approved.flow === 'revenue' ? input.revenues : input.expenditures);
+    const [, , sourceId] = flows.find(([f]) => f === approved.flow)!;
+    const parts: string[] = [];
+    const refs: string[] = [];
+    const labels: string[] = [];
+    for (const scope of approved.scopes) {
+      const gap = gapsByFlow.get(approved.flow)!.find((g) => g.scope === scope && g.years.includes(approved.fiscalYear));
+      if (!gap) throw new Error(`Approved gap ${approved.flow} ${scope} FY ${approved.fiscalYear} is not found by findGaps; review the approval`);
+      const during = gap.values.find((v) => v.fiscalYear === approved.fiscalYear)!.value;
+      parts.push(`${scopeLabel(scope)} ${money(during)} (${fiscalYearLabel(gap.before.fiscalYear)}: ${money(gap.before.value)}; ${fiscalYearLabel(gap.after.fiscalYear)}: ${money(gap.after.value)})`);
+      labels.push(`${scopeLabel(scope)} ${money(during)}`);
+      if (!scope.startsWith('fund:')) continue;
+      // Accounts that carried the fund the year before and fell by more than half.
+      const fund = scope.slice(5);
+      const [prev, cur, next] = [gap.before.fiscalYear, approved.fiscalYear, gap.after.fiscalYear].map((y) => sheets.get(y)!);
+      for (const a of prev.accounts) {
+        const pv = fundValue(prev, a.account, fund);
+        if (pv < gap.before.value * 0.1) continue;
+        const cv = fundValue(cur, a.account, fund);
+        if (cv >= pv * (1 - GAP_DROP)) continue;
+        const ref = cellRef(cur, a.account, fund);
+        parts.push(`account ${a.account} ${a.name}, ${fund.replace(/_/g, ' ')}: ${money(cv)}${ref ? ` (${ref})` : ' (no row)'} vs ${money(pv)} and ${money(fundValue(next, a.account, fund))}`);
+        if (ref) refs.push(ref);
+      }
+    }
+    const afr = input.countyAfrNote?.(approved.fiscalYear, 'proprietary');
+    const detail = `${fiscalYearLabel(approved.fiscalYear)} ${approved.flow}s, excluding custodial amounts: ${parts.join('; ')}.${afr ? ` ${afr}` : ''}`;
+    annotations.push({
+      fiscalYear: approved.fiscalYear,
+      label: labels.join('; '),
+      kind: 'methodology',
+      sourceId,
+      jurisdiction,
+      flow: approved.flow,
+      detail,
+      refs,
+    });
+    pushCaveat(caveats, sourceId, `${detail}${refs.length ? ` Cells: ${refs.join(', ')}.` : ''}`);
+  }
+
+  // --- 5. Population basis changes (QA-05) ------------------------------------------------------
   const pop = input.population.selected;
   const finYears = [...new Set([...input.revenues, ...input.expenditures].map((s) => s.fiscalYear))].sort((a, b) => a - b);
   const basisText = (v: PopulationValue) =>
@@ -272,7 +333,7 @@ export function generateAnomalies(input: AnomalyInput): Generated {
       jurisdiction,
       measures: ['per_capita', 'real_per_capita'],
       detail,
-      refs: [`FLcopops.xlsx "${cur.sheet}" row ${cur.row}`, `FLcopops.xlsx "${prev.sheet}" row ${prev.row}`],
+      refs: [populationRef(cur), populationRef(prev)],
     });
     pushCaveat(caveats, input.populationSourceId, detail);
   }
@@ -286,7 +347,7 @@ function generalFund(sheet: AfrSheet, account: string): number {
 
 function cellRef(sheet: AfrSheet, account: string, fundType: string): string | null {
   const v = sheet.accounts.find((a) => a.account === account)?.values.find((x) => x.fundType === fundType);
-  return v ? `${sheet.sheetName}!${v.address}` : null;
+  return v ? qref(sheet, v.address) : null;
 }
 
 export interface Swing {
@@ -316,4 +377,74 @@ export function yearOverYearSwings(sheets: AfrSheet[]): Swing[] {
     }
   }
   return out;
+}
+
+/** A drop of more than this share from the prior year opens a gap. */
+export const GAP_DROP = 0.5;
+/** The value must recover (back to at least (1 - GAP_DROP) of the pre-drop value) within this many years. */
+export const GAP_MAX_YEARS = 2;
+/** Scopes whose pre-drop value is below this are ignored. */
+export const GAP_MIN_BASELINE = 1_000_000;
+
+export interface Gap {
+  flow: Flow;
+  /** "fund:<fundType>" or "section:<section>" */
+  scope: string;
+  before: { fiscalYear: number; value: number };
+  /** Fiscal years inside the gap (1 or 2). */
+  years: number[];
+  values: Array<{ fiscalYear: number; value: number }>;
+  after: { fiscalYear: number; value: number };
+}
+
+export interface ApprovedGap {
+  jurisdiction: string;
+  flow: Flow;
+  fiscalYear: number;
+  scopes: string[];
+}
+
+export function scopeLabel(scope: string): string {
+  const [kind, name] = scope.split(':');
+  const words = name.replace(/_/g, ' ');
+  if (kind === 'fund') return name === 'component_unit' ? 'Component Units' : `${words.replace(/\b\w/g, (c) => c.toUpperCase())} funds`;
+  return `${words} section`;
+}
+
+function fundValue(sheet: AfrSheet, account: string, fundType: string): number {
+  return sheet.accounts.find((a) => a.account === account)?.values.find((v) => v.fundType === fundType)?.amount ?? 0;
+}
+
+/**
+ * Non-custodial fund-type totals and sections that drop by more than GAP_DROP from one year to the
+ * next and come back within GAP_MAX_YEARS. Pure scan; reports, doesn't judge.
+ */
+export function findGaps(sheets: AfrSheet[]): Gap[] {
+  const sorted = [...sheets].sort((a, b) => a.fiscalYear - b.fiscalYear);
+  if (!sorted.length) return [];
+  const flow = sorted[0].flow;
+  const funds = [...new Set(sorted.flatMap((s) => s.fundColumns.map((f) => f.fundType)))].filter((f) => f !== 'custodial');
+  const sections = [...new Set(sorted.flatMap((s) => s.accounts.map((a) => classifyAccount(s.flow, a.account).section)))].sort();
+  const scopes: Array<[string, (s: AfrSheet) => number]> = [
+    ...funds.map((f): [string, (s: AfrSheet) => number] => [`fund:${f}`, (s) => s.accounts.reduce((t, a) => t + (a.values.find((v) => v.fundType === f)?.amount ?? 0), 0)]),
+    ...sections.map((sec): [string, (s: AfrSheet) => number] => [`section:${sec}`, (s) => sectionTotal(s, sec, true)]),
+  ];
+  const out: Gap[] = [];
+  for (const [scope, value] of scopes) {
+    const series = sorted.map((s) => ({ fiscalYear: s.fiscalYear, value: value(s) }));
+    for (let i = 1; i < series.length; i++) {
+      const base = series[i - 1];
+      if (base.value < GAP_MIN_BASELINE) continue;
+      const floor = base.value * (1 - GAP_DROP);
+      if (series[i].value >= floor) continue;
+      let k = i;
+      while (k < series.length && k - i < GAP_MAX_YEARS && series[k].value < floor) k++;
+      if (k < series.length && series[k].value >= floor) {
+        const inside = series.slice(i, k);
+        out.push({ flow, scope, before: base, years: inside.map((v) => v.fiscalYear), values: inside, after: series[k] });
+        i = k - 1;
+      }
+    }
+  }
+  return out.sort((a, b) => a.years[0] - b.years[0] || a.scope.localeCompare(b.scope));
 }

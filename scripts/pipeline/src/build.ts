@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url';
 import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig, type ParsedCpi } from './bls/cpi.js';
 import type { AfrSheet } from './edr/afr.js';
 import { generateAnomalies, type Annotation } from './edr/anomalies.js';
-import { countyAfrNotes } from './edr/county-afr-checks.js';
+import { countyAfrNote } from './edr/county-afr-checks.js';
+import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import { toAccounts, toObservations } from './edr/observations.js';
 import { selectPopulation } from './edr/population.js';
 import { fiscalYearMonths } from './lib/fiscal.js';
@@ -110,8 +111,8 @@ function cpiEntry(
     if (!hasData) calendarYearUnavailable[key] = `no value: ${coverage}${siblingHint(y)}`;
     else if (months.length) {
       const r = averageOf(parsed, config, calendarYearMonths(y));
-      calendarYearUnavailable[key] = r.ok ? 'BLS annual average not published' : `BLS annual average not published; ${r.reason}`;
-    } else calendarYearUnavailable[key] = 'BLS annual average not published';
+      calendarYearUnavailable[key] = `${r.ok ? 'BLS annual average not published' : `BLS annual average not published for this series; ${r.reason}`}${siblingHint(y)}`;
+    } else calendarYearUnavailable[key] = `BLS annual average not published${siblingHint(y)}`;
   }
 
   const caveats = [`Series data in this file run from ${first} to ${last}.`];
@@ -188,10 +189,9 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       expenditureSourceId: expId,
       populationSourceId: sourceIds.population,
       population: { selected, alternates },
-      countyAfrNotes: countyAfrNotes(county.slug, (fy) => {
-        const f = countyAfrFiles.find((x) => x.fiscalYear === fy);
-        return f ? `source ${sourceIds.countyAfr(county, fy)}` : undefined;
-      }),
+      countyAfrNote: (fy, topic) =>
+        countyAfrFiles.some((x) => x.fiscalYear === fy) ? countyAfrNote(county.slug, fy, topic, sourceIds.countyAfr(county, fy)) : undefined,
+      approvedGaps: APPROVED_GAPS,
     });
     generatedAnnotations.push(...generated.annotations);
     for (const [id, list] of generated.caveats) extraCaveats.set(id, [...(extraCaveats.get(id) ?? []), ...list]);

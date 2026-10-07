@@ -12,7 +12,13 @@ import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
 import { buildOutputs } from './build.js';
 import { indexComparisonSection } from './index-comparison.js';
+import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import {
+  findGaps,
+  GAP_DROP,
+  GAP_MAX_YEARS,
+  GAP_MIN_BASELINE,
+  scopeLabel,
   money,
   SWING_THRESHOLD,
   TRANSFER_IMBALANCE_THRESHOLD,
@@ -24,6 +30,8 @@ import { COUNTY_AFR_CHECKS } from './edr/county-afr-checks.js';
 import { fiscalYearLabel } from './lib/fiscal.js';
 import { sha256 } from './lib/hash.js';
 import { OUT_DIR, rel, VALIDATION_REPORT } from './lib/paths.js';
+import { readWorkbook } from './lib/xlsx.js';
+import ExcelJS, { type Workbook } from 'exceljs';
 import { loadInputs } from './inputs.js';
 
 type Status = 'PASS' | 'FAIL' | 'NOTE';
@@ -56,6 +64,9 @@ interface CpiJson {
 }
 
 const tag2 = (slug: string, s: string) => `${slug}: ${s}`;
+
+/** Annotation refs: "revenues:2023!P124", "expenditures:2024!I29", "population:2010 Census!B31". */
+const REF_PATTERN = /^(revenues|expenditures|population):([^!]+)!([A-Z]+\d+)$/;
 
 /** [2006, 2007, 2008, 2011] -> "2006-2008, 2011" */
 function ranges(years: number[]): string {
@@ -367,11 +378,16 @@ async function main() {
     const bad: string[] = [];
     for (const c of checksHere) {
       const file = countyAfrFiles.find((f) => f.fiscalYear === c.fiscalYear);
-      const o = obs.find((x) => x.fiscalYear === c.fiscalYear && x.flow === c.flow && x.account === c.account && x.fundType === c.fundType);
+      const matching = obs.filter(
+        (x) => x.fiscalYear === c.fiscalYear && x.flow === c.flow && x.fundType === c.fundType && (c.account === '*' || x.account === c.account),
+      );
+      // Zero cells are not emitted, so no observation means $0 in the workbook.
+      const edr = sumBy(matching, (x) => x.amount);
       const afr = sumBy(c.lines, (l) => l.amount);
-      const ok = !!file && !!o && o.amount === afr;
-      if (!ok) bad.push(`${c.fiscalYear} ${c.flow} ${c.account} ${c.fundType}: county AFR ${afr} vs EDR ${o?.amount ?? 'missing'}${file ? '' : ' (PDF not in data/raw)'}`);
-      afrRows.push(`| ${fiscalYearLabel(c.fiscalYear)} | ${c.flow} | ${c.account} | ${c.fundType} | ${file ? `\`${rel(file.file)}\`` : 'missing'} p. ${c.page} | ${c.lines.map((l) => `${l.label}: ${usd(l.amount)}`).join('<br>')} | ${usd(afr)} | \`${o?.ref ?? 'n/a'}\` ${o ? usd(o.amount) : 'n/a'} | ${ok ? 'match' : 'MISMATCH'} |`);
+      const ok = !!file && edr === afr;
+      const edrRef = c.account === '*' ? `sum of ${matching.length} cells` : (matching[0]?.ref ?? 'no non-zero cell');
+      if (!ok) bad.push(`${c.fiscalYear} ${c.flow} ${c.account} ${c.fundType}: county AFR ${afr} vs EDR ${edr}${file ? '' : ' (PDF not in data/raw)'}`);
+      afrRows.push(`| ${fiscalYearLabel(c.fiscalYear)} | ${c.flow} | ${c.account === '*' ? 'all accounts' : c.account} | ${c.fundType} | ${file ? `\`${rel(file.file)}\`` : 'missing'} p. ${c.page} | ${c.lines.length ? c.lines.map((l) => `${l.label}: ${usd(l.amount)}`).join('<br>') : 'no line for this account and fund'} | ${usd(afr)} | ${edrRef} ${usd(edr)} | ${ok ? 'match' : 'MISMATCH'} |`);
     }
     if (checksHere.length) {
       add(tag2(county.slug, 'County-filed AFR (PDF) lines = EDR workbook cells'), !bad.length,
@@ -404,6 +420,26 @@ async function main() {
     }
   }
 
+  // --- Drop-and-recover gaps (QA-09 scan) ---------------------------------------------------
+  const gapRows: string[] = [];
+  for (const { county, revenues, expenditures } of inputs.counties) {
+    const approved = APPROVED_GAPS.filter((g) => g.jurisdiction === county.slug);
+    let open = 0;
+    let total = 0;
+    for (const sheets of [revenues.sheets, expenditures.sheets]) {
+      for (const g of findGaps(sheets)) {
+        total++;
+        const isApproved = approved.some((a) => a.flow === g.flow && g.years.includes(a.fiscalYear) && a.scopes.includes(g.scope));
+        if (!isApproved) open++;
+        gapRows.push(
+          `| ${county.slug} | ${g.flow} | ${scopeLabel(g.scope)} | ${fiscalYearLabel(g.before.fiscalYear)}: ${money(g.before.value)} | ${g.values.map((v) => `${fiscalYearLabel(v.fiscalYear)}: ${money(v.value)}`).join('<br>')} | ${fiscalYearLabel(g.after.fiscalYear)}: ${money(g.after.value)} | ${isApproved ? 'annotated' : 'not annotated (awaiting review)'} |`,
+        );
+      }
+    }
+    add(tag2(county.slug, `Drop-and-recover gaps: fund type or section falls more than ${GAP_DROP * 100}% and recovers within ${GAP_MAX_YEARS} years (non-custodial, baseline at least ${usd(GAP_MIN_BASELINE)})`), true,
+      `${total} found; ${total - open} annotated (config/approved-gaps.ts), ${open} awaiting review. Listed under "Drop-and-recover gaps"`, true);
+  }
+
   // --- Annotations: every one resolves and is well-formed ----------------------------------
   const annotationsJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'annotations.json'), 'utf8')) as Annotation[];
   const sourceIdsJson = new Set((JSON.parse(readFileSync(path.join(OUT_DIR, 'sources.json'), 'utf8')) as Array<{ id: string }>).map((x) => x.id));
@@ -414,10 +450,34 @@ async function main() {
       !['methodology', 'policy', 'event'].includes(a.kind) ||
       (a.flow !== undefined && !['revenue', 'expenditure'].includes(a.flow)) ||
       (a.custodial !== undefined && !['included', 'excluded'].includes(a.custodial)) ||
-      (a.refs ?? []).some((r) => !/^(\d{4}![A-Z]+\d+|FLcopops\.xlsx ".+" row \d+)$/.test(r)),
+      (a.refs ?? []).some((r) => !REF_PATTERN.test(r)),
   );
   add('Annotations: sourceId resolves, fields valid, cell references well-formed', !badAnnotations.length,
     badAnnotations.length ? badAnnotations.map((a) => `${a.fiscalYear} ${a.label}`).join('; ') : `${annotationsJson.length} annotations`);
+  // Every ref must point to a non-empty cell in the workbook it names (QA-08).
+  const refWorkbooks = new Map<string, Map<string, Workbook>>();
+  for (const { county, revenues, expenditures } of inputs.counties) {
+    refWorkbooks.set(county.slug, new Map([
+      ['revenues', await readWorkbook(revenues.file)],
+      ['expenditures', await readWorkbook(expenditures.file)],
+      ['population', await readWorkbook(inputs.populationFile)],
+    ]));
+  }
+  const unresolved: string[] = [];
+  let refCount = 0;
+  for (const a of annotationsJson) {
+    for (const r of a.refs ?? []) {
+      refCount++;
+      const m = REF_PATTERN.exec(r);
+      const books = refWorkbooks.get(a.jurisdiction ?? '');
+      const ws = m && books?.get(m[1])?.getWorksheet(m[2]);
+      const cell = ws ? ws.getCell(m![3]) : null;
+      const v = cell ? (cell.type === ExcelJS.ValueType.Formula ? cell.result : cell.value) : null;
+      if (v === null || v === undefined || v === '') unresolved.push(`${a.fiscalYear} "${a.label}": ${r}`);
+    }
+  }
+  add('Annotation refs resolve to a non-empty cell in the named workbook (format workbook:sheet!cell)', !unresolved.length,
+    unresolved.length ? unresolved.join('; ') : `${refCount} refs resolved`);
   const gasb = annotationsJson.find((a) => a.fiscalYear === 2021 && a.label === 'Custodial fund reporting begins (GASB 84).' && a.kind === 'methodology');
   add('GASB 84 annotation present at FY 2020-21', !!gasb, gasb ? `sourceId ${gasb.sourceId}` : 'missing');
 
@@ -563,6 +623,14 @@ async function main() {
     '| Jurisdiction | Fiscal year | 381 transfers in | 581 transfers out | Difference | |',
     '|---|---|---:|---:|---:|---|',
     ...transferRows,
+    '',
+    '## Drop-and-recover gaps (informational)',
+    '',
+    `Non-custodial fund-type totals and sections that fall by more than ${GAP_DROP * 100}% from the prior year and come back to at least ${(1 - GAP_DROP) * 100}% of the prior-year value within ${GAP_MAX_YEARS} years, in either flow. Only scopes with a prior-year value of at least ${usd(GAP_MIN_BASELINE)} are scanned. Annotated gaps are listed in \`scripts/pipeline/config/approved-gaps.ts\`.`,
+    '',
+    '| Jurisdiction | Flow | Scope | Before | During | After | Status |',
+    '|---|---|---|---|---|---|---|',
+    ...gapRows,
     '',
     '## Year-over-year changes (informational)',
     '',
