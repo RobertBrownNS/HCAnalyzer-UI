@@ -52,4 +52,16 @@ Run-to-run variation is roughly ±150 ms on Fast 4G.
 
 ## Reproducing
 
-The scripts used are not part of the repository. To repeat by hand: Chrome DevTools → Performance panel, Network throttling with the values above, CPU 4× slowdown, Disable cache, record a reload; read the `fx:*` marks in the Timings track and Layout Shifts in the Experience track.
+With the scripts in the repository (QA, `qa/phase2/`):
+
+1. Build: `npm run build`.
+2. Serve the build with gzip, like the real hosts: `node qa/phase2/gzip-server.mjs dist/hcanalyzer-ui/browser 4300 <logFile>`. Optional `HOLD_MATCH` / `HOLD_MS` environment variables delay matching requests (for example the ECharts chunk) to force the "data ready, chart not" state. The log lists every request, so duplicate fetches can be counted.
+3. Run the probe: `node qa/phase2/load-probe.mjs http://localhost:4300 <outDir> '<scenarios JSON>'`, for example `'[{"name":"slow-phone","query":"?flow=revenue","width":390,"height":844,"mobile":true,"net":"slow4g","cpu":4}]'`. It records every animation frame and reports the `fx:*` marks, CLS and layout shifts, when skeletons became visible, aria-busy and live-region changes, and `gapFrames`: frames in which the chart area showed neither a skeleton nor the chart. The scenario options are listed at the top of the script.
+
+The probe's `slow4g`/`fast4g` are the DevTools presets (Slow 4G: 562.5 ms latency, about 1.3 Mbps down), harsher than the profile in the table above, so its absolute times are later.
+
+By hand: Chrome DevTools → Performance panel, Network throttling as above, CPU 4× slowdown, Disable cache, record a reload; read the `fx:*` marks in the Timings track and Layout Shifts in the Experience track.
+
+## Chart area never blank (QA-26 re-check, 2026-10-07)
+
+Per-frame check, from the first visible placeholder until the first drawn chart frame (`fx:chartRendered`), each animation frame classified as page skeleton, chart skeleton, chart, or blank. DevTools Slow 4G and Fast 4G presets, CPU 4×, cold cache, 5 runs each at 390 px and 1366 px (20 runs): every run went page skeleton → chart skeleton → chart with **0 blank frames**. `qa/phase2/load-probe.mjs` reports `gapFrames: 0` for the same Slow 4G phone and desktop scenarios. Before the fix, QA measured a blank chart area of up to about 400 ms.
