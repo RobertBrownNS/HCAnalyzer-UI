@@ -112,8 +112,8 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 - **Conditions to close Phase 2:** QA-11 (chart zoom not in view state, P2-08) and QA-12 (Back/forward, P2-06).
 - **Awaiting QA re-verification:** QA-13 (axis label contrast, fixed in `0c67b47`) and QA-16 (manual theme toggle, `0c67b47`). These hold P2-02 and P2-13 in `review`.
 - **Open minors:** QA-14 (no data-version/checksum check, P2-05), QA-18 (KPI test uses hand-made points, P2-13), QA-19 (user-facing notes expose internal paths), QA-20 (Export/Share messages on touch). QA-22 is a note.
-- **Resolved by decision:** QA-17, by DR-30 (URL writes every setting).
-- **Deferred:** QA-15 (tablet side panel) to Phase 6 polish. QA-21 (chart self-description when cropped) to Phase 5, where the PNG export must print the settings. See DR-31.
+- **Resolved by decision:** QA-17, by DR-32 (URL writes every setting).
+- **Deferred:** QA-15 (tablet side panel) to Phase 6 polish. QA-21 (chart self-description when cropped) to Phase 5, where the PNG export must print the settings. See DR-33.
 
 ### Acceptance criteria
 
@@ -142,7 +142,7 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 **P2-06 URL state**
 - [ ] Every control is a signal mirrored to query params (for example `measure`, `base`, `from`, `to`, `custodial`, `cpi`).
 - [ ] Round-trip: set controls, copy URL, open in a fresh tab, get an identical view (all control values deep-equal). Covered by a test.
-- [ ] Invalid or out-of-range params fall back to defaults and do not crash. Every setting is written to the URL, including defaults, so a shared link keeps its meaning if defaults change. Unknown params are preserved. (Amended by decisions DR-30, resolving QA-17.)
+- [ ] Invalid or out-of-range params fall back to defaults and do not crash. Every setting is written to the URL, including defaults, so a shared link keeps its meaning if defaults change. Unknown params are preserved. (Amended by decisions DR-32, resolving QA-17.)
 - [ ] Back/forward navigation restores the previous states.
 
 **P2-07 Controls**
@@ -166,7 +166,7 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
 
 **P2-10 Layout**
 - [ ] At phone width (360–430px), the chart is ~60% of viewport height, with a chip row of active settings. Tapping a chip opens a bottom sheet. No horizontal page scroll.
-- [ ] Tablet: collapsible side panel (deferred to Phase 6, QA-15 / DR-31). Desktop: persistent filters pane on the **right** (user decision D-07 overrides CLAUDE.md's "left").
+- [ ] Tablet: collapsible side panel (deferred to Phase 6, QA-15 / DR-33). Desktop: persistent filters pane on the **right** (user decision D-07 overrides CLAUDE.md's "left").
 - [ ] All touch targets are ≥ 44×44 CSS px (verified by measuring in devtools for chips, toggles, slider handles, and table toggle).
 
 **P2-11 Provenance display**
@@ -221,8 +221,8 @@ Phase 2 status notes (QA review `5a4afb2`: approve with conditions):
   - population basis;
   - known source anomalies (QA-01/QA-03);
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
-- Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-31).
-- Phase 6 carries QA-15 (tablet collapsible side panel) (DR-31).
+- Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
+- Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
 - Phase 4 is on hold (D-11).
 
 ---
