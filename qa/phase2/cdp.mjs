@@ -45,6 +45,12 @@ export async function newPage(port) {
       u.searchParams.set('county', process.env.QA_COUNTY);
       params = { ...params, url: u.toString() };
     }
+    // QA_EXTRA="chart=stacked&funds=general" adds params a script's URL doesn't already set (P3-10).
+    if (method === 'Page.navigate' && process.env.QA_EXTRA && /^https?:/.test(params.url)) {
+      const u = new URL(params.url);
+      for (const [k, v] of new URLSearchParams(process.env.QA_EXTRA)) if (!u.searchParams.has(k)) u.searchParams.set(k, v);
+      params = { ...params, url: u.toString() };
+    }
     const i = ++id;
     pending.set(i, { res, rej });
     ws.send(JSON.stringify({ id: i, method, params }));

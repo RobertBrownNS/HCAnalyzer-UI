@@ -851,3 +851,77 @@ Method: production build from a clean clone, served with gzip on an unused port,
 
 **Final Phase 4a sign-off (2026-10-07, `b25cecc`): APPROVE.** QA-33 to QA-38 are resolved and re-verified on a clean build: 319 app tests and 68 pipeline tests pass, and `npm run pipeline` reproduces the committed outputs. No open QA findings for Phase 4a. The data side (P4a-05, P4a-07 QA part) was approved earlier. DR-47 still requires the 2 LOGERX reclassifications to be annotated in Phase 3. Not verifiable here: base-year and range clamping on a county switch (identical year spans; unit tests only), real devices, and screen-reader output.
 
+### P3-09 / P3-10 review (2026-10-07, `cb9579b`)
+
+Method: clean clone of `cb9579b`. 434 app tests and 69 pipeline tests pass. `transform.ts` is at 255/255 statements and 263/263 branches. `npm run pipeline` reproduces the committed outputs. The production build was served with gzip and driven in headless Chrome. New QA scripts in `qa/phase3/`:
+- `sums_check.py`: stdlib, with QA's own UAS class reading;
+- `dump-transform.mts`: transform outputs for comparison;
+- `table_check.py`: every on-screen table cell re-derived from raw;
+- `drawer.mjs` and `drawer_check.py`;
+- `url3.mjs`, `qa07-text.mjs`, `p3-text.mjs`, `mapping.mjs` and `p3probe.mjs`.
+
+`qa/phase2/cdp.mjs` gained a `QA_EXTRA` hook, so the phase2 scripts can be re-run on category charts.
+
+**P3-09 (data), verified with no defects found:**
+- **UAS classes, read independently from the 5 stored editions** (sha256 matches the manifest):
+  - 31x–38x and 51x–58x are the same in every edition;
+  - **39x** is "Other Sources, Continued" in 2011 and 2019-20 and its own class "Proprietary Non-Operating Sources" from 2021-22;
+  - **59x** "Other Nonoperating" is a separate class in all five;
+  - court-related is 6xx–76x (the "775.08" in the text is a statute, §775.083, not an account).
+
+  This matches DR-48 and `categories.json`.
+- **2,456 independent comparisons, all equal to the dollar**, for both counties, every FY and both flows (custodial excluded):
+  - category sums = EDR total (Total Account − Custodial);
+  - each category = the pipeline `category` field = `transform.ts` `buildCategorySeries`;
+  - each fund type and each preset (General, Governmental, All, default) = `transform.ts` `buildSeries`.
+- **59x cells:** exactly **75** (DR-48).
+- **39x cells:** only Pinellas 392 FY 2007-08 and 393 FY 2016-17, both `other_sources`.
+- **Shares:** sum to 100% (exactly, before display rounding) in every table row checked.
+- **DR-51 caveat** is present on the 2025 UAS source (wording, see QA-43).
+- **QA-07:**
+  - The fund-groups caveat is on the EDR sources.
+  - "Includes General, Special Revenue, Debt Service, Capital Projects, Enterprise, Internal Service and Component Units" (built from the county's funds with data) appears in the desktop filters pane and the phone Funds sheet.
+  - The methodology "Funds" entry states that pension, trust, private-purpose and component units are included.
+- **DR-47/DR-50:** both notes cite the right cells. `revenues:2014!E48` = 335.8 "State Shared Revenues - Clerk Allotment from Justice Administrative Commission" $2,309,587; `expenditures:2015!J41` = 559 Other Economic Environment $1,164,281. Scoping in the drawer:
+  - Hillsborough FY 2014-15 Economic Environment shows the note with Internal Service alone and with all funds (cell rule); FY 2015-16 does not.
+  - Pinellas FY 2013-14 Intergovernmental shows its note; Ad Valorem does not.
+  - The note does not show on the all-funds total chart.
+
+**P3-10 (UI), verified with no defects found:**
+- **Values:** **1,382 table cells** re-derived from the raw files, all equal. Covered: stacked, share, bars and category lines; both counties and flows; nominal, per resident and real; plus a Governmental selection. The line chart was covered in the Phase 2 and 4a reviews.
+- **Source drawer (10 cases, including single-fund, preset, share and phone):**
+  - account rows sum exactly to the drawer's nominal total;
+  - every row's amount, account and cell ref equals the raw xlsx;
+  - each drawer lists exactly the non-zero cells in scope;
+  - the value equals the table cell;
+  - focus is trapped (30 Tabs), Escape closes, and focus returns to the opener.
+- **Net-of-transfers:** disabled with a visible hint for partial scopes. `funds=general&xfer=net` is rewritten to gross.
+- **URL:**
+  - old Phase 2 and 4a links open the line chart with identical KPIs ($5.47B, $2,859.32, $4.92B);
+  - unknown funds, categories and chart types fall back safely;
+  - `funds` is omitted when all are selected (DR-52);
+  - Back/Forward restores chart type, preset and category toggles step by step.
+- **CLS 0** for all 20 load scenarios: 5 chart types × 2 counties × desktop Fast 4G and phone Slow 4G (4× CPU). JS is fetched once.
+- **Neutrality** (`p3-text.mjs`; every chart type × county × default and General-Fund expenditure, the drawer and the mapping section): **0** ranking or loaded words.
+- **Mapping table:** equals `categories.json` (11 revenue and 10 expenditure ranges, including the year-ranged 39x rows). It cites edition and page, and the Categories link moves focus to it.
+- **Accessibility:**
+  - DOM contrast 0 AA failures in light and dark, desktop and phone, on stacked views for both counties;
+  - phone sheets (10 chips including Funds and Categories): controls ≥ 44 px, focus in and back;
+  - decals on areas and bars;
+  - no horizontal overflow at 360 and 390 px.
+
+| ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
+|---|---|---|---|---|---|
+| QA-39 | P3-06 / DR-53 | **major** | **Index-to-100 on stacked, share or bars mislabels the units.** With `idx=1&chart=stacked&base=2010` (Hillsborough revenue):<br>- the chart plots **dollars**, but the y-axis is formatted as plain numbers ("6,000,000,000", no $), because the formatter follows `indexTo100`;<br>- the legend calls the total line "Revenues, nominal dollars, **index, FY 2009-10 = 100**";<br>- the chart caption reads "Index, FY 2009-10 = 100 · Nominal dollars";<br>- the KPI cards show index values (188.0, 107.4);<br>- the category table caption says "nominal dollars, index, FY 2009-10 = 100" over dollar cells ($631,101,020).<br>DR-53 says these views "show values without the index, and say so". A screenshot would misstate the units. `chart=lines` with the index is correct (100.0 at base). | FE | open |
+| | | | *Suggested fix:* in non-line chart types, ignore `indexTo100` for every label (axis format, legend, caption, table caption) and show a visible line: "Index to 100 applies to Line and Lines by category." Decide whether the KPI cards follow the chart (no index) or keep the index with an explicit label. Add tests. **Condition.** | | |
+| QA-40 | P3-03 / QA-35 wording | minor | **"Total matches" is false in fund scopes that split the reclassified pair.** Hillsborough FY 2014-15 with only Internal Service selected is $172,150,521, and the cross-check text (table column, tooltip, drawer) says "**Total matches**; 1 amount classified differently". In the county's filing that Internal Service total is $1,164,281 lower (the amount is in Component Units). The same applies with only Component Units selected. The DR-50 reconciliation note does appear there; only the status line overclaims. Correct for all-funds and for category views (both accounts stay in the same category). | FE, DE | open |
+| | | | *Suggested fix:* when the fund selection includes some but not all of the note's `funds`, drop "Total matches" (e.g. "Cross-checked: 1 amount classified differently between the selected and other funds; see note"). Add a test. **Condition.** | | |
+| QA-41 | P3-06 palette | minor | **Duplicate colours in category charts.** Expenditures now have **10** categories (DR-48 added Other Nonoperating), but `$categories` has 9 colours and `category-chart.ts` uses `i % 9`. So **Court-Related** gets the same orange (#e69f00) as **General Government** (visible as the thin top band and the bottom band in stacked views, both counties). Also, the expenditure **total line** uses the series colour #d55e00, the same as category 5 **Economic Environment** (#d55e00), and the legend shows two identical vermillion swatches. ECharts' 6 default decals and the dashed total line separate them, but P3-06 says "never shown in a duplicate color". The token comment ("expenditures have nine") is out of date. | FE | open |
+| | | | *Suggested fix:* add a 10th category colour (or group beyond 9 with a label), and give the total line in category charts a colour outside the category palette (e.g. the neutral text colour). Update the comment. **Condition.** | | |
+| QA-42 | P3-02 / QA-07 | note | The preset is labelled "All funds", where D-18 and P3-02 say "All funds as reported by EDR". The chart caption for the default scope says "All funds, excluding custodial." without the "Includes …" list. That list is shown in the filters pane, the phone Funds sheet and the methodology entry, so QA-07 is met in substance. | FE, PM | open |
+| QA-43 | P3-01 / DR-51 caveat | note | The 2025 UAS source caveat says the earlier editions "were not available to compare". DR-51 says they "were not checked", and a damaged 2014 capture exists. Suggest "were not checked" for accuracy. | DE | open |
+| QA-44 | P3-03 / DR-50 scope | note | The Pinellas FY 2013-14 note is scoped `categories: [intergovernmental]`, but 335.8 and 335.9 are both Intergovernmental and Special Revenue. No category or fund value changes; only the account rows in the drawer do. P3-03 says "only where the difference changes what is on screen", so the category-view appearance is one surface more than needed. Decided by DR-50; noted for the record. | DE, PM | open |
+| QA-45 | P3-06 legend | note | The legend pages at 11 series: "1/2" on desktop, **"1/8"** on phone (390 px). It is usable, but on phone most series names are behind paging. The table view lists them all. | FE | open |
+
+**Phase 3 sign-off:** **APPROVE WITH CONDITIONS**. Conditions: QA-39 (major), QA-40 and QA-41 (stated criteria). The data side (P3-09) has no defects: every category, fund and preset sum equals EDR and `transform.ts`. Not verifiable here: real devices, screen-reader output, pointer clicks on chart bands (drawer tested from table cells and rows; `pointSelect` from the canvas was not exercised).
+
