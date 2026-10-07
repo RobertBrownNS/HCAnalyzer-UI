@@ -169,7 +169,7 @@ export function countyCrossChecks(c: Inputs['counties'][number]): { revenue: Flo
   const firstChecked = c.logerx.length ? Math.min(...c.logerx.map((e) => e.fiscalYear)) : null;
   const approved = APPROVED_TRANSFER_IMBALANCES.filter((a) => a.jurisdiction === c.county.slug).map((a) => a.fiscalYear);
   return {
-    revenue: flowCrossCheck(c.county.slug, 'revenue', c.revenues.sheets, observations, c.logerx, []),
+    revenue: flowCrossCheck(c.county.slug, 'revenue', c.revenues.sheets, observations, c.logerx, preCoverageTransferNotes(approved, firstChecked)),
     expenditure: flowCrossCheck(c.county.slug, 'expenditure', c.expenditures.sheets, observations, c.logerx, preCoverageTransferNotes(approved, firstChecked)),
   };
 }

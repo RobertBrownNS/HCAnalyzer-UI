@@ -261,6 +261,8 @@ Differences from Hillsborough:
 
 ## DFS LOGERX cross-check
 
+The API used here is the undocumented backend of the public LOGERX reports page, so it can change without notice (QA-31). That risk is limited by the committed per-county extracts, which keep the pipeline independent of the API, and by the manifest, which records the exact request for each extract so it can be repeated or done by hand on the public page.
+
 LOGERX is the Florida Department of Financial Services system where local governments file the Annual Financial Report (the DFS form). Its public reports page (https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu, "Citizens Enter Here") calls a public JSON API with no login:
 
 - `GET https://logerx.myfloridacfo.gov/api/document/AFR/reportYears` returns `[2013, ..., 2025]` (fiscal years ending; FY 2012-13 to FY 2024-25).
@@ -283,7 +285,7 @@ Storage (DR-43):
 - Full statewide downloads are kept only in `data/cache/logerx/<REPORT>-<year>.xlsx` (gitignored).
 - Committed: `data/raw/logerx/<county>/<revenues|expenditures>-fy<year>.csv`, every row for the county's entity code, all columns verbatim, sorted by account, then the remaining non-fund columns, then the whole row, with `\n` line endings. The extract's hash does not depend on the report's "as of" stamp or row order.
 - `data/raw/manifest.json` records per extract: the request (endpoint and body), retrieval date, the full download's cache path, byte size and sha256, the extract's sha256 and size, the entity code, row count and the report's "as of" stamp.
-- The full statewide file's sha256 changes on every download, because the title carries the "as of" date. The extracts do not. To re-verify: `npm run fetch -- --logerx` (network) or `--logerx --use-cache` (from the local cache); unchanged extracts are reported as "unchanged".
+- The full statewide file's sha256 changes on every download: the title carries the "as of" date, and the generated workbook also contains a random worksheet GUID (QA-29). The extracts do not change. The API response also carries fields besides `mimeType` and `content` (`uri`, `documentId`), which the pipeline ignores. To re-verify: `npm run fetch -- --logerx` (network) or `--logerx --use-cache` (from the local cache); unchanged extracts are reported as "unchanged".
 
 Reconciliation (validation section "LOGERX reconciliation"): every fiscal year x county x flow x account x fund amount in the extract is compared with the EDR cell. Differences are notes for review and never change EDR values.
 
@@ -302,7 +304,8 @@ Source fields (DR-45), derived from these results, never from config:
 
 - `countyAfrCrossCheck`: "full" only if every workbook year is reconciled and matches; "partial" otherwise when anything is reconciled. Both counties are "partial".
 - `crossCheckCoverage`: each workbook year exactly once; ranges "full", "mismatch" (reconciled with differences), "not-checked" (before FY 2012-13).
-- `crossCheckSummary`: the counts above, the unchecked years, Hillsborough's Clerk-PDF spot check, and for Pinellas the note that the FY 2005-06 transfer imbalance is before LOGERX coverage.
+- What the check shows (QA-30): EDR faithfully transcribes the county's DFS filing. It is not an audit of the county's figures, and the generated summaries say so.
+- `crossCheckSummary`: the counts above, the unchecked years, Hillsborough's Clerk-PDF spot check, and for Pinellas, on both flows (QA-32), the note that the FY 2005-06 transfer imbalance is before LOGERX coverage.
 
 ## Annotation approvals
 

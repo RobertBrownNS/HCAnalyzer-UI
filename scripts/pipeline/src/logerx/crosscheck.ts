@@ -95,8 +95,12 @@ export function flowCrossCheck(
       `Spot check: ${spot.length} values in the county-filed Annual Financial Reports for ${span([spotYears[0], spotYears.at(-1)!])} (the Florida Department of Financial Services form, as published by the county Clerk) match the EDR workbook.`,
     );
   }
+  if (reconciliations.length) {
+    // QA-30: the comparison shows EDR transcribes the county's filing; it does not audit the figures.
+    parts.push("The comparison checks EDR's transcription of the county's filing; it is not an audit of the county's figures.");
+  }
   if (uncheckedYears.length && reconciliations.length) {
-    parts.splice(1, 0, `${ranges(uncheckedYears).map(span).join(', ')} not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals.`);
+    parts.splice(2, 0, `${ranges(uncheckedYears).map(span).join(', ')} not cross-checked (before LOGERX coverage); values for those years are reconciled to the EDR workbook totals.`);
   }
   parts.push(...preCoverageNotes);
   const summary = parts.length ? parts.join(' ') : 'Not cross-checked against the county-filed Annual Financial Report.';
