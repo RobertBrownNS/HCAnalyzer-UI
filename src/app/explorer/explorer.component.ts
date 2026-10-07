@@ -11,7 +11,8 @@ import {
   isReal,
   transferLabel,
 } from '../core/labels';
-import { CROSS_CHECK_LABELS } from '../core/cross-check';
+import { CROSS_CHECK_LABELS, mismatchLegendLabel } from '../core/cross-check';
+import { CrossCheckRange } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
@@ -98,10 +99,12 @@ export class ExplorerComponent {
   readonly crossCheckLegend = computed(() => {
     const check = this.store.crossCheck();
     if (!check) return [];
-    const present = new Set([...check.values()].map((r) => r?.status));
-    return (['not-checked', 'mismatch'] as const)
-      .filter((status) => present.has(status))
-      .map((status) => ({ status, label: CROSS_CHECK_LABELS[status] }));
+    const ranges = [...check.values()].filter((r): r is CrossCheckRange => r !== null);
+    const mismatches = ranges.filter((r) => r.status === 'mismatch');
+    const items: { status: 'not-checked' | 'mismatch'; label: string }[] = [];
+    if (ranges.some((r) => r.status === 'not-checked')) items.push({ status: 'not-checked', label: CROSS_CHECK_LABELS['not-checked'] });
+    if (mismatches.length) items.push({ status: 'mismatch', label: mismatchLegendLabel(mismatches) });
+    return items;
   });
 
   readonly kpis = computed(() =>
@@ -125,7 +128,11 @@ export class ExplorerComponent {
   readonly chips = computed<SettingChip[]>(() => {
     const s = this.store.settings();
     const chips: SettingChip[] = [
-      { group: 'county', label: `County: ${this.store.countyShortName()}`, aria: 'County' },
+      {
+        group: 'county',
+        label: this.store.countyShortName() ? `County: ${this.store.countyShortName()}` : 'County',
+        aria: 'County',
+      },
       { group: 'flow', label: FLOW_LABELS[s.flow], aria: 'Data' },
       { group: 'measure', label: MEASURE_LABELS[s.measure], aria: 'Measure' },
     ];
@@ -160,7 +167,7 @@ export class ExplorerComponent {
     // Labels that already name their setting ("County: Pinellas") aren't prefixed again (QA-37).
     return chips.map((c) => ({
       ...c,
-      ariaLabel: `${c.label.startsWith(`${c.aria}:`) ? c.label : `${c.aria}: ${c.label}`}. Change`,
+      ariaLabel: `${c.label === c.aria || c.label.startsWith(`${c.aria}:`) ? c.label : `${c.aria}: ${c.label}`}. Change`,
     }));
   });
 

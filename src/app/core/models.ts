@@ -96,6 +96,8 @@ export interface AfrObservation extends Observation {
 export interface SourceRecord extends Source {
   rawFile?: string;
   accessUrl?: string;
+  /** Shared sources: caveats that apply to one county only, by county slug (shown with `caveats`). */
+  caveatsByJurisdiction?: Readonly<Record<string, readonly string[]>>;
   /** EDR AFR sources: how far the county's figures were checked against its own filed AFR. */
   countyAfrCrossCheck?: 'not-checked' | 'spot-check' | 'partial' | 'full';
   /** Plain-language statement of that check, for display. */
@@ -112,8 +114,14 @@ export interface CrossCheckRange {
   fromFiscalYear: number;
   toFiscalYear: number;
   status: CrossCheckStatus;
-  /** Mismatch ranges: how many values are classified differently (if the data provides it). */
+  /** Mismatch ranges: amounts present in both sources under a different account or fund. */
   classificationDifferences?: number;
+  /** Mismatch ranges: same account and fund, different amount. */
+  valueDifferences?: number;
+  /** Mismatch ranges: amounts in only one source, with no equal counterpart. */
+  unmatchedAmounts?: number;
+  /** Mismatch ranges: yearly totals equal in every year of the range. */
+  totalsMatch?: boolean;
 }
 
 export interface PopulationValue {

@@ -14,6 +14,11 @@ export function crossCheckNotice(src: SourceRecord): string | null {
   return src.countyAfrCrossCheck ? (src.crossCheckSummary ?? null) : null;
 }
 
+/** A source's caveats for one county: the shared ones plus that county's own. Exported for tests. */
+export function caveatsForCounty(src: SourceRecord, county: string): readonly string[] {
+  return [...src.caveats, ...(src.caveatsByJurisdiction?.[county] ?? [])];
+}
+
 /** Plain statement of the active settings and every source in view. */
 @Component({
   selector: 'app-methodology',
@@ -61,6 +66,11 @@ export class MethodologyComponent {
 
 
   readonly crossCheckNotice = crossCheckNotice;
+
+  /** Caveats shared by every county, plus those for the selected county only (QA-33). */
+  caveatsFor(src: SourceRecord): readonly string[] {
+    return caveatsForCounty(src, this.store.county());
+  }
 
   readonly sources = computed<SourceRecord[]>(() => {
     const data = this.store.data();

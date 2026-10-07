@@ -35,12 +35,16 @@ const source = (id: string, title: string, caveats: string[] = [], extra: Partia
 const PINELLAS_SUMMARY = 'Not cross-checked against the county-filed Annual Financial Report.';
 const HILLSBOROUGH_SUMMARY = 'Spot check: 14 values in the county-filed Annual Financial Reports match the EDR workbook.';
 
+const POP_YEARS = Object.fromEntries(
+  [2020, 2021, 2022, 2023].map((y) => [String(y), { value: 1_000_000, basis: 'bebr_estimate', sheet: `${y} BEBR` }]),
+);
+
 const cpiSeries = { sourceId: 'cpi', fiscalYear: {}, calendarYear: {}, fiscalYearUnavailable: {}, calendarYearUnavailable: {} };
 
 const shared = {
   population: {
-    hillsborough: { byYear: {}, sourceId: 'pop', reference: 'April 1 of the year shown', fiscalYearAlignment: 'x' },
-    pinellas: { byYear: {}, sourceId: 'pop', reference: 'April 1 of the year shown', fiscalYearAlignment: 'x' },
+    hillsborough: { byYear: POP_YEARS, sourceId: 'pop', reference: 'April 1 of the year shown', fiscalYearAlignment: 'x' },
+    pinellas: { byYear: POP_YEARS, sourceId: 'pop', reference: 'April 1 of the year shown', fiscalYearAlignment: 'x' },
   } as unknown as PopulationFile,
   cpi: { national: cpiSeries, tampa: cpiSeries, tampa_semiannual: cpiSeries } as unknown as CpiFile,
   annotations: [
@@ -50,11 +54,26 @@ const shared = {
   ],
   sources: [
     source('page', 'County Government Revenues and Expenditures (index page)'),
+    {
+      ...source('pop', 'Population estimates', ['Shared population caveat.']),
+      caveatsByJurisdiction: {
+        hillsborough: ['Hillsborough-only population caveat.'],
+        pinellas: ['Pinellas-only population caveat.'],
+      },
+    },
     source('edr-afr-revenues-hillsborough', 'Hillsborough County Government Revenues Reported by Account', [], {
       countyAfrCrossCheck: 'spot-check', crossCheckSummary: HILLSBOROUGH_SUMMARY,
       crossCheckCoverage: [
         { fromFiscalYear: 2020, toFiscalYear: 2020, status: 'full' },
-        { fromFiscalYear: 2021, toFiscalYear: 2021, status: 'mismatch' },
+        {
+          fromFiscalYear: 2021,
+          toFiscalYear: 2021,
+          status: 'mismatch',
+          classificationDifferences: 1,
+          valueDifferences: 0,
+          unmatchedAmounts: 0,
+          totalsMatch: true,
+        },
         { fromFiscalYear: 2022, toFiscalYear: 2023, status: 'full' },
       ],
     }),
@@ -70,6 +89,7 @@ const shared = {
 
 class ReadyDataService {
   readonly counties = signal(['hillsborough', 'pinellas']);
+  readonly defaultCounty = signal<string | null>('hillsborough');
   readonly countyNames = signal<Record<string, string>>({ hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' });
   statusFor = (): DataStatus => 'ready';
   errorFor = () => null;
@@ -205,6 +225,25 @@ describe('Explorer with a county selected', () => {
         ['FY 2021-22', 'Matches'],
         ['FY 2022-23', 'Matches'],
       ]);
+    });
+  });
+
+  describe('per-county source caveats (QA-33)', () => {
+    // Population sources appear in per-resident views.
+    const caveats = (el: HTMLElement) => el.querySelector('app-methodology .sources')?.textContent ?? '';
+
+    it('Pinellas: shared caveats plus Pinellas-only ones, no Hillsborough caveat', async () => {
+      const el = await open('/?county=pinellas&measure=per_capita');
+      expect(caveats(el)).toContain('Shared population caveat.');
+      expect(caveats(el)).toContain('Pinellas-only population caveat.');
+      expect(caveats(el)).not.toContain('Hillsborough-only population caveat.');
+    });
+
+    it('Hillsborough: shared caveats plus Hillsborough-only ones, no Pinellas caveat', async () => {
+      const el = await open('/?county=hillsborough&measure=per_capita');
+      expect(caveats(el)).toContain('Shared population caveat.');
+      expect(caveats(el)).toContain('Hillsborough-only population caveat.');
+      expect(caveats(el)).not.toContain('Pinellas-only population caveat.');
     });
   });
 });

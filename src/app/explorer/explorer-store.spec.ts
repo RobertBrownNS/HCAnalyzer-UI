@@ -62,6 +62,7 @@ const fixture: TransformData = {
 /** Per-county fake: `loaded` says which counties have their observations in. */
 class FakeDataService {
   readonly counties = signal(['hillsborough', 'pinellas']);
+  readonly defaultCounty = signal<string | null>('hillsborough');
   readonly countyNames = signal<Record<string, string>>({ hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' });
   readonly loaded = signal<Record<string, boolean>>({ hillsborough: true, pinellas: true });
   readonly failed = signal<string | null>(null);

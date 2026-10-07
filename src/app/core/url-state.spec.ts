@@ -74,7 +74,9 @@ describe('url-state', () => {
 
   describe('parseSettings fallbacks', () => {
     it('returns defaults for an empty query', () => {
-      expect(parseSettings(params(''))).toEqual(DEFAULT_SETTINGS);
+      expect(parseSettings(params(''), DEFAULT_SETTINGS)).toEqual(DEFAULT_SETTINGS);
+      // Without defaults, no county is assumed: the data names its default county.
+      expect(parseSettings(params('')).jurisdiction).toBe('');
     });
 
     it('defaults custodial to excluded', () => {
@@ -84,6 +86,7 @@ describe('url-state', () => {
     it('replaces each invalid value with its default and keeps valid ones', () => {
       const s = parseSettings(
         params('flow=expenditure&measure=bogus&base=20x1&idx=yes&from=abc&to=2020&cust=2&cpi=cpi-u-mars&cpiper=calendar'),
+        DEFAULT_SETTINGS,
       );
       expect(s).toEqual({
         ...DEFAULT_SETTINGS,

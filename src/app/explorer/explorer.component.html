@@ -38,7 +38,7 @@
       <div class="tile-head">
         <div class="heading">
           <h1 id="chart-title" class="fx-tile-title">
-            <span class="sr-only">{{ countyLabel() }}: </span>{{ chartTitle() }}
+            @if (countyLabel()) {<span class="sr-only">{{ countyLabel() }}: </span>}{{ chartTitle() }}
           </h1>
           <p class="fx-caption meta">
             <span class="swatch" [style.background]="seriesColor()"></span>{{ caption() }}

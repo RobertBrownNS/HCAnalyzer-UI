@@ -13,6 +13,7 @@ class LoadingDataService {
   readonly error = signal<string | null>(null);
   readonly data = signal<TransformData | null>(null);
   readonly counties = signal(['hillsborough', 'pinellas']);
+  readonly defaultCounty = signal<string | null>('hillsborough');
   readonly countyNames = signal<Record<string, string>>({ hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' });
   statusFor = () => this.status();
   errorFor = () => this.error();

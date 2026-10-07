@@ -8,7 +8,6 @@ import {
   TransformSettings,
   settingsWithDefaults,
 } from './transform';
-import { DEFAULT_COUNTY } from './site-config';
 import { Flow } from './models';
 
 export const QUERY_KEYS = ['flow', 'measure', 'base', 'idx', 'from', 'to', 'cust', 'cpi', 'cpiper', 'xfer', 'county'] as const;
@@ -47,10 +46,13 @@ function flag(value: string | null, fallback: boolean): boolean {
 }
 
 /** Parses query params. Each invalid value falls back to the matching default on its own. */
-/** Methodology defaults for the default county (the URL can name another). */
-const SITE_DEFAULTS = (): TransformSettings => settingsWithDefaults(DEFAULT_COUNTY);
+/** County not known yet: the URL names none and the data's county list hasn't loaded. */
+export const NO_COUNTY = '';
 
-export function parseSettings(params: ParamSource, defaults: TransformSettings = SITE_DEFAULTS()): TransformSettings {
+/** Methodology defaults with no county; the county comes from the URL or the data's default. */
+const BASE_DEFAULTS = (): TransformSettings => settingsWithDefaults(NO_COUNTY);
+
+export function parseSettings(params: ParamSource, defaults: TransformSettings = BASE_DEFAULTS()): TransformSettings {
   const from = year(params.get('from')) ?? defaults.range[0];
   const to = year(params.get('to')) ?? defaults.range[1];
   return {
@@ -85,17 +87,16 @@ export function serializeSettings(s: TransformSettings): QueryParams {
 }
 
 /**
- * A county the data doesn't offer falls back to the default county. With no county list yet
- * (manifest still loading) the county is returned unchanged.
+ * A county the data doesn't offer falls back to `fallbackCounty` (the data's default county).
+ * With no county list yet (manifest still loading) the county is returned unchanged.
  */
 export function normalizeCounty(
   s: TransformSettings,
   counties: readonly string[],
-  defaults: TransformSettings = SITE_DEFAULTS(),
+  fallbackCounty: string,
 ): TransformSettings {
   if (counties.length === 0) return s;
-  const fallback = defaults.jurisdiction;
-  const jurisdiction = s.jurisdiction && counties.includes(s.jurisdiction) ? s.jurisdiction : fallback;
+  const jurisdiction = s.jurisdiction && counties.includes(s.jurisdiction) ? s.jurisdiction : fallbackCounty;
   return jurisdiction === s.jurisdiction ? s : { ...s, jurisdiction };
 }
 
@@ -107,7 +108,7 @@ export function normalizeCounty(
 export function normalizeSettings(
   s: TransformSettings,
   years: readonly number[],
-  defaults: TransformSettings = SITE_DEFAULTS(),
+  defaults: TransformSettings = BASE_DEFAULTS(),
 ): TransformSettings {
   if (years.length === 0) return s;
   const min = years[0];

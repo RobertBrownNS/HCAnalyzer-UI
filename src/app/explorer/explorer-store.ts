@@ -16,10 +16,10 @@ import {
   selectCpi,
   settingsWithDefaults,
 } from '../core/transform';
-import { DEFAULT_COUNTY } from '../core/site-config';
 import { SKELETON_DELAY_MS } from './skeleton';
 import { Workbook, annotationNotes, labelBaseYearNotes } from './view-notes';
 import {
+  NO_COUNTY,
   QUERY_KEYS,
   QueryParams,
   normalizeCounty,
@@ -59,13 +59,18 @@ export class ExplorerStore {
    * The county being shown: from the URL, falling back to the default when the data doesn't offer
    * it. Settled first, because the data, the available years and the defaults all depend on it.
    */
-  readonly county = computed(
-    () => normalizeCounty(parseSettings(this.queryParams()), this.counties()).jurisdiction || DEFAULT_COUNTY,
-  );
+  readonly county = computed(() => {
+    const fromUrl = parseSettings(this.queryParams()).jurisdiction; // NO_COUNTY when absent or malformed
+    const fallback = this.dataService.defaultCounty() ?? NO_COUNTY;
+    return normalizeCounty(settingsWithDefaults(fromUrl), this.counties(), fallback).jurisdiction;
+  });
+  /** The county is settled: the data's county list has loaded. */
+  private readonly countyKnown = computed(() => this.counties().length > 0 && this.county() !== NO_COUNTY);
 
   /** "Pinellas County" and "Pinellas", from the data's own names. */
-  readonly countyLabel = computed(() => countyLabel(this.county(), this.countyNames()));
-  readonly countyShortName = computed(() => countyShortName(this.county(), this.countyNames()));
+  /** Empty until the county is known. */
+  readonly countyLabel = computed(() => (this.county() ? countyLabel(this.county(), this.countyNames()) : ''));
+  readonly countyShortName = computed(() => (this.county() ? countyShortName(this.county(), this.countyNames()) : ''));
 
   readonly status = computed(() => this.dataService.statusFor(this.county()));
   /** Data not loaded yet (idle or loading); not true after an error. */
@@ -174,15 +179,17 @@ export class ExplorerStore {
     // Load the selected county's observations once the county list is known (cached per county).
     effect(() => {
       const county = this.county();
-      if (this.counties().length) untracked(() => void this.dataService.loadCounty(county));
+      if (this.countyKnown()) untracked(() => void this.dataService.loadCounty(county));
     });
     // The page header names the county shown.
     const context = inject(CountyContext);
-    effect(() => context.id.set(this.county()));
+    effect(() => context.id.set(this.county() || null));
     inject(DestroyRef).onDestroy(() => context.id.set(null));
 
     // Keep the URL canonical: every key present, invalid values replaced.
     effect(() => {
+      // Only once the county is settled (the data's county list and default have loaded).
+      if (!this.countyKnown()) return;
       const canonical = serializeSettings(this.settings());
       const current = paramsOf(this.queryParams());
       // Replace, don't push: canonicalizing isn't a user action, so Back skips it.
@@ -198,7 +205,8 @@ export class ExplorerStore {
   update(patch: Partial<TransformSettings>): void {
     const merged = { ...this.settings(), ...patch };
     if (merged.jurisdiction !== this.county()) {
-      this.navigate(serializeSettings(normalizeCounty(merged, this.counties())), { replace: false });
+      const fallback = this.dataService.defaultCounty() ?? NO_COUNTY;
+      this.navigate(serializeSettings(normalizeCounty(merged, this.counties(), fallback)), { replace: false });
       return;
     }
     const next = normalizeSettings(merged, this.yearsFor(merged.flow), this.defaultsFor(merged.flow));

@@ -20,17 +20,35 @@ export const CROSS_CHECK_SHORT: Record<CrossCheckStatus, string> = {
   mismatch: 'Total matches; an amount classified differently',
 };
 
+const amounts = (n: number) => `${n} ${n === 1 ? 'amount' : 'amounts'}`;
+
 /**
- * Text for one year in the tooltip and table. For a mismatch year it says the total matches and
- * how many amounts are classified differently, from the data when it gives a count.
+ * Text for one year in the tooltip and table. For a mismatch year it says whether the yearly total
+ * matches (only when the data says so: `totalsMatch`) and what differs, from the data's counts.
+ * Today's mismatch years read "Total matches; 1 amount classified differently" (QA-35).
  */
-export function crossCheckYearText(range: Pick<CrossCheckRange, 'status' | 'classificationDifferences'>, form: 'long' | 'short' = 'long'): string {
+export function crossCheckYearText(range: Omit<CrossCheckRange, 'fromFiscalYear' | 'toFiscalYear'>, form: 'long' | 'short' = 'long'): string {
   const status = range.status;
   if (status !== 'mismatch') return form === 'long' ? CROSS_CHECK_LABELS[status] : CROSS_CHECK_SHORT[status];
-  const n = range.classificationDifferences;
-  return typeof n === 'number' && n > 0
-    ? `Total matches; ${n} ${n === 1 ? 'amount' : 'amounts'} classified differently`
-    : CROSS_CHECK_SHORT.mismatch;
+  const prefix =
+    range.totalsMatch === true ? 'Total matches' : range.totalsMatch === false ? 'Total differs from the county filing' : 'Cross-checked';
+  const parts: string[] = [];
+  if (range.classificationDifferences) parts.push(`${amounts(range.classificationDifferences)} classified differently`);
+  if (range.valueDifferences) parts.push(`${amounts(range.valueDifferences)} differ`);
+  if (range.unmatchedAmounts) parts.push(`${amounts(range.unmatchedAmounts)} in only one source`);
+  // No counts in the data: the decided fallback wording (QA-35).
+  if (!parts.length) parts.push('an amount classified differently');
+  return [prefix, ...parts].join('; ');
+}
+
+/**
+ * Legend text for mismatch markers. The decided wording (QA-35) when every mismatch year in view
+ * has matching totals; otherwise a general statement that does not claim the totals match.
+ */
+export function mismatchLegendLabel(ranges: readonly Pick<CrossCheckRange, 'totalsMatch'>[]): string {
+  return ranges.length && ranges.every((r) => r.totalsMatch === true)
+    ? CROSS_CHECK_LABELS.mismatch
+    : 'Cross-checked: some amounts differ from the county filing';
 }
 
 /** The range covering one fiscal year (inclusive); null when none does. */

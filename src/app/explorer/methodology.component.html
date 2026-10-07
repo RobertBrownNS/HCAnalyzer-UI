@@ -73,11 +73,12 @@
           <p class="notice">{{ notice }}</p>
         }
         <div class="meta">Retrieved {{ src.retrieved }} · SHA-256 <code>{{ src.sha256.slice(0, 12) }}…</code></div>
-        @if (src.caveats.length) {
+        @let caveats = caveatsFor(src);
+        @if (caveats.length) {
           <details>
-            <summary>Caveats ({{ src.caveats.length }})</summary>
+            <summary>Caveats ({{ caveats.length }})</summary>
             <ul>
-              @for (c of src.caveats; track $index) {
+              @for (c of caveats; track $index) {
                 <li>{{ c }}</li>
               }
             </ul>

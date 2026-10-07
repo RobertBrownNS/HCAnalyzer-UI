@@ -13,6 +13,8 @@ export interface ManifestFile {
   jurisdictions: string[];
   /** Display names, e.g. { pinellas: "Pinellas County" }. */
   jurisdictionNames?: Record<string, string>;
+  /** County shown when the URL names none (pipeline county config). */
+  defaultJurisdiction?: string;
   outputs: { path: string; sha256: string; bytes: number }[];
 }
 
@@ -72,6 +74,11 @@ export class DataService {
   readonly manifest = this._manifest.asReadonly();
   /** Counties the data offers (empty until the manifest has loaded). */
   readonly counties = computed(() => this._manifest()?.jurisdictions ?? []);
+  /** The data's default county: manifest.defaultJurisdiction, else its first county; null until loaded. */
+  readonly defaultCounty = computed(() => {
+    const m = this._manifest();
+    return m ? (m.defaultJurisdiction ?? m.jurisdictions[0] ?? null) : null;
+  });
   /** County display names from the manifest (empty until it has loaded). */
   readonly countyNames = computed<Record<string, string>>(() => this._manifest()?.jurisdictionNames ?? {});
 
