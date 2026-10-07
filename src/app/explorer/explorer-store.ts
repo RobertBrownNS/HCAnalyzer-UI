@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } f
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
-import { CountyContext } from '../core/county';
+import { CountyContext, countyLabel, countyShortName } from '../core/county';
 import { DataService } from '../core/data.service';
 import { Flow } from '../core/models';
 import {
@@ -52,6 +52,7 @@ export class ExplorerStore {
 
   /** Counties the data offers (empty until the manifest has loaded). */
   readonly counties = this.dataService.counties;
+  readonly countyNames = this.dataService.countyNames;
 
   /**
    * The county being shown: from the URL, falling back to the default when the data doesn't offer
@@ -60,6 +61,10 @@ export class ExplorerStore {
   readonly county = computed(
     () => normalizeCounty(parseSettings(this.queryParams()), this.counties()).jurisdiction ?? DEFAULT_JURISDICTION,
   );
+
+  /** "Pinellas County" and "Pinellas", from the data's own names. */
+  readonly countyLabel = computed(() => countyLabel(this.county(), this.countyNames()));
+  readonly countyShortName = computed(() => countyShortName(this.county(), this.countyNames()));
 
   readonly status = computed(() => this.dataService.statusFor(this.county()));
   /** Data not loaded yet (idle or loading); not true after an error. */

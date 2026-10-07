@@ -55,6 +55,7 @@ const shared = {
 
 class ReadyDataService {
   readonly counties = signal(['hillsborough', 'pinellas']);
+  readonly countyNames = signal<Record<string, string>>({ hillsborough: 'Hillsborough County', pinellas: 'Pinellas County' });
   statusFor = (): DataStatus => 'ready';
   errorFor = () => null;
   dataFor = (c: string): TransformData => ({

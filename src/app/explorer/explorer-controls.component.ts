@@ -9,7 +9,7 @@ import {
   fundScopeLabel,
   isReal,
 } from '../core/labels';
-import { countyName } from '../core/county';
+import { countyShortName } from '../core/county';
 import { Flow } from '../core/models';
 import { CpiIndex, CpiPeriod, Measure, TransferMode, fiscalYearLabel } from '../core/transform';
 import { ExplorerStore } from './explorer-store';
@@ -52,7 +52,8 @@ export class ExplorerControlsComponent {
   /** Counties the data offers; before the list loads, the current county alone. */
   readonly counties = computed(() => {
     const ids = this.store.counties();
-    return (ids.length ? ids : [this.county()]).map((id) => ({ value: id, label: countyName(id) }));
+    const names = this.store.countyNames();
+    return (ids.length ? ids : [this.county()]).map((id) => ({ value: id, label: countyShortName(id, names) }));
   });
   readonly scope = computed(() => fundScopeLabel(this.settings()));
 

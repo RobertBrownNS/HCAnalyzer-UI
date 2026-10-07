@@ -11,6 +11,8 @@ export interface ManifestFile {
   dataVersion: string;
   /** Counties with data, e.g. ["hillsborough", "pinellas"]. */
   jurisdictions: string[];
+  /** Display names, e.g. { pinellas: "Pinellas County" }. */
+  jurisdictionNames?: Record<string, string>;
   outputs: { path: string; sha256: string; bytes: number }[];
 }
 
@@ -70,6 +72,8 @@ export class DataService {
   readonly manifest = this._manifest.asReadonly();
   /** Counties the data offers (empty until the manifest has loaded). */
   readonly counties = computed(() => this._manifest()?.jurisdictions ?? []);
+  /** County display names from the manifest (empty until it has loaded). */
+  readonly countyNames = computed<Record<string, string>>(() => this._manifest()?.jurisdictionNames ?? {});
 
   /** Loads the shared files. Later calls return the same promise; a failed load can be retried. */
   load(): Promise<void> {

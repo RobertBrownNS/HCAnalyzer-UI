@@ -80,6 +80,7 @@ export type AnnotationTopic =
   | 'source-anomaly'
   | 'custodial-accounts'
   | 'custodial-zero'
+  | 'custodial-start'
   | 'population-source';
 
 /** One non-zero fund cell of one account row. Zero cells are omitted (= $0). */

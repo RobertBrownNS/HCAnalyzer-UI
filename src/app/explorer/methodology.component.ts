@@ -3,7 +3,6 @@ import { Component, computed, inject } from '@angular/core';
 import { FLOW_LABELS, MEASURE_LABELS, fundScopeLabel, isPerCapita, isReal, transferLabel } from '../core/labels';
 import { CpiSeriesFile, SourceRecord } from '../core/models';
 import { fiscalYearLabel } from '../core/transform';
-import { countyName } from '../core/county';
 import { ExplorerStore } from './explorer-store';
 
 /** Source caveats that must be visible, not only in the collapsed caveat list. */
@@ -54,7 +53,7 @@ export class MethodologyComponent {
   );
 
   readonly population = computed(() => this.store.data()?.population[this.store.county()] ?? null);
-  readonly countyLabel = computed(() => `${countyName(this.store.county())} County`);
+  readonly countyLabel = this.store.countyLabel;
 
   readonly cpi = computed(() => {
     const sel = this.store.cpiSelection();

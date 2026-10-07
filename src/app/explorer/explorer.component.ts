@@ -11,7 +11,6 @@ import {
   isReal,
   transferLabel,
 } from '../core/labels';
-import { countyName } from '../core/county';
 import { fiscalYearLabel } from '../core/transform';
 import { ChartSkeletonComponent } from './chart-skeleton.component';
 import { ControlGroup, ExplorerControlsComponent } from './explorer-controls.component';
@@ -78,7 +77,7 @@ export class ExplorerComponent {
     return parts.join(', ');
   });
 
-  readonly countyLabel = computed(() => `${countyName(this.store.county())} County`);
+  readonly countyLabel = this.store.countyLabel;
 
   /** Series 1 is revenue, series 2 is spending (expenditure); see _tokens.scss. */
   readonly seriesIndex = computed<1 | 2>(() => (this.store.settings().flow === 'revenue' ? 1 : 2));
@@ -110,7 +109,7 @@ export class ExplorerComponent {
   readonly chips = computed<SettingChip[]>(() => {
     const s = this.store.settings();
     const chips: SettingChip[] = [
-      { group: 'county', label: `County: ${countyName(this.store.county())}`, aria: 'County' },
+      { group: 'county', label: `County: ${this.store.countyShortName()}`, aria: 'County' },
       { group: 'flow', label: FLOW_LABELS[s.flow], aria: 'Data' },
       { group: 'measure', label: MEASURE_LABELS[s.measure], aria: 'Measure' },
     ];
