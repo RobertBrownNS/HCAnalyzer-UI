@@ -1,0 +1,113 @@
+[
+  {
+    "accessUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "caveats": [
+      "Base period 1982-84=100. Published monthly.",
+      "Calendar-year values are the BLS-published annual averages (period M13).",
+      "Fiscal-year (Oct-Sep) values are computed by this pipeline as the simple mean of the 12 monthly index values in that fiscal year, rounded to 3 decimals; BLS does not publish fiscal-year averages.",
+      "Series data in this file run from 2000-01 to 2026-08.",
+      "BLS published no value for 2025-10: Data unavailable due to the 2025 lapse in appropriations."
+    ],
+    "id": "bls-cpi-CUUR0000SA0",
+    "publisher": "U.S. Bureau of Labor Statistics (BLS)",
+    "rawFile": "data/raw/bls/CUUR0000SA0.json",
+    "retrieved": "2026-10-06",
+    "sha256": "24589f5d6530cf39604c9b98d1b44756d9f5cbbb8b344e9c1ffb2534f84175aa",
+    "title": "Consumer Price Index for All Urban Consumers (CPI-U), series CUUR0000SA0: All items in U.S. city average, all urban consumers, not seasonally adjusted",
+    "url": "https://data.bls.gov/timeseries/CUUR0000SA0"
+  },
+  {
+    "accessUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "caveats": [
+      "Base period 1987=100. Published bimonthly (odd months: Jan, Mar, May, Jul, Sep, Nov).",
+      "Calendar-year values are the BLS-published annual averages (period M13).",
+      "Fiscal-year (Oct-Sep) values are computed by this pipeline as the simple mean of the 6 published bimonthly values in that fiscal year, rounded to 3 decimals. BLS does not publish fiscal-year averages, and the same method applied to calendar years does not reproduce the BLS-published annual averages for this area.",
+      "Series data in this file run from 2017-11 to 2026-07."
+    ],
+    "id": "bls-cpi-CUURS35DSA0",
+    "publisher": "U.S. Bureau of Labor Statistics (BLS)",
+    "rawFile": "data/raw/bls/CUURS35DSA0.json",
+    "retrieved": "2026-10-06",
+    "sha256": "01fda8546d9232e84c637497fc88a5672a36a4db104ef4055ec44d4e83691166",
+    "title": "Consumer Price Index for All Urban Consumers (CPI-U), series CUURS35DSA0: All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted",
+    "url": "https://data.bls.gov/timeseries/CUURS35DSA0"
+  },
+  {
+    "accessUrl": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "caveats": [
+      "Base period 1987=100. Published as semiannual averages (Jan-Jun, Jul-Dec) plus an annual average.",
+      "Calendar-year values are the BLS-published annual averages (period S03).",
+      "No fiscal-year values: semiannual periods do not align with the Oct-Sep fiscal year.",
+      "Series data in this file run from 2000-H1 to 2026-H1."
+    ],
+    "id": "bls-cpi-CUUSS35DSA0",
+    "publisher": "U.S. Bureau of Labor Statistics (BLS)",
+    "rawFile": "data/raw/bls/CUUSS35DSA0.json",
+    "retrieved": "2026-10-06",
+    "sha256": "5596c67bd1784c72154658f52069d2c6afda02a0e9a4a1bcb2d27c154c7c6fcc",
+    "title": "Consumer Price Index for All Urban Consumers (CPI-U), series CUUSS35DSA0: All items in Tampa-St. Petersburg-Clearwater, FL, all urban consumers, not seasonally adjusted (semiannual averages)",
+    "url": "https://data.bls.gov/timeseries/CUUSS35DSA0"
+  },
+  {
+    "caveats": [
+      "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
+      "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
+      "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (e.g. 312.30 appears as 312.3).",
+      "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends."
+    ],
+    "id": "edr-afr-expenditures-hillsborough",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/hillsboroughcountyexpenditures.xlsx",
+    "retrieved": "2026-10-06",
+    "sha256": "d0f0c1b70c722e2693e35029852828da4d21e797e7d0cdf8d321d6080d2696b5",
+    "title": "Hillsborough County Government Expenditures Reported by Account (from county Annual Financial Reports)",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyexpenditures.xlsx"
+  },
+  {
+    "caveats": [
+      "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
+      "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
+      "Account codes are stored as numbers in the workbook, so trailing zeros of Uniform Accounting System codes are not preserved (e.g. 312.30 appears as 312.3).",
+      "Per-capita figures in the workbook use the April 1 population estimate for the calendar year in which the fiscal year ends."
+    ],
+    "id": "edr-afr-revenues-hillsborough",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/hillsboroughcountyrevenues.xlsx",
+    "retrieved": "2026-10-06",
+    "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0",
+    "title": "Hillsborough County Government Revenues Reported by Account (from county Annual Financial Reports)",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyrevenues.xlsx"
+  },
+  {
+    "caveats": [
+      "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
+      "Persons interested in reviewing 2021-2025 revenues or expenditures for an individual county government, minus the impact of any Custodial Fund reporting, can simply open the relevant Excel file and delete the Custodial column. Since the figures in the Total Account and Per Capita Accounts columns are formula-driven, these amounts will automatically recalculate when the Custodial column is deleted."
+    ],
+    "id": "edr-cntyfiscal-page",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR)",
+    "rawFile": "data/raw/edr/cntyfiscal.html",
+    "retrieved": "2026-10-06",
+    "sha256": "e0e7c2d142a2a8306b9feb4344e6ad9176ce2a8ca3094a7574c56337fe986c4a",
+    "title": "County Government Revenues and Expenditures (Annual Financial Report data) - index page and data-use notice",
+    "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal.cfm"
+  },
+  {
+    "accessUrl": "https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx",
+    "caveats": [
+      "Values are April 1 figures. Most years are BEBR estimates published that year; 2000, 2010 and 2020 also have census counts. These are not intercensal-revised series, so a census year can step up or down relative to the estimates around it.",
+      "For 2020 the pipeline uses the revised BEBR estimate (the value EDR used for FY 2019-20 per-capita figures); the 2020 census count is listed as an alternate.",
+      "EDR notes that countywide figures do not reflect the population estimates ultimately used for revenue-sharing purposes."
+    ],
+    "id": "edr-population-flcopops",
+    "publisher": "Florida Legislature, Office of Economic and Demographic Research (EDR); estimates by the Bureau of Economic and Business Research (BEBR), University of Florida",
+    "rawFile": "data/raw/edr-population/FLcopops.xlsx",
+    "retrieved": "2026-10-06",
+    "sha256": "4cd06da54bfa7dacc2e66715451c66173170554fa60445736e803d6938c73b6f",
+    "title": "Countywide, Unincorporated and Incorporated Totals - Census Counts and Population Estimates (FLcopops.xlsx)",
+    "url": "https://edr.state.fl.us/Content/population-demographics/data/index-floridaproducts.cfm"
+  }
+]

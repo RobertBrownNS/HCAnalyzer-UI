@@ -1,0 +1,624 @@
+{
+ "requests": [
+  {
+   "endyear": 2009,
+   "response": {
+    "Results": {
+     "series": [
+      {
+       "data": [],
+       "seriesID": "CUURS35DSA0"
+      }
+     ]
+    },
+    "message": [
+     "No Data Available for Series CUURS35DSA0 Year: 2000",
+     "No Data Available for Series CUURS35DSA0 Year: 2001",
+     "No Data Available for Series CUURS35DSA0 Year: 2002",
+     "No Data Available for Series CUURS35DSA0 Year: 2003",
+     "No Data Available for Series CUURS35DSA0 Year: 2004",
+     "No Data Available for Series CUURS35DSA0 Year: 2005",
+     "No Data Available for Series CUURS35DSA0 Year: 2006",
+     "No Data Available for Series CUURS35DSA0 Year: 2007",
+     "No Data Available for Series CUURS35DSA0 Year: 2008",
+     "No Data Available for Series CUURS35DSA0 Year: 2009"
+    ],
+    "status": "REQUEST_SUCCEEDED"
+   },
+   "startyear": 2000
+  },
+  {
+   "endyear": 2019,
+   "response": {
+    "Results": {
+     "series": [
+      {
+       "data": [
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "228.134",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "229.740",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "229.219",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "229.334",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "229.018",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "226.927",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "222.774",
+         "year": "2019"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "224.263",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "225.247",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "225.874",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "224.608",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "224.027",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "223.157",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "221.794",
+         "year": "2018"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "220.102",
+         "year": "2017"
+        }
+       ],
+       "seriesID": "CUURS35DSA0"
+      }
+     ]
+    },
+    "message": [
+     "No Data Available for Series CUURS35DSA0 Year: 2010",
+     "No Data Available for Series CUURS35DSA0 Year: 2011",
+     "No Data Available for Series CUURS35DSA0 Year: 2012",
+     "No Data Available for Series CUURS35DSA0 Year: 2013",
+     "No Data Available for Series CUURS35DSA0 Year: 2014",
+     "No Data Available for Series CUURS35DSA0 Year: 2015",
+     "No Data Available for Series CUURS35DSA0 Year: 2016"
+    ],
+    "status": "REQUEST_SUCCEEDED"
+   },
+   "startyear": 2010
+  },
+  {
+   "endyear": 2026,
+   "response": {
+    "Results": {
+     "series": [
+      {
+       "data": [
+        {
+         "footnotes": [
+          {}
+         ],
+         "latest": "true",
+         "period": "M07",
+         "periodName": "July",
+         "value": "315.964",
+         "year": "2026"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "316.435",
+         "year": "2026"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "311.681",
+         "year": "2026"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "310.244",
+         "year": "2026"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "307.516",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "308.706",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "309.669",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "310.071",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "306.585",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "305.407",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "303.197",
+         "year": "2025"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "299.315",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "299.638",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "299.722",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "300.062",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "298.673",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "299.030",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "296.477",
+         "year": "2024"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "292.258",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "295.029",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "296.146",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "292.974",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "293.269",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "288.319",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "285.267",
+         "year": "2023"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "273.597",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "280.395",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "277.490",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "276.750",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "273.245",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "267.590",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "262.052",
+         "year": "2022"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "247.951",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "255.851",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "251.221",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "248.811",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "245.419",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "242.910",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "239.135",
+         "year": "2021"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M13",
+         "periodName": "Annual",
+         "value": "233.844",
+         "year": "2020"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M11",
+         "periodName": "November",
+         "value": "236.989",
+         "year": "2020"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M09",
+         "periodName": "September",
+         "value": "236.804",
+         "year": "2020"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M07",
+         "periodName": "July",
+         "value": "233.447",
+         "year": "2020"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M05",
+         "periodName": "May",
+         "value": "231.032",
+         "year": "2020"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M03",
+         "periodName": "March",
+         "value": "231.619",
+         "year": "2020"
+        },
+        {
+         "footnotes": [
+          {}
+         ],
+         "period": "M01",
+         "periodName": "January",
+         "value": "231.258",
+         "year": "2020"
+        }
+       ],
+       "seriesID": "CUURS35DSA0"
+      }
+     ]
+    },
+    "message": [],
+    "status": "REQUEST_SUCCEEDED"
+   },
+   "startyear": 2020
+  }
+ ],
+ "seriesId": "CUURS35DSA0"
+}

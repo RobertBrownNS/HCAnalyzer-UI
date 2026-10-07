@@ -1,0 +1,53 @@
+{
+  "files": {
+    "data/raw/bls/CUUR0000SA0.json": {
+      "lastVerified": "2026-10-06",
+      "method": "BLS Public Data API v2 (no registration key), POST {seriesid:[\"CUUR0000SA0\"], annualaverage:true}, 2000-2026 in 10-year requests; responses stored as JSON without the responseTime field",
+      "retrieved": "2026-10-06",
+      "sha256": "24589f5d6530cf39604c9b98d1b44756d9f5cbbb8b344e9c1ffb2534f84175aa",
+      "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+    },
+    "data/raw/bls/CUURS35DSA0.json": {
+      "lastVerified": "2026-10-06",
+      "method": "BLS Public Data API v2 (no registration key), POST {seriesid:[\"CUURS35DSA0\"], annualaverage:true}, 2000-2026 in 10-year requests; responses stored as JSON without the responseTime field",
+      "retrieved": "2026-10-06",
+      "sha256": "01fda8546d9232e84c637497fc88a5672a36a4db104ef4055ec44d4e83691166",
+      "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+    },
+    "data/raw/bls/CUUSS35DSA0.json": {
+      "lastVerified": "2026-10-06",
+      "method": "BLS Public Data API v2 (no registration key), POST {seriesid:[\"CUUSS35DSA0\"], annualaverage:true}, 2000-2026 in 10-year requests; responses stored as JSON without the responseTime field",
+      "retrieved": "2026-10-06",
+      "sha256": "5596c67bd1784c72154658f52069d2c6afda02a0e9a4a1bcb2d27c154c7c6fcc",
+      "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+    },
+    "data/raw/edr-population/FLcopops.xlsx": {
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET",
+      "retrieved": "2026-10-06",
+      "sha256": "4cd06da54bfa7dacc2e66715451c66173170554fa60445736e803d6938c73b6f",
+      "url": "https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx"
+    },
+    "data/raw/edr/cntyfiscal.html": {
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET (HTML page saved for its data-use notice)",
+      "retrieved": "2026-10-06",
+      "sha256": "e0e7c2d142a2a8306b9feb4344e6ad9176ce2a8ca3094a7574c56337fe986c4a",
+      "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal.cfm"
+    },
+    "data/raw/edr/hillsboroughcountyexpenditures.xlsx": {
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET",
+      "retrieved": "2026-10-06",
+      "sha256": "d0f0c1b70c722e2693e35029852828da4d21e797e7d0cdf8d321d6080d2696b5",
+      "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyexpenditures.xlsx"
+    },
+    "data/raw/edr/hillsboroughcountyrevenues.xlsx": {
+      "lastVerified": "2026-10-06",
+      "method": "HTTP GET",
+      "retrieved": "2026-10-06",
+      "sha256": "50d37666d1aef900fe86f9611b4f715becd5b1e996eeb575f66bba847a54b7a0",
+      "url": "https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/hillsboroughcountyrevenues.xlsx"
+    }
+  }
+}

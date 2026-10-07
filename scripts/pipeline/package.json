@@ -1,0 +1,23 @@
+{
+  "name": "fl-county-finance-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build-time data pipeline: official EDR/BLS sources -> normalized JSON for the Florida County Finance Explorer",
+  "type": "module",
+  "scripts": {
+    "fetch": "tsx src/fetch.ts",
+    "build": "tsx src/build.ts",
+    "validate": "tsx src/validate.ts",
+    "pipeline": "npm test && npm run build && npm run validate",
+    "pipeline:refresh": "npm run fetch && npm run pipeline",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "exceljs": "^4.4.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
