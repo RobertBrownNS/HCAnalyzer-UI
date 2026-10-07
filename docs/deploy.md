@@ -137,17 +137,24 @@ How it works (`src/app/core/analytics.ts`):
 
 Get the token: Cloudflare dashboard → Analytics & Logs → Web Analytics → Add a site → enter the site's host name (one site per host: GitHub Pages and IIS are separate sites with separate tokens) → choose the JavaScript snippet option and copy the `token` value from the snippet. The token is not secret; it appears in the published page.
 
-Set it when building. The same commands work in PowerShell and Git Bash; the token is in single quotes inside double quotes:
+Where the tokens live (`angular.json`, `CF_ANALYTICS_TOKEN` under `define`):
 
-| Build | Command |
-|---|---|
-| IIS, site root | `npm run build -- --define "CF_ANALYTICS_TOKEN='<token>'"` |
-| IIS, sub-path | `npm run build -- --base-href /county-finance/ --define "CF_ANALYTICS_TOKEN='<token>'"` |
-| GitHub Pages | `npx ng build --configuration production,github-pages --define "CF_ANALYTICS_TOKEN='<token>'"` then `node tools/postbuild.mjs` |
+| Build | Token | Command |
+|---|---|---|
+| GitHub Pages (`robertbrownns.github.io`) | Set: `1b211162f18241c7b2899d54d542a420`, in the `github-pages` configuration | `npm run build:pages` (nothing else needed) |
+| IIS (default/root build) | Empty: analytics off | `npm run build` |
+| `npm start` (`ng serve`), `npm test` | Empty: analytics off | — |
 
-(`npm run build:pages` can't take the flag: its arguments go to `postbuild`, so run its two steps as shown.) A build without `--define` has analytics off.
+The token is public by design: it appears in the published page.
 
-Check a token build: open the site, then dev tools → Network: one request to `static.cloudflareinsights.com/beacon.min.js`, and the Privacy line under "Settings and sources". With Do Not Track or GPC on, there is no request.
+**Adding the IIS token later.** Create a separate Web Analytics site in Cloudflare for the IIS host name (one site per host), copy its token, then either:
+
+- set it for every IIS build: in `angular.json`, add `"define": { "CF_ANALYTICS_TOKEN": "'<iis-token>'" }` to the **`production`** configuration (keep the single quotes inside the double quotes). `npm run build` uses `production`; `npm start` uses `development` and tests use the empty default, so both stay off. Don't put it under `build.options`: that would switch it on for `npm start` too. `build:pages` applies `production` then `github-pages`, so the Pages token still wins for that build; or
+- pass it for one build: `npm run build -- --define "CF_ANALYTICS_TOKEN='<iis-token>'"` (add `--base-href /county-finance/` for a sub-path). This works in PowerShell and Git Bash.
+
+To turn analytics off for a build, set the value back to `"''"`.
+
+Check a token build: open the site, then dev tools → Network: one request to `static.cloudflareinsights.com/beacon.min.js` (then the beacon's page-view report to `cloudflareinsights.com/cdn-cgi/rum`), and the Privacy line under "Settings and sources". With Do Not Track or GPC on, there is no request. Local test loads of a token build count as page views unless you block the report request.
 
 **web.config needs no change.** It sets no Content-Security-Policy, so the beacon script and its report request to `cloudflareinsights.com` are allowed. If a CSP is added later, it must allow `script-src https://static.cloudflareinsights.com` and `connect-src https://cloudflareinsights.com`.
 
