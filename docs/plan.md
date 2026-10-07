@@ -276,9 +276,9 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 | P4a-02 | Reviewed transfer-imbalance approval list (all counties) | DE | none | todo |
 | P4a-03 | Multi-county `transform.ts` + golden tests | TE | P4a-01 (data shape) | todo |
 | P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | todo |
-| P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | todo |
+| P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | done |
 | P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | todo |
-| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | review |
+| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | done (pending QA-32 wording) |
 
 ### Acceptance criteria
 
@@ -345,7 +345,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 - [ ] Findings are logged in the findings log.
 
 **P4a-07 LOGERX cross-reference, both counties (DE; D-15, D-16)**
-> **Result (`d2fc34d`, 2026-10-07):** implemented and committed. 8,106 of 8,110 cells match across both counties, FY 2012-13 to FY 2024-25. The 4 differing cells are 2 reclassifications with equal totals (DR-47); the parsing rules are in DR-46. Both counties are `partial`. Status `review`: waiting on QA's independent re-derivation (at least 10 values per county, including the mismatches) under P4a-05, and on QA's check of the site wording.
+> **Result (`d2fc34d`, 2026-10-07):** implemented and committed. 8,106 of 8,110 cells match across both counties, FY 2012-13 to FY 2024-25. The 4 differing cells are 2 reclassifications with equal totals (DR-47); the parsing rules are in DR-46. Both counties are `partial`. QA approved the data side (P4a-05 done). P4a-07 is done **except QA-32**: the Pinellas revenue summary should also mention that the FY 2005-06 transfer imbalance is before LOGERX coverage. Per QA-30, all wording calls this a "cross-check that EDR matches the county's DFS filing; not an audit".
 >
 > **Status (2026-10-07):** LOGERX has a public JSON API covering FY 2012-13 to FY 2024-25, so the **machine-readable path is active** (DR-44). Raw storage follows DR-43. Years before FY 2012-13, including Pinellas FY 2005-06, stay "not cross-checked". UI wording is driven by `countyAfrCrossCheck` and `crossCheckCoverage` for each year range (DR-45). Both counties are `"partial"`. The PDF-only and manual-export criteria below do not apply.
 >
@@ -366,7 +366,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
   - The build is deterministic and works offline from `data/raw/`.
 - [ ] **If PDF only:** an extended spot check for both counties, wider than the Hillsborough 14-value check. The sample size and selection rule are agreed with the PM before starting. It covers every available year, both flows, totals and selected accounts, and custodial before and after FY 2020-21. Each value is recorded with document, page/line and the EDR cell ref.
 - [ ] **If manual export only:** step-by-step instructions for the user in `docs/` (what to click, which filings, file naming, where to save in `data/raw/`). The pipeline then runs the machine-readable path on the exported files.
-- [ ] **Site wording matches exactly what was checked, county by county.** Each county's EDR `Source` caveat states the method (automated reconciliation / spot check), the years and number of values, the document source, and the result (counts of matches and mismatches). Don't use "verified" for a spot check. The DR-42 caveat stays for any county or year range not checked. QA confirms the wording against `data/validation.md`.
+- [ ] **Site wording matches exactly what was checked, county by county.** Each county's EDR `Source` caveat states the method (automated reconciliation / spot check), the years and number of values, the document source, and the result (counts of matches and mismatches). Don't use "verified" for a spot check, and never describe any cross-check as verification or an audit. It is a cross-check that EDR matches the county's DFS filing; not an audit (QA-30). The DR-42 caveat stays for any county or year range not checked. QA confirms the wording against `data/validation.md`.
 - [ ] QA independently re-derives a sample from the LOGERX raw files, with no code shared with the pipeline: at least 10 values per county, including at least one reported mismatch if any exist. This runs under P4a-05.
 
 **P4a-06 QA: county-switch UI review**
@@ -397,6 +397,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
   - population basis;
   - known source anomalies (QA-01/QA-03);
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
+  - **what the LOGERX cross-check means (QA-30):** a cross-check that EDR matches the county's DFS filing; not an audit. LOGERX is the DFS system EDR compiles from, so a match shows EDR transcribed the filing faithfully. It does not show the county's figures are correct, complete or audited. The page states the covered years (FY 2012-13 onward), the match counts, and the uncovered years.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
 - **Phase 3, required annotations (DR-47):** when the fund-scope or category views ship, annotate the 2 LOGERX reclassifications through the approval list. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. Phase 3 is not done until they are annotated and QA has checked them.
