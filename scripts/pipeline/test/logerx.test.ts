@@ -124,7 +124,7 @@ describe('cross-check status and published fields', () => {
     expect(full.status).toBe('full');
     const mismatch = flowCrossCheck('t', 'revenue', [sheets[1]], [obs(2013, 99)], [{ fiscalYear: 2013, flow: 'revenue', csv }], []);
     expect([mismatch.status, mismatch.coverage[0].status]).toEqual(['partial', 'mismatch']);
-    expect(mismatch.summary).toContain('0 of 1 revenue values match; 1 differ');
+    expect(mismatch.summary).toContain('0 of 1 revenue values match; 1 cell differences (FY 2012-13), yearly totals differ');
   });
 });
 
@@ -134,6 +134,10 @@ describe('LOGERX account codes and expenditure object codes', () => {
     expect(logerxAccountCode('511.00 - Legislative')).toBe('511');
     expect(logerxAccountCode('329.xxx - Other Permits, Fees And Special Assessments')).toBe('329');
     expect(() => logerxAccountCode('abc - Nonsense')).toThrow(/unrecognized account code/);
+    // DR-46 (a): only NNN.xxx is mapped; any other non-numeric code fails the extract.
+    for (const bad of ['329.abc - X', '32x.000 - X', '3290.000 - X', ' - Missing code', '329.x1x - X']) {
+      expect(() => logerxAccountCode(bad), bad).toThrow(/unrecognized account code/);
+    }
   });
 
   it('sums expenditure object-code rows to the account', () => {

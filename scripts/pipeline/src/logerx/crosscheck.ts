@@ -81,7 +81,8 @@ export function flowCrossCheck(
     parts.push(
       `Cross-checked cell by cell against the Annual Financial Report data filed with the Florida Department of Financial Services (LOGERX) for ${ranges(checkedYears).map(span).join(', ')}: ` +
         (diffYears.length
-          ? `${match.toLocaleString('en-US')} of ${cells.toLocaleString('en-US')} ${flowWord} values match; ${(cells - match).toLocaleString('en-US')} differ or appear in only one source (${ranges(diffYears).map(span).join(', ')}) and are listed in the project validation report.`
+          ? `${match.toLocaleString('en-US')} of ${cells.toLocaleString('en-US')} ${flowWord} values match; ${(cells - match).toLocaleString('en-US')} cell differences (${ranges(diffYears).map(span).join(', ')}), ` +
+            `${reconciliations.every((r) => Math.abs(r.logerxTotal - r.edrTotal) < 0.5) ? 'yearly totals match' : 'yearly totals differ'}; listed in the project validation report.`
           : `all ${cells.toLocaleString('en-US')} ${flowWord} values match.`),
     );
   } else if (spot.length) {

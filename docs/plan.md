@@ -278,7 +278,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 | P4a-04 | County control in the UI + remove Hillsborough hard-coding | FE | P4a-03 | todo |
 | P4a-05 | QA: independent Pinellas re-read with the `qa/phase1` checker | QA | P4a-01, P4a-02 | todo |
 | P4a-06 | QA: county-switch UI review | QA | P4a-04, P4a-05 | todo |
-| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | todo |
+| P4a-07 | LOGERX cross-reference, both counties (D-15, D-16) | DE | P4a-01 | review |
 
 ### Acceptance criteria
 
@@ -345,6 +345,8 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
 - [ ] Findings are logged in the findings log.
 
 **P4a-07 LOGERX cross-reference, both counties (DE; D-15, D-16)**
+> **Result (`d2fc34d`, 2026-10-07):** implemented and committed. 8,106 of 8,110 cells match across both counties, FY 2012-13 to FY 2024-25. The 4 differing cells are 2 reclassifications with equal totals (DR-47); the parsing rules are in DR-46. Both counties are `partial`. Status `review`: waiting on QA's independent re-derivation (at least 10 values per county, including the mismatches) under P4a-05, and on QA's check of the site wording.
+>
 > **Status (2026-10-07):** LOGERX has a public JSON API covering FY 2012-13 to FY 2024-25, so the **machine-readable path is active** (DR-44). Raw storage follows DR-43. Years before FY 2012-13, including Pinellas FY 2005-06, stay "not cross-checked". UI wording is driven by `countyAfrCrossCheck` and `crossCheckCoverage` for each year range (DR-45). Both counties are `"partial"`. The PDF-only and manual-export criteria below do not apply.
 >
 > **Extra criteria:**
@@ -397,6 +399,7 @@ Cross-check (D-15, D-16): both counties are cross-referenced against LOGERX wher
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
+- **Phase 3, required annotations (DR-47):** when the fund-scope or category views ship, annotate the 2 LOGERX reclassifications through the approval list. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. Phase 3 is not done until they are annotated and QA has checked them.
 - **Phase 3:** any new long-running operation (category breakdowns, a second dataset such as expenditures alongside revenues) reuses the P2-15 skeleton components and follows the same rules: delay, no layout shift, a11y, reduced motion, errors take precedence. No new loader styles.
 - Phase 4 comparison overlays are still on hold (D-11). Only the Pinellas county switch is in scope, as Phase 4a (D-13).
 
