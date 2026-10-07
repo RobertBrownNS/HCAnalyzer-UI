@@ -7,8 +7,9 @@ try {
   const page = await newPage(browser.port);
   await page.viewport(1440, 900);
   const state = () => page.eval(`({ search: location.search, hist: history.length,
-    measure: document.querySelectorAll('aside select')[1]?.value, kpi: document.querySelector('app-kpi-row li .value')?.textContent.trim() })`);
-  const setSelect = (i, v) => page.eval(`(() => { const s = document.querySelectorAll('aside select')[${i}]; s.value = '${v}'; s.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+    measure: [...document.querySelectorAll('aside select')].find(s => [...s.options].some(o => o.value === 'per_capita'))?.value, kpi: document.querySelector('app-kpi-row li .value')?.textContent.trim() })`);
+  // Selects are found by an option value, not position (the County select came first in Phase 4a).
+  const setSelect = (_i, v) => page.eval(`(() => { const s = [...document.querySelectorAll('aside select')].find(x => [...x.options].some(o => o.value === '${v}')); s.value = '${v}'; s.dispatchEvent(new Event('change', { bubbles: true })); })()`);
 
   await page.goto(`${base}/?flow=revenue&measure=nominal`);
   console.log('start      ', await state());

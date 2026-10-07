@@ -38,6 +38,13 @@ export async function newPage(port) {
     } else if (msg.method) listeners.forEach((l) => l(msg));
   };
   const send = (method, params = {}) => new Promise((res, rej) => {
+    // QA_COUNTY=pinellas re-runs any phase2 script against that county: every navigation to an
+    // app URL that has no county param gets one (P4a-06).
+    if (method === 'Page.navigate' && process.env.QA_COUNTY && /^https?:/.test(params.url) && !/[?&]county=/.test(params.url)) {
+      const u = new URL(params.url);
+      u.searchParams.set('county', process.env.QA_COUNTY);
+      params = { ...params, url: u.toString() };
+    }
     const i = ++id;
     pending.set(i, { res, rej });
     ws.send(JSON.stringify({ id: i, method, params }));
