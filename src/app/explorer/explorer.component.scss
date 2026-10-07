@@ -143,6 +143,12 @@ app-view-notes:empty {
   gap: var(--fx-space-1);
 }
 
+.skel-chip {
+  flex: none;
+  height: var(--fx-touch-target);
+  border-radius: var(--fx-radius-sm);
+}
+
 .skel-field {
   height: var(--fx-control-h);
   margin-bottom: var(--fx-space-3);

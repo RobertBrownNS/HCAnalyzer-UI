@@ -72,10 +72,28 @@ describe('ExplorerComponent', () => {
     });
 
     it('does not state a fiscal-year range before the data says which years exist', async () => {
-      const el = await open();
-      const chips = [...el.querySelectorAll('.fx-chip')].map((c) => c.textContent?.trim());
+      await open();
+      const chips = (harness.routeDebugElement!.componentInstance as ExplorerComponent).chips().map((c) => c.label);
       expect(chips).toContain('Fiscal years');
       expect(chips.some((c) => c?.startsWith('FY '))).toBe(false);
+    });
+
+    it('phone chips: same-height placeholders until the first load, then the chips in their place (QA-47)', async () => {
+      const el = await open();
+      expect(el.querySelectorAll('.chips .skel-chip').length).toBeGreaterThan(0);
+      expect(el.querySelector('.chips .fx-chip')).toBeNull();
+      // The load ends (here with an error, which renders no chart): the chips replace the placeholders.
+      const data = TestBed.inject(DataService) as unknown as LoadingDataService;
+      data.error.set('offline');
+      data.status.set('error');
+      await harness.fixture.whenStable();
+      expect(el.querySelector('.chips .skel-chip')).toBeNull();
+      expect(el.querySelectorAll('.chips .fx-chip').length).toBeGreaterThan(0);
+      // Once shown, they stay while another load runs.
+      data.error.set(null);
+      data.status.set('loading');
+      await harness.fixture.whenStable();
+      expect(el.querySelectorAll('.chips .fx-chip').length).toBeGreaterThan(0);
     });
 
     it('error and Retry replace the skeletons', async () => {
@@ -111,11 +129,9 @@ describe('ExplorerComponent', () => {
   });
 
   it('shows one chip per active setting, custodial excluded by default', async () => {
-    await harness.navigateByUrl('/', ExplorerComponent);
+    const page = await harness.navigateByUrl('/', ExplorerComponent);
     await harness.fixture.whenStable();
-    const chips = [...(harness.routeNativeElement as HTMLElement).querySelectorAll('.fx-chip')].map((c) =>
-      c.textContent?.trim(),
-    );
+    const chips = page.chips().map((c) => c.label);
     expect(chips).toContain('Revenues');
     expect(chips).toContain('Nominal dollars');
     expect(chips).toContain('Custodial excluded');

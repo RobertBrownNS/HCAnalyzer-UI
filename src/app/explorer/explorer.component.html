@@ -22,15 +22,23 @@
     />
 
     <div class="chips" role="group" aria-label="Active settings">
-      @for (chip of chips(); track chip.aria) {
-        <button
-          type="button"
-          class="fx-chip"
-          [attr.aria-label]="chip.ariaLabel"
-          (click)="openSheet(chip.group)"
-        >
-          {{ chip.label }}
-        </button>
+      @if (controlsReady()) {
+        @for (chip of chips(); track chip.aria) {
+          <button
+            type="button"
+            class="fx-chip"
+            [attr.aria-label]="chip.ariaLabel"
+            (click)="openSheet(chip.group)"
+          >
+            {{ chip.label }}
+          </button>
+        }
+      } @else {
+        <!-- County and fund labels come from the data: placeholders of the chips' height until the
+             first load, so no chip changes width (and pushes the next) when they arrive (QA-47). -->
+        @for (w of skeletonChips; track $index) {
+          <span class="fx-skel skel-chip" aria-hidden="true" [class.fx-skel-pending]="!reveal()" [style.width]="w"></span>
+        }
       }
     </div>
 

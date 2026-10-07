@@ -70,7 +70,7 @@ export class ExplorerComponent {
   /** Placeholders are laid out at once but shown only after SKELETON_DELAY_MS (once per load). */
   readonly reveal = this.store.revealSkeleton;
   /**
-   * The Filters pane shows its controls from the first successful load (or a load error) on; after
+   * The Filters pane and the phone chips show from the first successful load (or a load error) on; after
    * that they stay, including while another county loads.
    */
   readonly controlsReady = linkedSignal<boolean, boolean>({
@@ -78,6 +78,7 @@ export class ExplorerComponent {
     computation: (ready, previous) => ready || (previous?.value ?? false),
   });
   readonly skeletonFields = ['30%', '25%', '35%', '40%', '45%', '35%', '50%'];
+  readonly skeletonChips = ['9rem', '7rem', '9rem', '11rem'];
   readonly skeletonTiles = [
     { heading: 'notes', lines: ['90%', '75%', '85%', '60%'] },
     { heading: 'sources', lines: ['70%', '95%', '80%', '90%', '65%', '85%'] },
