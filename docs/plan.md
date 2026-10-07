@@ -932,16 +932,16 @@ Method: clean clone of `cb9579b`. 434 app tests and 69 pipeline tests pass. `tra
 
 | ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
 |---|---|---|---|---|---|
-| QA-39 | P3-06 / DR-53 | **major** | **Index-to-100 on stacked, share or bars mislabels the units.** With `idx=1&chart=stacked&base=2010` (Hillsborough revenue):<br>- the chart plots **dollars**, but the y-axis is formatted as plain numbers ("6,000,000,000", no $), because the formatter follows `indexTo100`;<br>- the legend calls the total line "Revenues, nominal dollars, **index, FY 2009-10 = 100**";<br>- the chart caption reads "Index, FY 2009-10 = 100 · Nominal dollars";<br>- the KPI cards show index values (188.0, 107.4);<br>- the category table caption says "nominal dollars, index, FY 2009-10 = 100" over dollar cells ($631,101,020).<br>DR-53 says these views "show values without the index, and say so". A screenshot would misstate the units. `chart=lines` with the index is correct (100.0 at base). | FE | open |
+| QA-39 | P3-06 / DR-53 | **major** | **Index-to-100 on stacked, share or bars mislabels the units.** With `idx=1&chart=stacked&base=2010` (Hillsborough revenue):<br>- the chart plots **dollars**, but the y-axis is formatted as plain numbers ("6,000,000,000", no $), because the formatter follows `indexTo100`;<br>- the legend calls the total line "Revenues, nominal dollars, **index, FY 2009-10 = 100**";<br>- the chart caption reads "Index, FY 2009-10 = 100 · Nominal dollars";<br>- the KPI cards show index values (188.0, 107.4);<br>- the category table caption says "nominal dollars, index, FY 2009-10 = 100" over dollar cells ($631,101,020).<br>DR-53 says these views "show values without the index, and say so". A screenshot would misstate the units. `chart=lines` with the index is correct (100.0 at base). | FE | **verified** (`60a642f`) |
 | | | | *Suggested fix:* in non-line chart types, ignore `indexTo100` for every label (axis format, legend, caption, table caption) and show a visible line: "Index to 100 applies to Line and Lines by category." Decide whether the KPI cards follow the chart (no index) or keep the index with an explicit label. Add tests. **Condition.** | | |
-| QA-40 | P3-03 / QA-35 wording | minor | **"Total matches" is false in fund scopes that split the reclassified pair.** Hillsborough FY 2014-15 with only Internal Service selected is $172,150,521, and the cross-check text (table column, tooltip, drawer) says "**Total matches**; 1 amount classified differently". In the county's filing that Internal Service total is $1,164,281 lower (the amount is in Component Units). The same applies with only Component Units selected. The DR-50 reconciliation note does appear there; only the status line overclaims. Correct for all-funds and for category views (both accounts stay in the same category). | FE, DE | open |
+| QA-40 | P3-03 / QA-35 wording | minor | **"Total matches" is false in fund scopes that split the reclassified pair.** Hillsborough FY 2014-15 with only Internal Service selected is $172,150,521, and the cross-check text (table column, tooltip, drawer) says "**Total matches**; 1 amount classified differently". In the county's filing that Internal Service total is $1,164,281 lower (the amount is in Component Units). The same applies with only Component Units selected. The DR-50 reconciliation note does appear there; only the status line overclaims. Correct for all-funds and for category views (both accounts stay in the same category). | FE, DE | **verified** (`60a642f`) |
 | | | | *Suggested fix:* when the fund selection includes some but not all of the note's `funds`, drop "Total matches" (e.g. "Cross-checked: 1 amount classified differently between the selected and other funds; see note"). Add a test. **Condition.** | | |
-| QA-41 | P3-06 palette | minor | **Duplicate colours in category charts.** Expenditures now have **10** categories (DR-48 added Other Nonoperating), but `$categories` has 9 colours and `category-chart.ts` uses `i % 9`. So **Court-Related** gets the same orange (#e69f00) as **General Government** (visible as the thin top band and the bottom band in stacked views, both counties). Also, the expenditure **total line** uses the series colour #d55e00, the same as category 5 **Economic Environment** (#d55e00), and the legend shows two identical vermillion swatches. ECharts' 6 default decals and the dashed total line separate them, but P3-06 says "never shown in a duplicate color". The token comment ("expenditures have nine") is out of date. | FE | open |
+| QA-41 | P3-06 palette | minor | **Duplicate colours in category charts.** Expenditures now have **10** categories (DR-48 added Other Nonoperating), but `$categories` has 9 colours and `category-chart.ts` uses `i % 9`. So **Court-Related** gets the same orange (#e69f00) as **General Government** (visible as the thin top band and the bottom band in stacked views, both counties). Also, the expenditure **total line** uses the series colour #d55e00, the same as category 5 **Economic Environment** (#d55e00), and the legend shows two identical vermillion swatches. ECharts' 6 default decals and the dashed total line separate them, but P3-06 says "never shown in a duplicate color". The token comment ("expenditures have nine") is out of date. | FE | **verified** (`60a642f`) |
 | | | | *Suggested fix:* add a 10th category colour (or group beyond 9 with a label), and give the total line in category charts a colour outside the category palette (e.g. the neutral text colour). Update the comment. **Condition.** | | |
-| QA-42 | P3-02 / QA-07 | note | The preset is labelled "All funds", where D-18 and P3-02 say "All funds as reported by EDR". The chart caption for the default scope says "All funds, excluding custodial." without the "Includes …" list. That list is shown in the filters pane, the phone Funds sheet and the methodology entry, so QA-07 is met in substance. | FE, PM | open |
-| QA-43 | P3-01 / DR-51 caveat | note | The 2025 UAS source caveat says the earlier editions "were not available to compare". DR-51 says they "were not checked", and a damaged 2014 capture exists. Suggest "were not checked" for accuracy. | DE | open |
+| QA-42 | P3-02 / QA-07 | note | The preset is labelled "All funds", where D-18 and P3-02 say "All funds as reported by EDR". The chart caption for the default scope says "All funds, excluding custodial." without the "Includes …" list. That list is shown in the filters pane, the phone Funds sheet and the methodology entry, so QA-07 is met in substance. | FE, PM | **verified** (`60a642f`) |
+| QA-43 | P3-01 / DR-51 caveat | note | The 2025 UAS source caveat says the earlier editions "were not available to compare". DR-51 says they "were not checked", and a damaged 2014 capture exists. Suggest "were not checked" for accuracy. | DE | closed (wording kept; DR-51 amended) |
 | QA-44 | P3-03 / DR-50 scope | note | The Pinellas FY 2013-14 note is scoped `categories: [intergovernmental]`, but 335.8 and 335.9 are both Intergovernmental and Special Revenue. No category or fund value changes; only the account rows in the drawer do. P3-03 says "only where the difference changes what is on screen", so the category-view appearance is one surface more than needed. Decided by DR-50; noted for the record.<br>**Re-check at `a34887f`:** resolved by `drawerOnly` (`83e9646`). See the addendum below. | DE, PM | **verified** |
-| QA-45 | P3-06 legend | note | The legend pages at 11 series: "1/2" on desktop, **"1/8"** on phone (390 px). It is usable, but on phone most series names are behind paging. The table view lists them all. | FE | open |
+| QA-45 | P3-06 legend | note | The legend pages at 11 series: "1/2" on desktop, **"1/8"** on phone (390 px). It is usable, but on phone most series names are behind paging. The table view lists them all. | FE | **verified** (`60a642f`) |
 
 **Phase 3 sign-off:** **APPROVE WITH CONDITIONS**. Conditions: QA-39 (major), QA-40 and QA-41 (stated criteria). The data side (P3-09) has no defects: every category, fund and preset sum equals EDR and `transform.ts`. Not verifiable here: real devices, screen-reader output, pointer clicks on chart bands (drawer tested from table cells and rows; `pointSelect` from the canvas was not exercised).
 
@@ -981,4 +981,66 @@ Method: clean clone at `a34887f`. **446** app tests pass. The production build w
   - **Token-absent build** (default config, as for IIS/root): no Cloudflare request, no beacon script and no Privacy line.
 
 **Phase 3 sign-off unchanged: APPROVE WITH CONDITIONS** (QA-39 major; QA-40 and QA-41). QA-44 verified. P3-11 verified live.
+
+#### Phase 3 final recheck (2026-10-07, `60a642f`)
+
+Method: clean clone at `4ac6254`, then again at `60a642f`.
+- 467 app tests pass at `60a642f` (464 at `4ac6254`).
+- 69 pipeline tests pass, VALIDATION PASSED, and the pipeline is deterministic (clean tree after `npm run pipeline`).
+- The production build was served with gzip and driven in headless Chrome.
+
+New QA scripts:
+- `qa/phase3/p3final.mjs`;
+- `qa/phase3/palette_check.py` (stdlib; delta-E with Machado colour-vision simulation);
+- `qa/phase3/shift-sources.mjs`.
+
+Re-run: `drawer.mjs`, `p3-text.mjs` (0 hits, with and without `idx=1`) and `qa/phase2/load-probe.mjs`.
+
+- **QA-39 (verified).** With `idx=1&base=2010`, both counties:
+  - **Stacked and bars:**
+    - the caption, KPI cards, legend, table caption and drawer all show dollars ($5.47B; "By category: Revenues, nominal dollars"; $631,101,020; drawer "$595,131,736 (18.6% of the selected total)");
+    - the y-axis shows $ (screenshot);
+    - the visible note reads "Index to 100 applies to the line charts only; this chart shows values in nominal dollars."
+  - **Share:**
+    - the caption is "Share of the selected total (%)";
+    - the note reads "… this chart shows shares of the selected total.";
+    - the table is in %.
+  - **Line and lines** still index ("Index, FY 2009-10 = 100"; 100.0 at base; KPI 188.0 / 206.5; line drawer "Value: 109.9" with the nominal total below). The strings match DR-54 as amended (`28557a2`).
+- **QA-40 (verified).** The total table's cross-check column and the drawer, for every scope:
+
+  | County, year | Scope | Text shown |
+  |---|---|---|
+  | Hillsborough FY 2014-15 | Internal Service only, Component Units only, or General + Internal Service | "Total for these funds differs by $1,164,281; an amount classified differently" (long form in the drawer, including the Economic Environment cell) |
+  | Hillsborough FY 2014-15 | Both sides, or all funds | "Total matches; 1 amount classified differently" |
+  | Hillsborough FY 2014-15 | General Fund (with or without custodial), or another category such as Public Safety, or General Government with Internal Service only | "Matches" / "Cross-checked: matches the county-filed AFR" |
+  | Pinellas FY 2013-14 | All funds, Special Revenue, or the Intergovernmental cell (desktop, and phone share view) | "Total matches; 1 amount classified differently" |
+  | Pinellas FY 2013-14 | General Fund, Enterprise + General, or the Ad Valorem cell | "Matches" |
+
+  **DR-54 condition:** I swept the cross-check column for 2 counties × 2 flows × 8 scopes (all funds, General, Internal Service, Component Units, Special Revenue, Enterprise, custodial included, per resident real). Every year up to FY 2011-12 reads "Not cross-checked" in all 32 views; "Matches" appears only from FY 2012-13. The drawer for FY 2010-11 (Internal Service, Economic Environment) and FY 2011-12 (General Fund total) says "Not cross-checked against the county-filed AFR".
+- **QA-41 (verified).**
+  - 11 category colours with no duplicates. The closest pair in normal vision is ΔE 25.5 in light (orange/yellow) and 17.2 in dark (sky blue/blue).
+  - The total line (`chart-total`, #2b3240 light / #f2f4f7 dark) is not a category colour; 12.9:1 and 14.6:1 against the tile.
+  - Screenshots in light and dark (desktop and phone) show distinct swatches for all 10 expenditure categories and the total.
+- **QA-42 (verified).**
+  - Under the chart: "All funds as reported by EDR: Includes General, Special Revenue, Debt Service, Capital Projects, Enterprise, Internal Service and Component Units." in both counties, on line and stacked.
+  - It is not shown for General or custom selections, where the scope line already names the funds.
+  - It sits inside the fixed-height figure and doesn't overlap the canvas (desktop: canvas 480 px, line at 504–520; phone: canvas 558–594, line at 618–666).
+- **QA-45 (verified).**
+  - At 390 and 360 px (light and dark), the legend wraps and lists all 11 entries with no paging (DR-56).
+  - There is no horizontal overflow.
+  - CLS is **0** in 30 of 31 load scenarios (5 chart types × 2 counties × 2 flows on phone Slow 4G with 4× CPU, plus desktop Fast 4G). The one exception is the chip-row shift in QA-47, which is not caused by the legend.
+  - One phone run (Hillsborough, lines, revenue) showed the error state: `funds.json` failed with HTTP status 0 under throttling. Two re-runs loaded normally. I treat this as a QA-harness network failure, not an app defect. The error state itself rendered correctly, with CLS 0.
+- **Favicon (D-22, live `main` `1573361`): verified.**
+  - The page links `favicon.svg`, `favicon.ico` and `apple-touch-icon.png` relative to `<base href="/HCAnalyzer-UI/">`.
+  - Under the sub-path, all of these return 200 with the right types and are byte-identical to the repo: `favicon.ico` (16/32/48 PNG entries, `image/vnd.microsoft.icon`), `favicon.svg` (`image/svg+xml`), `apple-touch-icon.png` 180², `icon-192.png` 192², `icon-512.png` 512².
+  - The root `/favicon.ico` is 404, so nothing depends on the root.
+  - The SVG geometry matches D-22: navy rx 6; amber bars at x 6/12/18/24, width 4, heights 10/18/12/20, bottoms aligned at y 26.
+  - IIS `web.config`: one-day cache for the five icon files; `.svg` relies on IIS's built-in MIME type.
+
+| ID | Phase/Task | Severity (blocker/major/minor) | Finding | Owner | Status |
+|---|---|---|---|---|---|
+| QA-46 | P3-06 palette (colour vision) | note | Normal-vision distinctness is fine (above). Under simulated colour-vision deficiency some pairs come close: light **orange #e69f00 / yellow #b8a800** ΔE ≈ 0 for protanopia; light **reddish purple / grey** ΔE 3.0 for deuteranopia; dark **blue #4a9fd8 / deep purple #a68fd9** ΔE 3.7 for protanopia (expenditures only). The orange/yellow pair dates from Phase 3's start. Every band and bar also has its own decal and every line its own marker, so colour is never the only cue (CLAUDE.md "colorblind-safe"). No action needed; noted for the record. | FE | open |
+| QA-47 | P2-15 / P4a-06 (phone chips) | minor | **Small layout shift in the phone chip row during load.** Under Slow 4G with 4× CPU, at about 5.2 s (before data-ready), the county chip changes from "County" to "County: Hillsborough". The Data and Measure chips move right by 83 px, giving CLS 0.0042–0.0049 (`shift-sources.mjs`). It happens at 360 px in light and dark and intermittently at 390 px, and is the same at `a34887f`, so it **predates these fixes**. It is far below 0.1, but the criterion is "CLS ≈ 0". *Suggested fix:* reserve the chip's width, or label it from the URL's county as soon as the registry loads. **Not a Phase 3 condition.** | FE | open |
+
+**Phase 3 final sign-off (`60a642f`): APPROVE.** QA-39, QA-40, QA-41, QA-42 and QA-45 are verified; QA-43 is closed and QA-44 verified. P3-11 analytics and P3-12 favicon are verified live. Remaining items are a note (QA-46) and a pre-existing minor issue (QA-47) for a later phase. Not verifiable here: real devices and browsers' tab-bar rendering of the favicon, screen-reader output, and pointer selection on canvas bands (drawer tested from table cells and rows).
 
