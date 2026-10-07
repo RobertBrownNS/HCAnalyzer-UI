@@ -444,6 +444,11 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | in-progress |
 | P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | todo |
 
+Phase 3 status notes: QA's review is committed, **approve with conditions**.
+- **Conditions** (all assigned to FE): QA-39, QA-40, QA-41.
+- **QA-43:** the caveat wording "not available to compare" is the team lead's wording and accurate. DR-51 and R-08 are amended to match.
+- **QA-44:** resolved by the `drawerOnly` change (`83e9646`, after QA's review commit). Awaiting QA re-check.
+
 ### Acceptance criteria
 
 **P3-01 UAS category mapping (DE)**
@@ -573,7 +578,7 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
   - known source anomalies (QA-01/QA-03);
   - how to run `npm run fetch` / `npm run pipeline` and verify the checksums.
   - **privacy (D-21):** the approved Privacy wording; what Cloudflare Web Analytics collects (page views, referrers) and doesn't (no cookies, no personal information); that DNT and GPC are respected; and that no other third-party services are used.
-  - **UAS edition coverage (DR-51):** categories follow the DFS UAS Manual. FY 2004-05 to FY 2009-10 use the 2011 edition's classes because the earlier editions were not checked. 39x is year-ranged (DR-48).
+  - **UAS edition coverage (DR-51):** categories follow the DFS UAS Manual. FY 2004-05 to FY 2009-10 use the 2011 edition's classes because the earlier editions were not available to compare. 39x is year-ranged (DR-48).
   - **what the LOGERX cross-check means (QA-30):** a cross-check that EDR matches the county's DFS filing; not an audit. LOGERX is the DFS system EDR compiles from, so a match shows EDR transcribed the filing faithfully. It does not show the county's figures are correct, complete or audited. The page states the covered years (FY 2012-13 onward), the match counts, and the uncovered years.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - **Phase 5 export (D-17):** CSV/PNG export and its header Export button ship together, in the same change. No placeholder or disabled Export control is shown before then. The button gets the usual criteria: 44 px, keyboard focus, light/dark, and a visible error if export fails.
