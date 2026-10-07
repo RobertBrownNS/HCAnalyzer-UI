@@ -39,8 +39,8 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 | ID | Question | Current interim default |
 |---|---|---|
 | O-05 | Population year alignment | EDR's own per-capita denominator: April 1 of the year the FY ends (DR-08) |
-| O-06 | How account codes map to categories | UAS account-code prefixes (DR-04); needed for Phase 3 |
-| O-07 | What "all funds" includes (enterprise, internal service, component units, pension/trust) | Everything EDR reports, minus custodial (DR-14) |
+| O-06 | How account codes map to categories | **Closed → D-19** (UAS groupings, Ad Valorem split out) |
+| O-07 | What "all funds" includes (enterprise, internal service, component units, pension/trust) | **Closed → D-18** (fund multi-select, presets, "Includes …" text) |
 | O-08 | GASB 84 label trailing period | Keep as in CLAUDE.md |
 | O-10 | FY 2022-23 / FY 2023-24 expenditure classification break | Shown as published, with annotations and cell refs |
 | O-11 | Net transfers with a narrower fund scope | Disable "net" outside all-funds scope (risks R-19) |
@@ -62,6 +62,24 @@ Owners: **DE** data engineer · **FE** frontend engineer · **TE** transform eng
 - LOGERX has no documented API, so it may change without notice (QA-31). Extracts are committed with hashes, so builds don't depend on it.
 - Not verified: real devices, screen readers, and clamping on a county switch (unit tests only).
 
+
+### Phase 3: Breakdowns, 2026-10-07
+
+**Status:** approved by QA (final at `60a642f`, tag `phase-3-approved`). Analytics (P3-11) and the favicon (P3-12) are already live on `main`.
+
+**What shipped**
+- **Fund scope** (D-18): a per-fund multi-select with General Fund, Governmental and "All funds as reported by EDR" presets. The "Includes …" text closes QA-07 / O-07. Custodial keeps its own toggle, excluded by default. Net of transfers is available only with all funds selected (O-11 interim).
+- **Categories** (D-19): UAS groupings with Ad Valorem split out. They are year-ranged by manual edition (DR-48). Pre-2011 editions were not available to compare (DR-51). The mapping table is published with its source.
+- **Chart types** (D-20): stacked area, 100% share, bars, and category lines. Index-to-100 applies to line charts only (DR-53). The URL rules are in DR-52. Phone legend space is in DR-56.
+- **Source drawer:** source, accounts, cell refs, caveats and cross-check status for each point. The "Matches the county-filed AFR" text appears only for cross-checked years.
+- **DR-47 closed:** the LOGERX reclassification notes are scoped to the affected fund, category or drawer views (DR-50).
+- **Analytics** (D-21): cookieless, live on GitHub Pages only; the IIS build is pending its token. **Favicon** (D-22).
+
+**Carried forward**
+- QA-47 fix (in progress).
+- R-08 residual (pre-2011 UAS).
+- The Phase 5 methodology items: UAS edition coverage, the LOGERX "not an audit" wording, and privacy.
+- Not verified: real devices, screen readers, clicking canvas bands.
 ---
 
 ## Phase 1: Data pipeline
@@ -432,25 +450,20 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 
 | ID | Task | Owner | Depends on | Status |
 |---|---|---|---|---|
-| P3-01 | UAS category mapping: source and published table | DE | none | review |
-| P3-02 | Fund metadata (fund types, groups for presets, what "all funds" includes) | DE | none | review |
-| P3-03 | DR-47 reclassification annotations, scoped to fund and category views | DE | P3-01, P3-02 | review |
-| P3-04 | Transform: fund and category filters, category series, net-transfer rule, golden tests | TE | P3-01, P3-02 | review |
-| P3-05 | Fund multi-select, presets, and category picker | FE | P3-02, P3-04 | review |
-| P3-06 | Chart-type switch: stacked area, 100% share, bars, category overlay | FE | P3-04 | review |
-| P3-07 | Source drawer on point tap | FE | P3-03, P3-04 | review |
-| P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | review |
-| P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | in-progress |
-| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | in-progress |
-| P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | review |
-| P3-12 | Favicon and app icons (D-22) | FE | none (design approved, D-22) | in-progress |
+| P3-01 | UAS category mapping: source and published table | DE | none | done |
+| P3-02 | Fund metadata (fund types, groups for presets, what "all funds" includes) | DE | none | done |
+| P3-03 | DR-47 reclassification annotations, scoped to fund and category views | DE | P3-01, P3-02 | done |
+| P3-04 | Transform: fund and category filters, category series, net-transfer rule, golden tests | TE | P3-01, P3-02 | done |
+| P3-05 | Fund multi-select, presets, and category picker | FE | P3-02, P3-04 | done |
+| P3-06 | Chart-type switch: stacked area, 100% share, bars, category overlay | FE | P3-04 | done |
+| P3-07 | Source drawer on point tap | FE | P3-03, P3-04 | done |
+| P3-08 | URL state for every new control, and multi-series table view | FE | P3-05, P3-06 | done |
+| P3-09 | QA: independent re-derivation of category and fund sums (both counties) | QA | P3-01..P3-04 | done |
+| P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | done |
+| P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | done |
+| P3-12 | Favicon and app icons (D-22) | FE | none (design approved, D-22) | done |
 
-Phase 3 status notes: QA's review is committed, **approve with conditions**.
-- **Conditions** (all assigned to FE): QA-39, QA-40, QA-41.
-- **QA-43:** the caveat wording "not available to compare" is the team lead's wording and accurate. DR-51 and R-08 are amended to match.
-- **QA-44:** resolved by the `drawerOnly` change (`83e9646`, after QA's review commit). Awaiting QA re-check.
-- **P3-11 analytics:** implemented at `0a9cf12`, shipped on its own to `main` at `7c4320c`, and live on GitHub Pages. Status `review`: QA is checking it on the live site.
-- **P3-12 favicon:** the design was approved 2026-10-07 (D-22). `in-progress`: the FE is regenerating all icon files from the approved SVG with `tools/favicons.mjs`.
+Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only.
 
 ### Acceptance criteria
 
@@ -573,12 +586,17 @@ Phase 3 status notes: QA's review is committed, **approve with conditions**.
 - [ ] Spot-check 3 values per chart type per county against the raw xlsx.
 
 ### Phase 3 Definition of Done
-- [ ] P3-01 to P3-12 are `done`, with no open blocker or major findings. P3-12 may move to Phase 6 if the user hasn't approved a design by then.
-- [ ] Category and fund sums equal EDR totals for every county, FY and flow, confirmed independently by QA.
-- [ ] **DR-47 is closed**, with both reclassifications annotated in scoped views. **QA-07 / O-07 are closed**, with "All funds" wording shown on site.
-- [ ] The net-of-transfers rule is enforced and explained (O-11 interim).
-- [ ] Old links reproduce their Phase 2 / 4a views exactly. The tab bar is unchanged.
-- [ ] `ng build` / `ng test` / `npm run pipeline` are green and deterministic. `transform.ts` is at 100% coverage.
+- [x] P3-01 to P3-12 are `done`, with no open blocker or major findings.
+- [x] Category and fund sums equal EDR totals for every county, FY and flow, confirmed independently by QA.
+- [x] **DR-47 is closed**, with both reclassifications annotated in scoped views. **QA-07 / O-07 are closed**, with "All funds" wording shown on site.
+- [x] The net-of-transfers rule is enforced and explained (O-11 interim).
+- [x] Old links reproduce their Phase 2 / 4a views exactly. The tab bar is unchanged.
+- [x] `ng build` / `ng test` / `npm run pipeline` are green and deterministic. `transform.ts` is at 100% coverage.
+
+**Phase 3 approved by QA** (2026-10-07, final sign-off at `60a642f`, tag `phase-3-approved`).
+- **DR-47 closed:** both LOGERX reclassifications are annotated in scoped views (fund, category and drawer; DR-50). **QA-07 / O-07 closed** (D-18).
+- **Still open:** QA-47 (minor county-chip shift on phone) is being fixed. QA-46 is a note only.
+- **Not verifiable in this round:** real devices (including how browsers render the favicon in the tab bar), screen-reader output, and clicking bands on the canvas. The drawer was tested from table cells and rows.
 
 ---
 
@@ -598,7 +616,7 @@ Phase 3 status notes: QA's review is committed, **approve with conditions**.
 - Phase 5 also carries QA-21 (the PNG export prints settings and sources) (DR-33).
 - **Phase 5 export (D-17):** CSV/PNG export and its header Export button ship together, in the same change. No placeholder or disabled Export control is shown before then. The button gets the usual criteria: 44 px, keyboard focus, light/dark, and a visible error if export fails.
 - Phase 6 carries QA-15 (tablet collapsible side panel) (DR-33).
-- **Phase 3, required annotations (DR-47), now task P3-03:** when the fund-scope or category views ship, annotate the 2 LOGERX reclassifications through the approval list. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. Phase 3 is not done until they are annotated and QA has checked them.
+- **[Done in Phase 3; DR-47 closed]** **Phase 3, required annotations (DR-47), now task P3-03:** when the fund-scope or category views ship, annotate the 2 LOGERX reclassifications through the approval list. These are Hillsborough FY 2014-15, account 559, Component Units vs Internal Service; and Pinellas FY 2013-14, 335.9 vs 335.8. Phase 3 is not done until they are annotated and QA has checked them.
 - **Phase 3:** any new long-running operation (category breakdowns, a second dataset such as expenditures alongside revenues) reuses the P2-15 skeleton components and follows the same rules: delay, no layout shift, a11y, reduced motion, errors take precedence. No new loader styles.
 - Phase 4 comparison overlays are still on hold (D-11). Only the Pinellas county switch is in scope, as Phase 4a (D-13).
 
