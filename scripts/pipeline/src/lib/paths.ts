@@ -19,6 +19,9 @@ export function edrAfrPath(fileStem: string, flow: 'revenues' | 'expenditures'):
   return path.join(RAW_DIR, 'edr', `${fileStem}${flow}.xlsx`);
 }
 
+/** DFS Uniform Accounting System Manual, 2025 edition (category groupings). */
+export const UAS_MANUAL_FILE = path.join(RAW_DIR, 'dfs', 'uas-manual-2025.pdf');
+
 export const POPULATION_FILE = path.join(RAW_DIR, 'edr-population', 'FLcopops.xlsx');
 
 export function blsPath(seriesId: string): string {

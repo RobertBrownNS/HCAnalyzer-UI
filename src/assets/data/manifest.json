@@ -1,5 +1,5 @@
 {
-  "dataVersion": "4851b5faadec2fda",
+  "dataVersion": "80eec194090536a4",
   "defaultJurisdiction": "hillsborough",
   "generator": "scripts/pipeline (npm run build)",
   "inputs": [
@@ -30,6 +30,10 @@
     {
       "path": "data/raw/county-afr/hillsborough/afr-fy2025.pdf",
       "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2"
+    },
+    {
+      "path": "data/raw/dfs/uas-manual-2025.pdf",
+      "sha256": "308d0ad3ed7c3207c242678b52ed7d5d40c22b94cc7a6b3022daad767caf699c"
     },
     {
       "path": "data/raw/edr-population/FLcopops.xlsx",
@@ -274,9 +278,14 @@
   ],
   "outputs": [
     {
-      "bytes": 23892,
+      "bytes": 25490,
       "path": "annotations.json",
-      "sha256": "3b841d89456f60115fc2be782b009210a026b4f543c4d5bdce2bc46322be7329"
+      "sha256": "fc8a8a01ede1623617f6e852ce2e709f6ac8a7bd0bc2f8b5f0bd0aafcfaa67e0"
+    },
+    {
+      "bytes": 4930,
+      "path": "categories.json",
+      "sha256": "4ae085bb8bac90fe0d50f3271653a04a33c81d82996c339ec9d04f6a2295f3c9"
     },
     {
       "bytes": 27527,
@@ -284,14 +293,19 @@
       "sha256": "248f21a89a74b42a42c41f9ab03a6d2c2b013ab686aa6cac30cd1f5384105455"
     },
     {
-      "bytes": 103537,
-      "path": "hillsborough.accounts.json",
-      "sha256": "71971d599c69d95942e3c3e5c374279baffd006c1774e82d4b9a5f67ca1a4d52"
+      "bytes": 3827,
+      "path": "funds.json",
+      "sha256": "c93a281ebb8848d970ff12fc3db99634e83f144b963b49337756077c3dc5e994"
     },
     {
-      "bytes": 1740113,
+      "bytes": 103569,
+      "path": "hillsborough.accounts.json",
+      "sha256": "5d44ef44cf1bd698608ce75f032fe81f8534228acfec873b343558e9932c55b6"
+    },
+    {
+      "bytes": 1740897,
       "path": "hillsborough.observations.json",
-      "sha256": "7034bd05ce386383d5eae2ef652fe8ff726c7e88f2d464fbbaaddaca02c68be9"
+      "sha256": "9afe41f68bd158c441ec85792ec653bec1992442f239a8cba377660b97dbd580"
     },
     {
       "bytes": 16284,
@@ -299,14 +313,14 @@
       "sha256": "dff7bc429d6bae21c3bc45ebdffbb15b38e64d1535b12b1c1fc0e6802ab6ea39"
     },
     {
-      "bytes": 94703,
+      "bytes": 94843,
       "path": "pinellas.accounts.json",
-      "sha256": "a22ae2c61b29e34f90633ad7644032b1483b6e2c4f8fc2dc49244d3992d98efe"
+      "sha256": "add1f961b5672e37dc3b3f6eb518e8b557fbe7bff82fd69a38358419ae95c8be"
     },
     {
-      "bytes": 1401694,
+      "bytes": 1402186,
       "path": "pinellas.observations.json",
-      "sha256": "05b441c10f7af41cc2772dd2bb1f7c6f62263af70bd83bdd2f8c7846ebb577cc"
+      "sha256": "5d4825b659949c0ffdd281087641340f607df089d6d85018ab5a1da6189f04fc"
     },
     {
       "bytes": 16041,
@@ -319,9 +333,9 @@
       "sha256": "829bac983772d9fbf454f0a8b2afaeb6914e9011e3f773d25d413f2526077574"
     },
     {
-      "bytes": 39300,
+      "bytes": 42527,
       "path": "sources.json",
-      "sha256": "3106cce5c1df8304a7ac5e8f8dd2703c14f8797e7b55c9de87bfff99966f2244"
+      "sha256": "a69a9eabf6c7fcb214eab20c0b8c5aa61d9aea359e30e277f10eaac8bea81b54"
     }
   ],
   "schemaVersion": 1

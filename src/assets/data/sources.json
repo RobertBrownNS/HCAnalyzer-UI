@@ -106,8 +106,24 @@
     "url": "https://hillsclerk.com/records-and-reports/financial-reports-county"
   },
   {
+    "accessUrl": "https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf",
+    "caveats": [
+      "Categories are the manual's major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as the manual names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.",
+      "The 2025 edition is applied to every year. Earlier editions may have grouped some account codes differently.",
+      "Fund groups follow the manual's Fund Groups and Fund Types table (p. 6)."
+    ],
+    "id": "dfs-uas-manual-2025",
+    "publisher": "Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting",
+    "rawFile": "data/raw/dfs/uas-manual-2025.pdf",
+    "retrieved": "2026-10-07",
+    "sha256": "308d0ad3ed7c3207c242678b52ed7d5d40c22b94cc7a6b3022daad767caf699c",
+    "title": "Uniform Accounting System Manual, 2025 Edition, for Florida Local Governments (effective beginning fiscal year 2024-25)",
+    "url": "https://www.myfloridacfo.com/division/aa/manuals"
+  },
+  {
     "caveats": [
       "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.",
       "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
       "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
       "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
@@ -165,6 +181,7 @@
   {
     "caveats": [
       "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.",
       "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
       "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
       "Amounts are as reported by the county in its Annual Financial Report; expenditures include inter-fund transfers (account 581), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
@@ -205,6 +222,7 @@
   {
     "caveats": [
       "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.",
       "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
       "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
       "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",
@@ -244,6 +262,7 @@
   {
     "caveats": [
       "Compiled from data obtained from the Florida Department of Financial Services, Division of Accounting and Auditing, Bureau of Local Government.",
+      "Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.",
       "In preparation for the implementation of GASB Statement No. 84, the Department of Financial Services added the Custodial Fund column to the Annual Financial Report in FY 2020-21. Custodial Fund reporting is used to account for assets held by a government in a purely custodial capacity. For example, a county or municipal government might collect taxes or other revenues on behalf of other agencies or local governments, and these transactions would be recorded in the Custodial Fund. Since fiscal years prior to FY 2020-21 did not include Custodial Fund reporting, the account totals for FY 2020-21 and subsequent fiscal years may not be directly comparable.",
       "The workbook \"Total Account\" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.",
       "Amounts are as reported by the county in its Annual Financial Report; revenues include inter-fund transfers (account 381), so summing across funds counts money moved between county funds in both the sending and receiving fund.",

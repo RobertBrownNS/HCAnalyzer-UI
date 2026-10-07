@@ -11,6 +11,7 @@
 import type {
   AfrObservation,
   AnnotationRecord,
+  CategoryDef,
   CpiFile,
   CpiSeriesFile,
   Flow,
@@ -47,8 +48,22 @@ export interface TransformSettings {
   includeCustodial: boolean;
   cpiIndex: CpiIndex;
   cpiPeriod: CpiPeriod;
-  /** Interfund transfers. Missing = 'gross'. */
+  /**
+   * Interfund transfers. Missing = 'gross'. 'net' applies only when every
+   * non-custodial fund is selected (R-19 / O-11); otherwise it is treated as
+   * 'gross' with a note. See netTransfersAllowed().
+   */
   transfers?: TransferMode;
+  /**
+   * Selected non-custodial fund types (D-18). Missing or empty = all funds.
+   * Custodial is controlled by includeCustodial only and ignored here.
+   */
+  funds?: readonly string[];
+  /**
+   * Selected categories (D-19) for buildCategorySeries. Missing or empty =
+   * all. buildSeries (the total) is not filtered by category.
+   */
+  categories?: readonly string[];
   /**
    * County slug: key into observations and population.json. Required; the
    * transform has no default county (the app's default is
@@ -96,6 +111,8 @@ export interface TransformData {
   cpi: CpiFile;
   annotations: readonly AnnotationRecord[];
   sources: readonly SourceRecord[];
+  /** categories.json, when loaded: gives category display order. */
+  categories?: readonly CategoryDef[];
 }
 
 /** Every setting except the jurisdiction, which has no default here. */
@@ -151,16 +168,30 @@ export function availableYears(data: TransformData, flow: Flow, jurisdiction: st
   return [...years].sort((a, b) => a - b);
 }
 
+/** 'total' = buildSeries charts; 'categories' = buildCategorySeries charts. */
+export type ChartView = 'total' | 'categories';
+
 /**
  * Annotations that apply to the current view, by year: fiscalYear inside the
- * range, and each optional condition (jurisdiction, flow, custodial, measures)
- * satisfied.
+ * range, and each optional condition satisfied:
+ * - jurisdiction, flow, custodial, measures: must match the settings.
+ * - funds (DR-47): shown only when the fund selection includes SOME BUT NOT
+ *   ALL of them. A row about amounts classified between two funds matters only
+ *   when exactly one side is shown; no selection = every fund = hidden.
+ * - categories: shown only in the 'categories' view, and only when the
+ *   category selection (none = all) includes one of them.
  * A condition that is absent applies to every view.
  */
-export function annotationsInRange(data: TransformData, s: TransformSettings): AnnotationRecord[] {
+export function annotationsInRange(
+  data: TransformData,
+  s: TransformSettings,
+  view: ChartView = 'total',
+): AnnotationRecord[] {
   const [lo, hi] = normalizeRange(s.range);
   const custodial = s.includeCustodial ? 'included' : 'excluded';
   const { jurisdiction } = s;
+  const intersects = (tags: readonly string[], selection: readonly string[] | undefined) =>
+    !selection || selection.length === 0 || tags.some((t) => selection.includes(t));
   return data.annotations
     .filter(
       (a) =>
@@ -169,7 +200,9 @@ export function annotationsInRange(data: TransformData, s: TransformSettings): A
         (a.jurisdiction === undefined || a.jurisdiction === jurisdiction) &&
         (a.flow === undefined || a.flow === s.flow) &&
         (a.custodial === undefined || a.custodial === custodial) &&
-        (a.measures === undefined || a.measures.includes(s.measure)),
+        (a.measures === undefined || a.measures.includes(s.measure)) &&
+        (a.funds === undefined || splitBySelection(a.funds, s.funds)) &&
+        (a.categories === undefined || (view === 'categories' && intersects(a.categories, s.categories))),
     )
     .sort((a, b) => a.fiscalYear - b.fiscalYear || a.label.localeCompare(b.label));
 }
@@ -270,14 +303,99 @@ export function isTransferAccount(account: string, flow: Flow): boolean {
   return Math.trunc(Number(account)) === TRANSFER_ACCOUNTS[flow];
 }
 
+/**
+ * AFR fund columns in workbook order, used only to order fund lists. Not
+ * county-specific; a fund type not listed here sorts after these, by name.
+ */
+export const FUND_ORDER: readonly string[] = Object.freeze([
+  'general',
+  'special_revenue',
+  'debt_service',
+  'capital',
+  'permanent',
+  'enterprise',
+  'internal_service',
+  'custodial',
+  'pension',
+  'trust',
+  'private_purpose',
+  'component_unit',
+]);
+
+/** Non-custodial fund types with at least one observation for the jurisdiction (either flow), in FUND_ORDER. */
+export function availableFunds(data: TransformData, jurisdiction: string): string[] {
+  const funds = new Set<string>();
+  for (const o of data.observations) {
+    if (o.jurisdiction === jurisdiction && o.fundType !== 'custodial') funds.add(o.fundType);
+  }
+  return [...funds].sort(compareFunds);
+}
+
+function compareFunds(a: string, b: string): number {
+  const ia = FUND_ORDER.indexOf(a);
+  const ib = FUND_ORDER.indexOf(b);
+  if (ia !== ib) return (ia < 0 ? Infinity : ia) - (ib < 0 ? Infinity : ib);
+  return a.localeCompare(b);
+}
+
+/**
+ * Categories with at least one observation for the flow and jurisdiction (any
+ * fund, any year). Ordered as in data.categories (categories.json) when given;
+ * categories it doesn't list follow, ordered by their lowest UAS account code
+ * (the AFR section order), then by id.
+ */
+export function availableCategories(data: TransformData, flow: Flow, jurisdiction: string): string[] {
+  const minAccount = new Map<string, number>();
+  for (const o of data.observations) {
+    if (o.flow !== flow || o.jurisdiction !== jurisdiction) continue;
+    const code = Number(o.account);
+    const prev = minAccount.get(o.category);
+    if (prev === undefined || code < prev) minAccount.set(o.category, code);
+  }
+  const listed = (data.categories ?? []).filter((c) => c.flow === flow).map((c) => c.id);
+  const rank = (id: string) => {
+    const i = listed.indexOf(id);
+    return i < 0 ? listed.length : i;
+  };
+  return [...minAccount.keys()].sort(
+    (a, b) => rank(a) - rank(b) || minAccount.get(a)! - minAccount.get(b)! || a.localeCompare(b),
+  );
+}
+
+/** True when no fund filter is set, or it covers every non-custodial fund the jurisdiction reports. */
+function allFundsSelected(data: TransformData, s: TransformSettings): boolean {
+  if (!s.funds || s.funds.length === 0) return true;
+  const selected = new Set(s.funds);
+  return availableFunds(data, s.jurisdiction).every((f) => selected.has(f));
+}
+
+/**
+ * R-19 / O-11: removing interfund transfers is only meaningful for the whole
+ * entity. With a fund subset, transfers to or from unselected funds are real
+ * inflows and outflows of the subset, and the AFR doesn't say which fund is on
+ * the other side, so 'net' is allowed only when every non-custodial fund the
+ * jurisdiction reports is selected (or no fund filter is set).
+ */
+export function netTransfersAllowed(data: TransformData, s: TransformSettings): boolean {
+  return allFundsSelected(data, s);
+}
+
+export const NET_TRANSFERS_REJECTED_NOTE =
+  'Net transfers apply only when every fund is selected; transfers are shown as reported (gross).';
+
 interface YearSum {
-  /** Included funds, after transfers are removed when net. */
+  /** Selected funds and categories, after transfers are removed when net. */
   nominal: number;
+  /** Custodial amount (selected categories), whether or not it is included. */
   custodial: number;
-  /** Transfers in the included funds. */
+  /** Transfers in the selected funds and categories. */
   transfers: number;
-  /** Transfers in all funds except custodial (for the imbalance rule). */
-  ownTransfers: number;
+  sourceIds: Set<string>;
+}
+
+interface TransferBalance {
+  /** 381 or 581 over every fund except custodial: the pipeline's imbalance rule. */
+  amount: number;
   sourceIds: Set<string>;
 }
 
@@ -290,16 +408,98 @@ interface Measured {
   notes: string[];
 }
 
+/** Total for the settings' flow, jurisdiction and fund selection (all categories). */
 export function buildSeries(data: TransformData, s: TransformSettings): SeriesPoint[] {
+  return seriesFor(data, s, () => true, 'always');
+}
+
+export interface CategoryPoint extends SeriesPoint {
+  /**
+   * This category's share of the year's total for the same flow, funds,
+   * custodial and transfer settings, in percent (0-100; can be negative or
+   * above 100 when some categories are negative). Computed on nominal dollars,
+   * so it is the same for every measure. null when the total is zero or
+   * negative, with a note.
+   */
+  share: number | null;
+}
+
+export interface CategorySeries {
+  category: string;
+  points: CategoryPoint[];
+}
+
+/**
+ * One series per category (D-19 / D-20), in availableCategories order,
+ * limited to s.categories when set. Each point is measured exactly like
+ * buildSeries (per capita, real, indexTo100 against the category's own base
+ * year) and adds `share` of the total. Across all categories, nominal sums to
+ * buildSeries nominal and share sums to 100 for every year with a positive
+ * total.
+ */
+export function buildCategorySeries(data: TransformData, s: TransformSettings): CategorySeries[] {
+  const total = new Map(buildSeries(data, s).map((p) => [p.fiscalYear, p.nominal]));
+  const wanted = s.categories && s.categories.length > 0 ? new Set(s.categories) : undefined;
+  return availableCategories(data, s.flow, s.jurisdiction)
+    .filter((c) => !wanted || wanted.has(c))
+    .map((category) => ({
+      category,
+      points: seriesFor(data, s, (o) => o.category === category, 'if-transfers').map((p): CategoryPoint => {
+        const t = total.get(p.fiscalYear)!;
+        if (t > 0) return { ...p, share: (p.nominal / t) * 100 };
+        return {
+          ...p,
+          share: null,
+          notes: [...p.notes, `Share can't be computed: the ${fiscalYearLabel(p.fiscalYear)} total is ${formatUsd(t)}.`],
+        };
+      }),
+    }));
+}
+
+/**
+ * The observations behind one point: the jurisdiction, flow and fiscal year of
+ * the settings, filtered by fund selection, custodial toggle, transfers (net
+ * only when allowed) and, when given, one category. Summing `amount` gives the
+ * point's `nominal`. Input order is kept (pipeline order: account, then fund
+ * column). Account names are in <jurisdiction>.accounts.json.
+ */
+export function pointBreakdown(
+  data: TransformData,
+  s: TransformSettings,
+  fiscalYear: number,
+  category?: string,
+): AfrObservation[] {
+  const net = s.transfers === 'net' && netTransfersAllowed(data, s);
+  const funds = s.funds && s.funds.length > 0 ? new Set(s.funds) : undefined;
+  return data.observations.filter(
+    (o) =>
+      o.jurisdiction === s.jurisdiction &&
+      o.flow === s.flow &&
+      o.fiscalYear === fiscalYear &&
+      (category === undefined || o.category === category) &&
+      (o.fundType === 'custodial' ? s.includeCustodial : !funds || funds.has(o.fundType)) &&
+      !(net && isTransferAccount(o.account, o.flow)),
+  );
+}
+
+function seriesFor(
+  data: TransformData,
+  s: TransformSettings,
+  keep: (o: AfrObservation) => boolean,
+  imbalanceNote: 'always' | 'if-transfers',
+): SeriesPoint[] {
   const { jurisdiction } = s;
   const [lo, hi] = normalizeRange(s.range);
-  const net = s.transfers === 'net';
-  const allSums = sumByYear(data.observations, jurisdiction, s.includeCustodial, net);
-  const sums = allSums[s.flow];
+  const netRequested = s.transfers === 'net';
+  const netRejected = netRequested && !netTransfersAllowed(data, s);
+  const effective: TransformSettings = netRejected ? { ...s, transfers: 'gross' } : s;
+  const funds = s.funds && s.funds.length > 0 ? new Set(s.funds) : undefined;
+  const sums = sumByYear(data.observations, effective, (o) => (o.fundType === 'custodial' || !funds || funds.has(o.fundType)) && keep(o));
+  const balances = transferBalances(data.observations, jurisdiction);
   const cpi = selectCpi(data.cpi, s.cpiIndex, s.cpiPeriod);
   const population = data.population[jurisdiction];
 
-  const measure = (fy: number): Measured => measureYear(fy, sums.get(fy), s, cpi, population, jurisdiction);
+  const measure = (fy: number): Measured => measureYear(fy, sums.get(fy), effective, cpi, population, jurisdiction);
 
   // indexTo100 base is measured the same way, even when it's outside the range.
   const base = s.indexTo100 ? measure(s.baseYear) : undefined;
@@ -312,6 +512,8 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
     const notes = [...m.notes];
     const sourceIds = [...m.sourceIds];
     let value = m.value;
+
+    if (netRejected) notes.push(NET_TRANSFERS_REJECTED_NOTE);
 
     if (base) {
       if (!baseHasData) {
@@ -329,19 +531,22 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
       addUnique(sourceIds, base.sourceIds);
     }
 
-    const tIn = allSums.revenue.get(fy);
-    const tOut = allSums.expenditure.get(fy);
-    const imbalance = tIn && tOut ? tOut.ownTransfers - tIn.ownTransfers : undefined;
-    if (imbalance !== undefined && Math.abs(imbalance) > TRANSFER_IMBALANCE_THRESHOLD) {
+    const tIn = balances.revenue.get(fy);
+    const tOut = balances.expenditure.get(fy);
+    const imbalance = tIn && tOut ? tOut.amount - tIn.amount : undefined;
+    if (
+      imbalance !== undefined &&
+      Math.abs(imbalance) > TRANSFER_IMBALANCE_THRESHOLD &&
+      (imbalanceNote === 'always' || sum.transfers !== 0)
+    ) {
       notes.push(
         `${TRANSFER_IMBALANCE_NOTE_PREFIX}${fiscalYearLabel(fy)}: ` +
-          `${formatUsd(tOut!.ownTransfers)} out, ${formatUsd(tIn!.ownTransfers)} in (difference ${formatUsd(imbalance)}` +
+          `${formatUsd(tOut!.amount)} out, ${formatUsd(tIn!.amount)} in (difference ${formatUsd(imbalance)}` +
           (s.includeCustodial ? ', custodial funds excluded' : '') +
           ').' +
-          (net ? ' Removing transfers reduces revenue and expenditure by different amounts.' : ''),
+          (effective.transfers === 'net' ? ' Removing transfers reduces revenue and expenditure by different amounts.' : ''),
       );
-      const other = s.flow === 'revenue' ? tOut! : tIn!;
-      addUnique(sourceIds, [...other.sourceIds].sort());
+      addUnique(sourceIds, [...tIn!.sourceIds, ...tOut!.sourceIds].sort());
     }
 
     const point: SeriesPoint = {
@@ -363,51 +568,73 @@ export function buildSeries(data: TransformData, s: TransformSettings): SeriesPo
 }
 
 /**
- * Sums observations per flow and fiscal year for one jurisdiction.
+ * Sums observations per fiscal year for the settings' flow and jurisdiction,
+ * keeping only rows `keep` accepts (fund and category selection).
  *
- * Fund scope (Phase 2): all funds the workbook reports, except custodial when
- * excluded. That includes pension, trust, private purpose and component units,
- * so with custodial included the sum equals EDR's "Total - All Account Codes"
- * and with it excluded it equals EDR's recalculated total. The fund-scope
- * control is Phase 3; see docs/decisions.md O-07.
+ * Fund scope: the selected funds (all when no filter), plus custodial when
+ * includeCustodial. With every fund and custodial included the sum equals
+ * EDR's "Total - All Account Codes"; with custodial excluded it equals EDR's
+ * recalculated total (docs/decisions.md O-07, D-18).
  *
- * Transfers (381 revenue, 581 expenditure) are counted in the included funds
- * and, when `net`, left out of nominal. Both flows are summed so a point can
- * report the 381/581 imbalance for its year.
+ * Transfers (381 revenue, 581 expenditure) are counted in the kept rows and,
+ * when `net`, left out of nominal.
  *
- * Zero cells are omitted from observations.json, so a year with no matching
- * rows sums to 0. Every year present for a flow gets an entry.
+ * Zero cells are omitted from observations.json, so a year with no kept rows
+ * sums to 0. Every year present for the flow gets an entry, whatever the
+ * selection, so category and fund series share one set of years.
  */
 function sumByYear(
   observations: readonly AfrObservation[],
-  jurisdiction: string,
-  includeCustodial: boolean,
-  net: boolean,
-): Record<Flow, Map<number, YearSum>> {
-  const out: Record<Flow, Map<number, YearSum>> = { revenue: new Map(), expenditure: new Map() };
+  s: TransformSettings,
+  keep: (o: AfrObservation) => boolean,
+): Map<number, YearSum> {
+  const net = s.transfers === 'net';
+  const sums = new Map<number, YearSum>();
   for (const o of observations) {
-    if (o.jurisdiction !== jurisdiction) continue;
-    const sums = out[o.flow];
-    if (!sums) continue;
+    if (o.jurisdiction !== s.jurisdiction || o.flow !== s.flow) continue;
     let sum = sums.get(o.fiscalYear);
     if (!sum) {
-      sum = { nominal: 0, custodial: 0, transfers: 0, ownTransfers: 0, sourceIds: new Set() };
+      sum = { nominal: 0, custodial: 0, transfers: 0, sourceIds: new Set() };
       sums.set(o.fiscalYear, sum);
     }
     // The AFR is the source of the year's total even when some cells are excluded.
     sum.sourceIds.add(o.sourceId);
-    const transfer = isTransferAccount(o.account, o.flow);
+    if (!keep(o)) continue;
     if (o.fundType === 'custodial') {
       sum.custodial += o.amount;
-      if (!includeCustodial) continue;
-    } else if (transfer) {
-      sum.ownTransfers += o.amount;
+      if (!s.includeCustodial) continue;
     }
-    if (transfer) {
+    if (isTransferAccount(o.account, o.flow)) {
       sum.transfers += o.amount;
       if (net) continue;
     }
     sum.nominal += o.amount;
+  }
+  return sums;
+}
+
+/**
+ * 381 (revenue) and 581 (expenditure) per fiscal year over every fund except
+ * custodial, for the pipeline's transfer-imbalance rule. Independent of the
+ * fund, category and custodial settings. A year appears for a flow when the
+ * jurisdiction has any observation for that flow and year.
+ */
+function transferBalances(
+  observations: readonly AfrObservation[],
+  jurisdiction: string,
+): Record<Flow, Map<number, TransferBalance>> {
+  const out: Record<Flow, Map<number, TransferBalance>> = { revenue: new Map(), expenditure: new Map() };
+  for (const o of observations) {
+    if (o.jurisdiction !== jurisdiction) continue;
+    const byYear = out[o.flow];
+    if (!byYear) continue;
+    let b = byYear.get(o.fiscalYear);
+    if (!b) {
+      b = { amount: 0, sourceIds: new Set() };
+      byYear.set(o.fiscalYear, b);
+    }
+    b.sourceIds.add(o.sourceId);
+    if (o.fundType !== 'custodial' && isTransferAccount(o.account, o.flow)) b.amount += o.amount;
   }
   return out;
 }
@@ -483,6 +710,13 @@ export function formatUsd(n: number): string {
   const [whole, cents] = (Number.isInteger(abs) ? String(abs) : abs.toFixed(2)).split('.');
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return `${n < 0 ? '-' : ''}$${grouped}${cents ? '.' + cents : ''}`;
+}
+
+/** True when a non-empty fund selection includes some, but not all, of `tags`. */
+function splitBySelection(tags: readonly string[], selection: readonly string[] | undefined): boolean {
+  if (!selection || selection.length === 0) return false;
+  const n = tags.filter((t) => selection.includes(t)).length;
+  return n > 0 && n < tags.length;
 }
 
 function addUnique(target: string[], items: Iterable<string>): void {

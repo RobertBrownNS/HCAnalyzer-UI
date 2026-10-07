@@ -56,8 +56,11 @@ describe('account codes', () => {
     expect(classifyAccount('revenue', '331.51').section).toBe('intergovernmental');
     expect(classifyAccount('revenue', '367').section).toBe('miscellaneous');
     expect(classifyAccount('revenue', '381').section).toBe('other_sources');
-    expect(classifyAccount('revenue', '392').section).toBe('other_sources'); // Extraordinary Items (Pinellas FY 2007-08)
-    expect(classifyAccount('revenue', '393').section).toBe('other_sources'); // Special Items (Pinellas FY 2016-17)
+    // UAS 2025 p. 114: 39x is its own class, Proprietary Non-Operating Sources.
+    expect(classifyAccount('revenue', '392').section).toBe('proprietary_nonoperating_sources');
+    expect(classifyAccount('revenue', '393').category).toBe('proprietary_nonoperating_sources');
+    expect(classifyAccount('revenue', '389.1').section).toBe('other_sources');
+    expect(() => classifyAccount('revenue', '371')).toThrow(/not in any UAS category/);
     expect(() => classifyAccount('revenue', '401')).toThrow();
   });
 
@@ -65,10 +68,13 @@ describe('account codes', () => {
     expect(classifyAccount('expenditure', '521').category).toBe('public_safety');
     expect(classifyAccount('expenditure', '541').category).toBe('transportation');
     expect(classifyAccount('expenditure', '581').category).toBe('other_uses');
-    expect(classifyAccount('expenditure', '591').category).toBe('other_uses');
+    // UAS 2025 p. 129: 59x is its own class, Other Nonoperating.
+    expect(classifyAccount('expenditure', '591').category).toBe('other_nonoperating');
+    expect(classifyAccount('expenditure', '590').category).toBe('other_nonoperating');
     expect(classifyAccount('expenditure', '601').category).toBe('court_related');
     expect(classifyAccount('expenditure', '765').category).toBe('court_related');
     expect(() => classifyAccount('expenditure', '501')).toThrow();
+    expect(() => classifyAccount('expenditure', '771')).toThrow(); // UAS court-related classes end at 76x
   });
 
   it('maps every section heading to a section that classifyAccount can produce', () => {
@@ -76,7 +82,7 @@ describe('account codes', () => {
       ...['311', '312', '322', '331', '341', '351', '361', '381'].map((c) => classifyAccount('revenue', c).section),
       ...['511', '521', '531', '541', '551', '561', '571', '581', '601'].map((c) => classifyAccount('expenditure', c).section),
     ]);
-    for (const section of Object.values(SECTION_HEADINGS)) expect(produced).toContain(section);
+    for (const sections of Object.values(SECTION_HEADINGS)) for (const section of sections) expect([...produced, 'proprietary_nonoperating_sources', 'other_nonoperating']).toContain(section);
     expect(normalizeHeading('  Culture  /  Recreation ')).toBe('culture / recreation');
   });
 });
@@ -117,5 +123,16 @@ describe('default jurisdiction (QA-36)', () => {
   it('fails with no default or more than one', () => {
     expect(() => defaultJurisdiction([{ slug: 'a' }])).toThrow(/exactly one/);
     expect(() => defaultJurisdiction([{ slug: 'a', default: true }, { slug: 'b', default: true }])).toThrow(/found 2/);
+  });
+});
+
+describe('UAS categories', () => {
+  it('do not overlap, and cover each class once', async () => {
+    const { CATEGORIES } = await import('../src/edr/categories.js');
+    for (const flow of ['revenue', 'expenditure'] as const) {
+      const ranges = CATEGORIES.filter((c) => c.flow === flow).flatMap((c) => c.ranges).sort((a, b) => a[0] - b[0]);
+      for (let i = 1; i < ranges.length; i++) expect(ranges[i][0]).toBeGreaterThanOrEqual(ranges[i - 1][1]);
+    }
+    expect(new Set(CATEGORIES.map((c) => c.id)).size).toBe(CATEGORIES.length);
   });
 });

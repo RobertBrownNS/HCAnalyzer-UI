@@ -63,6 +63,15 @@
       "sha256": "8814aafdced46eff2f7a40c21a7bf80f9ae5b7a56989e9502147e3abd76de6f2",
       "url": "https://hillsclerk.com/documents/d/guest/afr-hillsborough-2025-state-report-final-submitted-to-fl-cfo-pdf?download=true"
     },
+    "data/raw/dfs/uas-manual-2025.pdf": {
+      "bytes": 2023245,
+      "lastVerified": "2026-10-07",
+      "method": "HTTP GET (PDF; 2025 edition, effective beginning FY 2024-25)",
+      "publisher": "Florida Department of Financial Services (DFS), Bureau of Financial Reporting",
+      "retrieved": "2026-10-07",
+      "sha256": "308d0ad3ed7c3207c242678b52ed7d5d40c22b94cc7a6b3022daad767caf699c",
+      "url": "https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf"
+    },
     "data/raw/edr-population/FLcopops.xlsx": {
       "bytes": 484693,
       "lastVerified": "2026-10-06",

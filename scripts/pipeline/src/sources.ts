@@ -7,6 +7,8 @@ import { RAW_DIR } from './lib/paths.js';
 export const EDR_AFR_BASE = 'https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal/';
 export const EDR_COUNTY_FISCAL_PAGE = 'https://edr.state.fl.us/Content/local-government/data/revenues-expenditures/cntyfiscal.cfm';
 export const EDR_COUNTY_FISCAL_PAGE_FILE = path.join(RAW_DIR, 'edr', 'cntyfiscal.html');
+export const UAS_MANUAL_URL = 'https://myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/2024-2025-uas-manual.pdf';
+export const UAS_MANUALS_PAGE = 'https://www.myfloridacfo.com/division/aa/manuals';
 export const EDR_POPULATION_URL = 'https://edr.state.fl.us/Content/population-demographics/data/FLcopops.xlsx';
 export const EDR_POPULATION_PAGE = 'https://edr.state.fl.us/Content/population-demographics/data/index-floridaproducts.cfm';
 
@@ -79,6 +81,7 @@ export const sourceIds = {
   afr: (county: CountyConfig, flow: 'revenue' | 'expenditure') => `edr-afr-${flow}s-${county.slug}`,
   population: 'edr-population-flcopops',
   countyFiscalPage: 'edr-cntyfiscal-page',
+  uasManual: 'dfs-uas-manual-2025',
   countyAfr: (county: CountyConfig, fiscalYear: number) => `county-afr-${county.slug}-fy${fiscalYear}`,
   cpi: (series: CpiSeriesConfig) => `bls-cpi-${series.id}`,
 };
@@ -104,6 +107,7 @@ export function afrSource(
     crossCheckCoverage: crossCheck.coverage,
     caveats: [
       AFR_FOOTNOTE,
+      FUND_GROUPS_CAVEAT,
       EDR_CUSTODIAL_NOTICE,
       'The workbook "Total Account" column sums every fund column, including fiduciary funds (custodial, pension, trust, private purpose) and Component Units, which are legally separate entities.',
       `Amounts are as reported by the county in its Annual Financial Report; ${years} include inter-fund transfers (${flow === 'revenue' ? 'account 381' : 'account 581'}), so summing across funds counts money moved between county funds in both the sending and receiving fund.`,
@@ -129,6 +133,28 @@ export function countyAfrSource(county: CountyConfig, fiscalYear: number, rawFil
       'Used only to check that EDR transcribed the county filing correctly; the numbers shown in the explorer come from the EDR workbooks.',
       'Values were read from text extracted from the PDF. Each value read is checked against the EDR workbook, and the comparison is published in the project validation report.',
       ...(county.countyAfr!.files.find((f) => f.fiscalYear === fiscalYear)?.caveats ?? []),
+    ],
+  };
+}
+
+/** QA-07: what each fund group in the EDR columns includes, in plain words. */
+export const FUND_GROUPS_CAVEAT =
+  'Fund groups (DFS Uniform Accounting System Manual, 2025 edition, p. 6): governmental funds are the General, Special Revenue, Debt Service, Capital Projects and Permanent funds; proprietary funds are Enterprise and Internal Service funds, which operate like businesses or serve other county departments; fiduciary funds (Custodial, Pension, Trust, Private Purpose) hold assets for others or in a trustee capacity. Component Units are legally separate organizations reported in their own column alongside the county.';
+
+export function uasManualSource(rawFile: string, r: RetrievalRecord): Source {
+  return {
+    id: sourceIds.uasManual,
+    publisher: 'Florida Department of Financial Services (DFS), Division of Accounting and Auditing, Bureau of Financial Reporting',
+    title: 'Uniform Accounting System Manual, 2025 Edition, for Florida Local Governments (effective beginning fiscal year 2024-25)',
+    url: UAS_MANUALS_PAGE,
+    accessUrl: r.url,
+    retrieved: r.retrieved,
+    sha256: r.sha256,
+    rawFile,
+    caveats: [
+      'Categories are the manual\'s major account classes (31x to 39x for revenues, 51x to 76x for expenditures), named as the manual names them; ad valorem taxes (311) are shown separately from the other General Government Taxes.',
+      'The 2025 edition is applied to every year. Earlier editions may have grouped some account codes differently.',
+      'Fund groups follow the manual\'s Fund Groups and Fund Types table (p. 6).',
     ],
   };
 }

@@ -1,4 +1,5 @@
 import type { ApprovedTransferImbalance, ResearchNote } from '../src/edr/anomalies.js';
+import type { ApprovedReclassification } from '../src/logerx/crosscheck.js';
 
 /**
  * Transfer-imbalance annotations that have been reviewed and approved. A year is flagged when
@@ -22,4 +23,16 @@ export const APPROVED_TRANSFER_IMBALANCES: ApprovedTransferImbalance[] = [
 export const RESEARCH_NOTES: ResearchNote[] = [
   // Custodial column present from FY 2020-21 but $0 until FY 2022-23.
   { jurisdiction: 'pinellas', topic: 'custodial-start' },
+];
+
+/**
+ * DR-47: amounts the county's LOGERX filing and the EDR workbook place under a different fund or
+ * account (yearly totals match). Each must be annotated in views where the difference matters; the
+ * build fails if a listed difference is not found, and validation fails if a difference is not listed.
+ */
+export const APPROVED_RECLASSIFICATIONS: ApprovedReclassification[] = [
+  // Fund difference: matters when exactly one of the two funds is in the selected fund scope.
+  { jurisdiction: 'hillsborough', flow: 'expenditure', fiscalYear: 2015, amount: 1_164_281, funds: ['component_unit', 'internal_service'] },
+  // Account difference within one category (335.8 vs 335.9, both intergovernmental): category views.
+  { jurisdiction: 'pinellas', flow: 'revenue', fiscalYear: 2014, amount: 2_309_587, categories: ['intergovernmental'] },
 ];

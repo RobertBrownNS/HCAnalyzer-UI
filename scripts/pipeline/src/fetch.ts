@@ -7,6 +7,7 @@
  *   npm run fetch -- --county pinellas  only that county's files (shared files untouched)
  *   npm run fetch -- --logerx           only the DFS LOGERX reports and per-county extracts
  *   npm run fetch -- --logerx --use-cache  rebuild the extracts from data/cache/logerx (no network)
+ *   npm run fetch -- --uas              only the DFS Uniform Accounting System manual
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -14,9 +15,9 @@ import { COUNTIES } from '../config/counties.js';
 import { CPI_SERIES, type BlsResponse } from './bls/cpi.js';
 import { sha256, stableStringify } from './lib/hash.js';
 import ExcelJS from 'exceljs';
-import { blsPath, countyAfrPath, edrAfrPath, LOGERX_CACHE_DIR, logerxCachePath, logerxExtractPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE } from './lib/paths.js';
+import { blsPath, countyAfrPath, edrAfrPath, LOGERX_CACHE_DIR, logerxCachePath, logerxExtractPath, POPULATION_FILE, RAW_DIR, rel, RETRIEVAL_FILE, UAS_MANUAL_FILE } from './lib/paths.js';
 import { extractEntityCsv, LOGERX_PUBLIC_PAGE, LOGERX_REPORT_ENDPOINT, LOGERX_REPORTS, LOGERX_YEARS_ENDPOINT, parseStatewideReport } from './logerx/logerx.js';
-import { EDR, EDR_AFR_BASE, EDR_COUNTY_FISCAL_PAGE, EDR_COUNTY_FISCAL_PAGE_FILE, EDR_POPULATION_URL, type RetrievalRecord, type RetrievalLog } from './sources.js';
+import { UAS_MANUAL_URL, EDR, EDR_AFR_BASE, EDR_COUNTY_FISCAL_PAGE, EDR_COUNTY_FISCAL_PAGE_FILE, EDR_POPULATION_URL, type RetrievalRecord, type RetrievalLog } from './sources.js';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; fl-county-finance-explorer data pipeline)';
 const BLS_API = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
@@ -149,6 +150,15 @@ async function main() {
   };
   try {
     if (process.argv.includes('--logerx')) await fetchLogerx(log, process.argv.includes('--use-cache'));
+    else if (process.argv.includes('--uas')) {
+      await attempt(UAS_MANUAL_URL, async () =>
+        record(log, UAS_MANUAL_FILE, await download(UAS_MANUAL_URL), {
+          url: UAS_MANUAL_URL,
+          publisher: 'Florida Department of Financial Services (DFS), Bureau of Financial Reporting',
+          method: 'HTTP GET (PDF; 2025 edition, effective beginning FY 2024-25)',
+        }),
+      );
+    }
     else await downloadAll(log, attempt);
   } finally {
     saveLog(log);

@@ -69,6 +69,10 @@ export interface AnnotationRecord extends Annotation {
   refs?: readonly string[];
   /** Machine-readable kind (pipeline: ANNOTATION_TOPICS in scripts/pipeline/src/edr/anomalies.ts). */
   topic?: AnnotationTopic;
+  /** Fund types the row is about (DR-47). Shown when the fund selection includes some but not all of them. */
+  funds?: readonly string[];
+  /** Categories the row is about (DR-47). Shown only in a category view that includes one. */
+  categories?: readonly string[];
 }
 
 export type AnnotationTopic =
@@ -82,6 +86,17 @@ export type AnnotationTopic =
   | 'custodial-zero'
   | 'custodial-start'
   | 'population-source';
+
+/** categories.json rows (D-19), in display order. */
+export interface CategoryDef {
+  id: string;
+  flow: Flow;
+  label: string;
+  section?: string;
+  accountRanges?: readonly { from: string; to: string }[];
+  uasReference?: string;
+  sourceId?: string;
+}
 
 /** One non-zero fund cell of one account row. Zero cells are omitted (= $0). */
 export interface AfrObservation extends Observation {
@@ -104,6 +119,21 @@ export interface SourceRecord extends Source {
   crossCheckSummary?: string;
   /** Per fiscal-year range status; together the ranges cover every workbook year once. */
   crossCheckCoverage?: readonly CrossCheckRange[];
+}
+
+/** funds.json (P3-02): fund types, their groups and the preset definitions, all from data. */
+export interface FundsFile {
+  groups: readonly { id: string; label: string; order: number }[];
+  funds: readonly { id: string; label: string; group: string; order: number; custodial?: boolean }[];
+  /** Preset id -> fund ids; labels and the "what this includes" text come with each preset. */
+  presets: readonly { id: string; label: string; funds: readonly string[]; description?: string }[];
+}
+
+/** categories.json (P3-01): category display labels and order, by flow. */
+export interface CategoriesFile {
+  categories: readonly { id: string; label: string; flow: Flow; order: number }[];
+  /** Where the published mapping table lives (site page or source document). */
+  mappingUrl?: string;
 }
 
 /** Cross-check status of a range of fiscal years (pipeline, DR-45). */

@@ -8,10 +8,13 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { averageOf, calendarYearMonths, round3 } from './bls/cpi.js';
 import { classifyAccount, normalizeHeading, SECTION_HEADINGS } from './edr/accounts.js';
+import { CATEGORIES, categoriesFor } from './edr/categories.js';
+import { FUND_METADATA } from './edr/funds.js';
 import { colLetter, type AfrSheet } from './edr/afr.js';
 import type { Observation } from './edr/observations.js';
 import { buildOutputs, countyCrossChecks, PER_COUNTY_FILE } from './build.js';
-import { crossCheckSourceProblems } from './logerx/crosscheck.js';
+import { crossCheckSourceProblems, reclassificationPairs } from './logerx/crosscheck.js';
+import { APPROVED_RECLASSIFICATIONS } from '../config/approved-annotations.js';
 import { indexComparisonSection } from './index-comparison.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import {
@@ -264,7 +267,7 @@ async function main() {
           if (a.cachedTotal === null || sum !== a.cachedTotal) rowMismatch.push(`${s.sheetName}!row ${a.row}: funds ${sum} vs total ${a.cachedTotal}`);
           const headingSection = SECTION_HEADINGS[normalizeHeading(a.sectionHeading)];
           if (!headingSection) unknownHeadings.add(a.sectionHeading);
-          else if (headingSection !== classifyAccount(s.flow, a.account).section) {
+          else if (!headingSection.includes(classifyAccount(s.flow, a.account).section)) {
             const k = `${s.flow}|${a.account}|${a.sectionHeading}`;
             placement.set(k, [...(placement.get(k) ?? []), s.fiscalYear]);
           }
@@ -536,7 +539,9 @@ async function main() {
       (a.custodial !== undefined && !['included', 'excluded'].includes(a.custodial)) ||
       (a.refs ?? []).some((r) => !REF_PATTERN.test(r)) ||
       !a.topic ||
-      !(ANNOTATION_TOPICS as readonly string[]).includes(a.topic),
+      !(ANNOTATION_TOPICS as readonly string[]).includes(a.topic) ||
+      (a.funds ?? []).some((f) => !FUND_METADATA.some((m) => m.id === f)) ||
+      (a.categories ?? []).some((c) => !CATEGORIES.some((d) => d.id === c)),
   );
   add('Annotations: sourceId resolves, topic set and known, fields valid, cell references well-formed', !badAnnotations.length,
     badAnnotations.length ? badAnnotations.map((a) => `${a.fiscalYear} ${a.label}`).join('; ') : `${annotationsJson.length} annotations`);
@@ -575,6 +580,23 @@ async function main() {
   }
   add('User-facing text has no file names, paths, JSON keys or code identifiers', !leaks.length,
     leaks.length ? leaks.slice(0, 10).join('; ') + (leaks.length > 10 ? `; and ${leaks.length - 10} more` : '') : `${texts.length} strings checked in cpi, annotations, sources and population`);
+  // UAS categories: every account in every county maps to exactly one category.
+  const unmapped: string[] = [];
+  let mappedCount = 0;
+  for (const c of inputs.counties) {
+    for (const sheets of [c.revenues.sheets, c.expenditures.sheets]) {
+      for (const sh of sheets) {
+        for (const acct of sh.accounts) {
+          const n = categoriesFor(sh.flow, acct.account).length;
+          if (n === 1) mappedCount++;
+          else unmapped.push(`${c.county.slug} ${sh.flow} ${acct.account} FY ${sh.fiscalYear}: ${n} categories`);
+        }
+      }
+    }
+  }
+  add('UAS categories: every account row in every county maps to exactly one category', !unmapped.length,
+    unmapped.length ? unmapped.slice(0, 10).join('; ') : `${mappedCount.toLocaleString('en-US')} account rows, ${CATEGORIES.length} categories`);
+
   // County metadata the UI relies on: display names, cross-check status, DR-42 caveat text.
   const manifestJson = JSON.parse(readFileSync(path.join(OUT_DIR, 'manifest.json'), 'utf8')) as { jurisdictions: string[]; jurisdictionNames?: Record<string, string>; defaultJurisdiction?: string };
   const configDefaults = inputs.counties.filter((c) => c.county.default).map((c) => c.county.slug);
@@ -643,6 +665,10 @@ async function main() {
         }
       }
     }
+    const pairs = (['revenue', 'expenditure'] as const).flatMap((flow) => d[flow].reconciliations.flatMap(reclassificationPairs));
+    const unapproved = pairs.filter((p) => !APPROVED_RECLASSIFICATIONS.some((a) => a.jurisdiction === c.county.slug && a.flow === p.flow && a.fiscalYear === p.fiscalYear && Math.abs(a.amount - p.amount) < 0.5));
+    add(tag2(c.county.slug, 'Every LOGERX/EDR classification difference has an approved annotation (DR-47)'), !unapproved.length,
+      unapproved.length ? unapproved.map((p) => `${fiscalYearLabel(p.fiscalYear)} ${p.flow} $${p.amount}`).join('; ') : `${pairs.length} difference(s), all approved`);
     const diffCount = cells - matched;
     add(tag2(c.county.slug, 'LOGERX reconciliation: every account x fund amount vs EDR (differences are listed for review, never applied)'), true,
       `${matched.toLocaleString('en-US')} of ${cells.toLocaleString('en-US')} cells match${diffCount ? `; ${diffCount} differ or are in one source only (listed under "LOGERX reconciliation")` : ''}`, !!diffCount);

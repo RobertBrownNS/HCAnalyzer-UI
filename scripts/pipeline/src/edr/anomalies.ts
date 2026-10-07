@@ -20,6 +20,7 @@ export const ANNOTATION_TOPICS = [
   'custodial-zero',
   'custodial-start',
   'population-source',
+  'reconciliation-difference',
 ] as const;
 export type AnnotationTopic = (typeof ANNOTATION_TOPICS)[number];
 
@@ -41,6 +42,10 @@ export interface Annotation {
   custodial?: 'included' | 'excluded';
   /** Show only for these measures. */
   measures?: Measure[];
+  /** Fund-scope views: show when the selected funds include some, but not all, of these funds. */
+  funds?: string[];
+  /** Category views: show when one of these categories is shown. */
+  categories?: string[];
   /** Longer factual text for the source drawer. */
   detail?: string;
   /** Workbook cells ("2023!D16") the annotation's figures come from. */

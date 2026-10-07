@@ -4,6 +4,7 @@ import type {
   AfrObservation,
   Annotation,
   AnnotationRecord,
+  CategoryDef,
   CpiFile,
   CpiSeriesFile,
   PopulationFile,
@@ -12,7 +13,15 @@ import type {
 } from './models';
 import {
   annotationsInRange,
+  availableCategories,
+  availableFunds,
   availableJurisdictions,
+  buildCategorySeries,
+  type ChartView,
+  FUND_ORDER,
+  NET_TRANSFERS_REJECTED_NOTE,
+  pointBreakdown,
+  netTransfersAllowed,
   availableYears,
   buildSeries,
   DEFAULT_SETTINGS,
@@ -161,7 +170,7 @@ function values(points: SeriesPoint[]): (number | null)[] {
   return points.map((p) => p.value);
 }
 
-function byYear(points: SeriesPoint[], fy: number): SeriesPoint {
+function byYear<P extends SeriesPoint>(points: P[], fy: number): P {
   const p = points.find((x) => x.fiscalYear === fy);
   if (!p) throw new Error(`no point for ${fy}`);
   return p;
@@ -1281,10 +1290,12 @@ describe.each(JURISDICTIONS)('golden: %s', (jurisdiction) => {
     for (const flow of flows)
       for (const includeCustodial of [false, true])
         for (const measure of ['nominal', 'per_capita', 'real', 'real_per_capita'] as const)
-          for (const a of annotationsInRange(data, full({ flow, includeCustodial, measure }))) {
-            expect(ownOrStatewide(a)).toBe(true);
-            seen.add(a);
-          }
+          for (const view of ['total', 'categories'] as const)
+            for (const funds of [undefined, ...availableFunds(data, jurisdiction).map((f) => [f])])
+              for (const a of annotationsInRange(data, full({ flow, includeCustodial, measure, funds }), view)) {
+                expect(ownOrStatewide(a)).toBe(true);
+                seen.add(a);
+              }
     expect(seen.size).toBe(data.annotations.filter(ownOrStatewide).length);
   });
 
@@ -1398,6 +1409,499 @@ describe('golden: transfer-imbalance note years (pipeline rule, |581 - 381| > $1
         if (![2006, 2022, 2023].includes(p.fiscalYear) && p.transferImbalance !== undefined) {
           expect(p.transferImbalance).toBe(0);
         }
+      }
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 3: funds (D-18), categories (D-19), net-transfer guard (R-19 / O-11)
+// ---------------------------------------------------------------------------
+
+function cobs(
+  fiscalYear: number,
+  flow: 'revenue' | 'expenditure',
+  account: string,
+  category: string,
+  fundType: string,
+  amount: number,
+): AfrObservation {
+  return { ...obs(fiscalYear, fundType, amount, flow), account, category, section: category };
+}
+
+/**
+ * Revenue: 2019 normal; 2020 a negative category; 2021 total 0; 2022 total < 0.
+ * Expenditure: 2019 and 2020. One custodial row. Transfers (381/581) in other_sources/other_uses.
+ */
+function p3Fixture(): TransformData {
+  return {
+    ...fixture(),
+    observations: [
+      cobs(2019, 'revenue', '311', 'ad_valorem', 'general', 100),
+      cobs(2019, 'revenue', '311', 'ad_valorem', 'special_revenue', 20),
+      cobs(2019, 'revenue', '341', 'charges_for_services', 'enterprise', 50),
+      cobs(2019, 'revenue', '381', 'other_sources', 'general', 30),
+      cobs(2019, 'revenue', '311', 'ad_valorem', 'custodial', 1000),
+      cobs(2020, 'revenue', '311', 'ad_valorem', 'general', 120),
+      cobs(2020, 'revenue', '341', 'charges_for_services', 'enterprise', -10),
+      cobs(2020, 'revenue', '381', 'other_sources', 'enterprise', 40),
+      cobs(2021, 'revenue', '311', 'ad_valorem', 'general', 50),
+      cobs(2021, 'revenue', '341', 'charges_for_services', 'enterprise', -50),
+      cobs(2022, 'revenue', '311', 'ad_valorem', 'general', 10),
+      cobs(2022, 'revenue', '341', 'charges_for_services', 'enterprise', -30),
+      cobs(2019, 'expenditure', '513', 'general_government', 'general', 100),
+      cobs(2019, 'expenditure', '581', 'other_uses', 'general', 30),
+      cobs(2020, 'expenditure', '513', 'general_government', 'general', 90),
+      cobs(2020, 'expenditure', '581', 'other_uses', 'enterprise', 40),
+    ],
+  };
+}
+
+const BIG = 1_000_000;
+
+/** 2020: 581 out $600M vs 381 in $120M (imbalance $480M), transfers in other_sources / other_uses. */
+function p3Imbalance(): TransformData {
+  return {
+    ...fixture(),
+    observations: [
+      cobs(2020, 'revenue', '311', 'ad_valorem', 'general', 1000 * BIG),
+      cobs(2020, 'revenue', '381', 'other_sources', 'general', 100 * BIG),
+      cobs(2020, 'revenue', '381', 'other_sources', 'enterprise', 20 * BIG),
+      cobs(2020, 'expenditure', '513', 'general_government', 'general', 800 * BIG),
+      cobs(2020, 'expenditure', '581', 'other_uses', 'general', 600 * BIG),
+    ],
+  };
+}
+
+const p3 = (over: Partial<TransformSettings> = {}) => settings({ range: [2019, 2022], baseYear: 2019, ...over });
+
+describe('availableFunds / FUND_ORDER', () => {
+  it('lists non-custodial funds with data, in AFR column order', () => {
+    expect(availableFunds(p3Fixture(), 'hillsborough')).toEqual(['general', 'special_revenue', 'enterprise']);
+    expect(availableFunds(p3Fixture(), 'nowhere')).toEqual([]);
+  });
+
+  it('puts unknown fund types after the known ones, by name', () => {
+    const d = { ...p3Fixture(), observations: ['zeta', 'trust', 'alpha', 'general'].map((f) => obs(2019, f, 1)) };
+    expect(availableFunds(d, 'hillsborough')).toEqual(['general', 'trust', 'alpha', 'zeta']);
+    expect(FUND_ORDER).toContain('component_unit');
+    expect(Object.isFrozen(FUND_ORDER)).toBe(true);
+  });
+});
+
+describe('availableCategories', () => {
+  it('orders categories by their lowest account code, per flow and jurisdiction', () => {
+    const d = p3Fixture();
+    expect(availableCategories(d, 'revenue', 'hillsborough')).toEqual(['ad_valorem', 'charges_for_services', 'other_sources']);
+    expect(availableCategories(d, 'expenditure', 'hillsborough')).toEqual(['general_government', 'other_uses']);
+    expect(availableCategories(d, 'revenue', 'nowhere')).toEqual([]);
+  });
+
+  it('follows data.categories order for listed ids; unlisted ones follow by account; other flows ignored', () => {
+    const d: TransformData = {
+      ...p3Fixture(),
+      categories: [
+        { id: 'other_sources', flow: 'revenue', label: 'Other sources' },
+        { id: 'ad_valorem', flow: 'revenue', label: 'Ad valorem' },
+        { id: 'charges_for_services', flow: 'expenditure', label: 'wrong flow' },
+        { id: 'not_in_data', flow: 'revenue', label: 'x' },
+      ],
+    };
+    expect(availableCategories(d, 'revenue', 'hillsborough')).toEqual(['other_sources', 'ad_valorem', 'charges_for_services']);
+  });
+
+  it('uses the minimum account per category, and names to break ties', () => {
+    const d = {
+      ...p3Fixture(),
+      observations: [
+        cobs(2019, 'revenue', '369.9', 'miscellaneous', 'general', 1),
+        cobs(2019, 'revenue', '361.1', 'miscellaneous', 'general', 1),
+        cobs(2019, 'revenue', '362', 'b_cat', 'general', 1),
+        cobs(2019, 'revenue', '362', 'a_cat', 'general', 1),
+      ],
+    };
+    expect(availableCategories(d, 'revenue', 'hillsborough')).toEqual(['miscellaneous', 'a_cat', 'b_cat']);
+  });
+});
+
+describe('buildSeries: fund selection', () => {
+  it('missing or empty selection = all non-custodial funds', () => {
+    const all = [200, 150, 0, -20];
+    expect(values(buildSeries(p3Fixture(), p3()))).toEqual(all);
+    expect(values(buildSeries(p3Fixture(), p3({ funds: [] })))).toEqual(all);
+  });
+
+  it('sums only the selected funds; years without them are 0', () => {
+    expect(values(buildSeries(p3Fixture(), p3({ funds: ['general'] })))).toEqual([130, 120, 50, 10]);
+    expect(values(buildSeries(p3Fixture(), p3({ funds: ['enterprise'] })))).toEqual([50, 30, -50, -30]);
+    expect(values(buildSeries(p3Fixture(), p3({ funds: ['special_revenue'] })))).toEqual([20, 0, 0, 0]);
+    expect(values(buildSeries(p3Fixture(), p3({ funds: ['general', 'special_revenue'] })))).toEqual([150, 120, 50, 10]);
+  });
+
+  it('custodial follows includeCustodial only, whatever the fund list says', () => {
+    expect(byYear(buildSeries(p3Fixture(), p3({ funds: ['enterprise'], includeCustodial: true })), 2019).value).toBe(1050);
+    expect(byYear(buildSeries(p3Fixture(), p3({ funds: ['enterprise', 'custodial'] })), 2019).value).toBe(50);
+    expect(byYear(buildSeries(p3Fixture(), p3({ funds: ['enterprise'] })), 2019).custodialNominal).toBe(1000);
+  });
+
+  it('the sum over single-fund series equals the all-funds series', () => {
+    const d = p3Fixture();
+    for (const flow of ['revenue', 'expenditure'] as const) {
+      const all = buildSeries(d, p3({ flow }));
+      const parts = availableFunds(d, 'hillsborough').map((f) => buildSeries(d, p3({ flow, funds: [f] })));
+      all.forEach((p, i) => expect(parts.reduce((t, s) => t + s[i].nominal, 0)).toBe(p.nominal));
+    }
+  });
+});
+
+describe('netTransfersAllowed (R-19 / O-11)', () => {
+  it('allows net with no fund filter, or a filter that covers every reported fund', () => {
+    const d = p3Fixture();
+    expect(netTransfersAllowed(d, p3())).toBe(true);
+    expect(netTransfersAllowed(d, p3({ funds: [] }))).toBe(true);
+    expect(netTransfersAllowed(d, p3({ funds: ['enterprise', 'special_revenue', 'general'] }))).toBe(true);
+    expect(netTransfersAllowed(d, p3({ funds: ['general', 'special_revenue', 'enterprise', 'trust'] }))).toBe(true);
+  });
+
+  it('rejects net for a fund subset', () => {
+    expect(netTransfersAllowed(p3Fixture(), p3({ funds: ['general'] }))).toBe(false);
+    expect(netTransfersAllowed(p3Fixture(), p3({ funds: ['general', 'special_revenue', 'custodial'] }))).toBe(false);
+  });
+
+  it('a rejected net is computed as gross, with a note on every point', () => {
+    const d = p3Fixture();
+    const gross = buildSeries(d, p3({ funds: ['general'] }));
+    const rejected = buildSeries(d, p3({ funds: ['general'], transfers: 'net' }));
+    expect(values(rejected)).toEqual(values(gross));
+    for (const p of rejected) {
+      expect(p.notes).toContain(NET_TRANSFERS_REJECTED_NOTE);
+      expect(p.notes.some((n) => n.startsWith('Interfund transfers'))).toBe(false);
+    }
+    expect(gross.every((p) => !p.notes.includes(NET_TRANSFERS_REJECTED_NOTE))).toBe(true);
+  });
+
+  it('an allowed net with an explicit full fund list equals net with no filter', () => {
+    const d = p3Fixture();
+    const a = buildSeries(d, p3({ transfers: 'net' }));
+    const b = buildSeries(d, p3({ transfers: 'net', funds: availableFunds(d, 'hillsborough') }));
+    expect(b).toEqual(a);
+    expect(values(a)).toEqual([170, 110, 0, -20]);
+  });
+});
+
+describe('buildCategorySeries', () => {
+  const cats = (s: Partial<TransformSettings> = {}) => buildCategorySeries(p3Fixture(), p3(s));
+
+  it('returns one series per category, in availableCategories order, over the same years', () => {
+    const series = cats();
+    expect(series.map((c) => c.category)).toEqual(['ad_valorem', 'charges_for_services', 'other_sources']);
+    for (const c of series) expect(c.points.map((p) => p.fiscalYear)).toEqual([2019, 2020, 2021, 2022]);
+    expect(series[0].points.map((p) => p.nominal)).toEqual([120, 120, 50, 10]);
+    expect(series[1].points.map((p) => p.nominal)).toEqual([50, -10, -50, -30]);
+    expect(series[2].points.map((p) => p.nominal)).toEqual([30, 40, 0, 0]);
+  });
+
+  it('limits to the category selection, keeping canonical order; empty = all; unknown ids ignored', () => {
+    expect(cats({ categories: ['other_sources', 'ad_valorem', 'nope'] }).map((c) => c.category)).toEqual([
+      'ad_valorem',
+      'other_sources',
+    ]);
+    expect(cats({ categories: [] })).toHaveLength(3);
+    expect(cats({ categories: ['nope'] })).toEqual([]);
+  });
+
+  it('shares are percent of the year total and sum to 100 when the total is positive', () => {
+    const series = cats();
+    const share = (i: number, fy: number) => byYear(series[i].points, fy).share;
+    expect(share(0, 2019)).toBeCloseTo((120 / 200) * 100, 12);
+    expect(share(1, 2020)).toBeCloseTo((-10 / 150) * 100, 12);
+    for (const fy of [2019, 2020]) {
+      expect(series.reduce((t, c) => t + byYear(c.points, fy).share!, 0)).toBeCloseTo(100, 9);
+    }
+  });
+
+  it('share is null with a note when the total is zero or negative, never NaN', () => {
+    for (const c of cats()) {
+      for (const fy of [2021, 2022]) {
+        const p = byYear(c.points, fy);
+        expect(p.share).toBeNull();
+      }
+      expect(byYear(c.points, 2021).notes).toContain("Share can't be computed: the FY 2020-21 total is $0.");
+      expect(byYear(c.points, 2022).notes).toContain("Share can't be computed: the FY 2021-22 total is -$20.");
+    }
+  });
+
+  it('share is the same for every measure (nominal based); values follow the measure', () => {
+    const nominal = cats();
+    for (const measure of ['per_capita', 'real', 'real_per_capita'] as const) {
+      const m = cats({ measure, baseYear: 2021 });
+      m.forEach((c, i) => c.points.forEach((p, j) => expect(p.share).toBe(nominal[i].points[j].share)));
+    }
+    const pc = cats({ measure: 'per_capita' });
+    expect(byYear(pc[0].points, 2019).value).toBe(12);
+    expect(byYear(pc[0].points, 2019).population).toBe(10);
+    expect(byYear(pc[0].points, 2022).value).toBeNull();
+    const real = cats({ measure: 'real', baseYear: 2022 });
+    expect(byYear(real[0].points, 2019).value).toBe((120 * 200) / 100);
+  });
+
+  it('indexTo100 indexes each category to its own base-year value', () => {
+    const series = cats({ indexTo100: true, baseYear: 2019 });
+    expect(series[0].points.map((p) => p.value)).toEqual([100, 100, (50 / 120) * 100, (10 / 120) * 100]);
+    expect(series[1].points.map((p) => p.value)).toEqual([100, -20, -100, -60]);
+    expect(series[2].points.map((p) => p.value)).toEqual([100, (40 / 30) * 100, 0, 0]);
+    // A category whose base value is 0 can't be indexed.
+    const zeroBase = cats({ indexTo100: true, baseYear: 2021 });
+    expect(zeroBase[2].points.every((p) => p.value === null)).toBe(true);
+    expect(zeroBase[2].points[0].notes).toContain("Index base FY 2020-21 is zero; an index can't be computed.");
+  });
+
+  it('respects funds, custodial and net transfers like buildSeries', () => {
+    expect(cats({ funds: ['enterprise'] }).map((c) => byYear(c.points, 2019).nominal)).toEqual([0, 50, 0]);
+    const incl = cats({ includeCustodial: true });
+    expect(byYear(incl[0].points, 2019).nominal).toBe(1120);
+    expect(byYear(incl[0].points, 2019).custodialNominal).toBe(1000);
+    expect(byYear(incl[1].points, 2019).custodialNominal).toBe(0);
+    const net = cats({ transfers: 'net' });
+    expect(net[2].points.map((p) => p.nominal)).toEqual([0, 0, 0, 0]);
+    expect(net[2].points.map((p) => p.transfersNominal)).toEqual([30, 40, 0, 0]);
+    expect(byYear(net[2].points, 2019).notes).toContain('Interfund transfers (account 381, $30) are excluded.');
+    const rejected = cats({ transfers: 'net', funds: ['general'] });
+    expect(rejected[2].points.map((p) => p.nominal)).toEqual([30, 0, 0, 0]);
+    expect(rejected.every((c) => c.points.every((p) => p.notes.includes(NET_TRANSFERS_REJECTED_NOTE)))).toBe(true);
+  });
+
+  it('invariant: category nominal sums to the total for every year, flow and fund selection', () => {
+    const d = p3Fixture();
+    const selections: (readonly string[] | undefined)[] = [undefined, [], ['general'], ['enterprise'], ['general', 'special_revenue']];
+    for (const flow of ['revenue', 'expenditure'] as const)
+      for (const funds of selections)
+        for (const includeCustodial of [false, true])
+          for (const transfers of ['gross', 'net'] as const) {
+            const s = p3({ flow, funds, includeCustodial, transfers });
+            const total = buildSeries(d, s);
+            const series = buildCategorySeries(d, s);
+            total.forEach((p, i) => expect(series.reduce((t, c) => t + c.points[i].nominal, 0)).toBe(p.nominal));
+          }
+  });
+
+  it('the imbalance note goes on the total and on category points that carry transfers', () => {
+    const d = p3Imbalance();
+    const s = settings({ range: [2019, 2021] });
+    const byCat = Object.fromEntries(buildCategorySeries(d, s).map((c) => [c.category, byYear(c.points, 2020)]));
+    expect(byCat['other_sources'].notes.some(isTransferImbalanceNote)).toBe(true);
+    expect(byCat['ad_valorem'].notes.some(isTransferImbalanceNote)).toBe(false);
+    expect(byCat['ad_valorem'].transferImbalance).toBe(480 * BIG);
+    expect(byCat['other_sources'].sourceIds).toEqual([REV, EXP]);
+    expect(byYear(buildSeries(d, s), 2020).notes.some(isTransferImbalanceNote)).toBe(true);
+  });
+
+  it('the imbalance ignores the fund selection (pipeline rule: all non-custodial funds)', () => {
+    const d = p3Imbalance();
+    const p = byYear(buildSeries(d, settings({ funds: ['enterprise'] })), 2020);
+    expect(p.transferImbalance).toBe(480 * BIG);
+    expect(p.notes.some(isTransferImbalanceNote)).toBe(true);
+  });
+
+  it('does not mutate inputs and is deterministic', () => {
+    const d = deepFreeze(p3Fixture());
+    const s = deepFreeze(p3({ funds: ['general'], categories: ['ad_valorem'], transfers: 'net', measure: 'real', indexTo100: true }));
+    expect(buildCategorySeries(d, s)).toEqual(buildCategorySeries(d, s));
+    expect(() => netTransfersAllowed(d, s)).not.toThrow();
+  });
+});
+
+describe('annotationsInRange: funds and categories (DR-47)', () => {
+  const ann = (label: string, extra: Partial<AnnotationRecord> = {}): AnnotationRecord => ({
+    fiscalYear: 2020,
+    label,
+    kind: 'methodology',
+    sourceId: 's',
+    ...extra,
+  });
+  const d = (): TransformData => ({
+    ...p3Fixture(),
+    annotations: [
+      ann('plain'),
+      ann('ci+is', { funds: ['component_unit', 'internal_service'] }),
+      ann('gen+sr', { funds: ['general', 'special_revenue'] }),
+      ann('single', { funds: ['enterprise'] }),
+      ann('no-funds', { funds: [] }),
+      ann('ad-valorem', { categories: ['ad_valorem'] }),
+      ann('both', { funds: ['general', 'enterprise'], categories: ['charges_for_services'] }),
+    ],
+  });
+  const labels = (s: Partial<TransformSettings>, view?: ChartView) =>
+    annotationsInRange(d(), p3(s), view).map((a) => a.label);
+
+  it('funds: shown only when the selection includes some but not all of the listed funds', () => {
+    expect(labels({})).toEqual(['plain']);
+    expect(labels({ funds: [] })).toEqual(['plain']);
+    expect(labels({ funds: ['general'] })).toEqual(['gen+sr', 'plain']);
+    expect(labels({ funds: ['general', 'special_revenue'] })).toEqual(['plain']);
+    expect(labels({ funds: ['internal_service', 'capital'] })).toEqual(['ci+is', 'plain']);
+    expect(labels({ funds: ['capital'] })).toEqual(['plain']);
+    // A single listed fund can never be split; an empty list never applies.
+    expect(labels({ funds: ['enterprise'] })).toEqual(['plain']);
+  });
+
+  it('categories: hidden in the total view; shown in a category view that shows one of them', () => {
+    expect(labels({}, 'total')).toEqual(['plain']);
+    expect(labels({}, 'categories')).toEqual(['ad-valorem', 'plain']);
+    expect(labels({ categories: ['ad_valorem'] }, 'categories')).toEqual(['ad-valorem', 'plain']);
+    expect(labels({ categories: ['charges_for_services'] }, 'categories')).toEqual(['plain']);
+    expect(labels({ categories: ['charges_for_services'], funds: ['general'] }, 'categories')).toEqual(['both', 'gen+sr', 'plain']);
+    expect(labels({ categories: ['charges_for_services'], funds: ['general', 'enterprise'] }, 'categories')).toEqual([
+      'gen+sr',
+      'plain',
+    ]);
+  });
+});
+
+describe('golden: funds and categories', () => {
+  describe.each(JURISDICTIONS)('%s', (jurisdiction) => {
+    const data = realData;
+    const totals = readJson<WorkbookTotal[]>(`${jurisdiction}.workbook-totals.json`);
+    const full = (over: Partial<TransformSettings> = {}) => goldenFull({ jurisdiction, ...over });
+    const funds = availableFunds(data, jurisdiction);
+
+    it('categories with data are all listed in categories.json, in its order', () => {
+      const defs = readJson<CategoryDef[]>('categories.json');
+      for (const flow of ['revenue', 'expenditure'] as const) {
+        const listed = defs.filter((c) => c.flow === flow).map((c) => c.id);
+        const got = availableCategories({ ...data, categories: defs }, flow, jurisdiction);
+        expect(got.length).toBeGreaterThan(0);
+        expect(got).toEqual(listed.filter((id) => got.includes(id)));
+        // Without categories.json, the account-order fallback gives the same order.
+        expect(availableCategories(data, flow, jurisdiction)).toEqual(got);
+      }
+    });
+
+    it('FUND_ORDER matches funds.json order', () => {
+      expect([...FUND_ORDER]).toEqual(readJson<{ funds: { id: string }[] }>('funds.json').funds.map((f) => f.id));
+    });
+
+    it('every non-custodial fund with data is a workbook fund column', () => {
+      expect(funds.length).toBeGreaterThan(0);
+      const columns = new Set(totals.flatMap((t) => Object.keys(t.byFund)));
+      for (const f of funds) expect(columns.has(f)).toBe(true);
+    });
+
+    for (const flow of ['revenue', 'expenditure'] as const) {
+      it(`${flow}: each single-fund series equals the workbook's per-fund total, every year`, () => {
+        const rows = totals.filter((t) => t.flow === flow);
+        const allFundTypes = [...new Set(rows.flatMap((r) => Object.keys(r.byFund)))].filter((f) => f !== 'custodial');
+        for (const f of allFundTypes) {
+          const pts = buildSeries(data, full({ flow, funds: [f] }));
+          for (const r of rows) expect(byYear(pts, r.fiscalYear).value).toBe(r.byFund[f] ?? 0);
+        }
+      });
+
+      it(`${flow}: the sum over funds equals Total minus Custodial`, () => {
+        const parts = funds.map((f) => buildSeries(data, full({ flow, funds: [f] })));
+        for (const r of totals.filter((t) => t.flow === flow)) {
+          const sum = parts.reduce((t, s) => t + byYear(s, r.fiscalYear).nominal, 0);
+          expect(sum).toBe(r.total - (r.byFund['custodial'] ?? 0));
+        }
+      });
+
+      it(`${flow}: categories match an independent recomputation from observations`, () => {
+        for (const includeCustodial of [false, true]) {
+          const expected = new Map<string, number>();
+          for (const o of data.observations) {
+            if (o.jurisdiction !== jurisdiction || o.flow !== flow) continue;
+            if (o.fundType === 'custodial' && !includeCustodial) continue;
+            const k = `${o.category}|${o.fiscalYear}`;
+            expected.set(k, (expected.get(k) ?? 0) + o.amount);
+          }
+          const series = buildCategorySeries(data, full({ flow, includeCustodial }));
+          let checked = 0;
+          for (const c of series)
+            for (const p of c.points) {
+              expect(p.nominal).toBe(expected.get(`${c.category}|${p.fiscalYear}`) ?? 0);
+              checked++;
+            }
+          expect(checked).toBeGreaterThan(0);
+          expect(new Set(series.map((c) => c.category))).toEqual(new Set([...expected.keys()].map((k) => k.split('|')[0])));
+        }
+      });
+
+      it(`${flow}: category sums equal the total and shares sum to 100, for several fund selections`, () => {
+        const selections: (readonly string[] | undefined)[] = [undefined, ...funds.map((f) => [f]), funds.slice(0, 2)];
+        for (const sel of selections)
+          for (const transfers of ['gross', 'net'] as const) {
+            const s = full({ flow, funds: sel, transfers });
+            const total = buildSeries(data, s);
+            const series = buildCategorySeries(data, s);
+            total.forEach((p, i) => {
+              const sum = series.reduce((t, c) => t + c.points[i].nominal, 0);
+              expect(Math.abs(sum - p.nominal)).toBeLessThan(1e-3);
+              const shares = series.map((c) => c.points[i].share);
+              if (p.nominal > 0) {
+                expect(shares.reduce((t, x) => t! + x!, 0)!).toBeCloseTo(100, 6);
+              } else {
+                expect(shares.every((x) => x === null)).toBe(true);
+              }
+              for (const c of series) {
+                const v = c.points[i].value;
+                expect(v === null || Number.isFinite(v)).toBe(true);
+              }
+            });
+          }
+      });
+    }
+  });
+});
+
+describe('pointBreakdown', () => {
+  const sum = (rows: AfrObservation[]) => rows.reduce((t, o) => t + o.amount, 0);
+
+  it('returns the observations that sum to the point nominal, for any selection', () => {
+    const d = p3Fixture();
+    const selections: Partial<TransformSettings>[] = [
+      {},
+      { funds: ['general'] },
+      { includeCustodial: true },
+      { transfers: 'net' },
+      { transfers: 'net', funds: ['general'] },
+      { flow: 'expenditure', funds: ['enterprise'] },
+    ];
+    for (const over of selections) {
+      const s = p3(over);
+      for (const p of buildSeries(d, s)) expect(sum(pointBreakdown(d, s, p.fiscalYear))).toBe(p.nominal);
+      for (const c of buildCategorySeries(d, s))
+        for (const p of c.points) expect(sum(pointBreakdown(d, s, p.fiscalYear, c.category))).toBe(p.nominal);
+    }
+  });
+
+  it('keeps input order and returns the original observation objects', () => {
+    const d = p3Fixture();
+    const rows = pointBreakdown(d, p3({ includeCustodial: true }), 2019);
+    expect(rows.map((o) => `${o.account}/${o.fundType}`)).toEqual([
+      '311/general',
+      '311/special_revenue',
+      '341/enterprise',
+      '381/general',
+      '311/custodial',
+    ]);
+    expect(rows[0]).toBe(d.observations[0]);
+  });
+
+  it('drops transfers only when net is allowed; empty for a year or category without rows', () => {
+    const d = p3Fixture();
+    expect(pointBreakdown(d, p3({ transfers: 'net' }), 2019).some((o) => o.account === '381')).toBe(false);
+    expect(pointBreakdown(d, p3({ transfers: 'net', funds: ['general'] }), 2019).some((o) => o.account === '381')).toBe(true);
+    expect(pointBreakdown(d, p3(), 1990)).toEqual([]);
+    expect(pointBreakdown(d, p3(), 2019, 'nope')).toEqual([]);
+  });
+});
+
+describe('golden: pointBreakdown', () => {
+  it.each(JURISDICTIONS)('%s: sums to every point of the total, both flows', (jurisdiction) => {
+    for (const flow of ['revenue', 'expenditure'] as const) {
+      const s = goldenFull({ jurisdiction, flow });
+      for (const p of buildSeries(realData, s)) {
+        expect(pointBreakdown(realData, s, p.fiscalYear).reduce((t, o) => t + o.amount, 0)).toBe(p.nominal);
       }
     }
   });

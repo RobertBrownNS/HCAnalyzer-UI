@@ -12,16 +12,18 @@ import { averageOf, calendarYearMonths, fiscalYearAverage, type CpiSeriesConfig,
 import type { AfrSheet } from './edr/afr.js';
 import { generateAnomalies, type Annotation } from './edr/anomalies.js';
 import { countyAfrNote } from './edr/county-afr-checks.js';
-import { flowCrossCheck, preCoverageTransferNotes, type FlowCrossCheck } from './logerx/crosscheck.js';
-import { APPROVED_TRANSFER_IMBALANCES, RESEARCH_NOTES } from '../config/approved-annotations.js';
+import { flowCrossCheck, preCoverageTransferNotes, reclassificationPairs, type FlowCrossCheck } from './logerx/crosscheck.js';
+import { APPROVED_RECLASSIFICATIONS, APPROVED_TRANSFER_IMBALANCES, RESEARCH_NOTES } from '../config/approved-annotations.js';
 import { APPROVED_GAPS } from '../config/approved-gaps.js';
 import { toAccounts, toObservations } from './edr/observations.js';
+import { CATEGORIES, rangeLabel } from './edr/categories.js';
+import { FUND_METADATA, FUND_PRESETS } from './edr/funds.js';
 import { selectPopulation } from './edr/population.js';
 import { fiscalYearLabel, fiscalYearMonths } from './lib/fiscal.js';
 import { sha256, stableStringify } from './lib/hash.js';
 import { OUT_DIR, rel } from './lib/paths.js';
 import { loadInputs, retrievalFor, type Inputs } from './inputs.js';
-import { afrSource, countyAfrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
+import { uasManualSource, afrSource, countyAfrSource, countyFiscalPageSource, cpiSource, populationSource, sourceIds, type Source } from './sources.js';
 
 export const SCHEMA_VERSION = 1;
 
@@ -181,6 +183,40 @@ export function defaultJurisdiction(counties: Array<{ slug: string; default?: bo
   return defaults[0].slug;
 }
 
+/** DR-47: chart annotations for approved LOGERX/EDR classification differences, generated from the reconciliation. */
+function reclassificationAnnotations(c: Inputs['counties'][number], rev: FlowCrossCheck, exp: FlowCrossCheck): Annotation[] {
+  const names = new Map(toAccounts([...c.revenues.sheets, ...c.expenditures.sheets]).map((a) => [`${a.flow}|${a.account}`, a.name]));
+  const fundLabel = (f: string) => FUND_METADATA.find((m) => m.id === f)?.label ?? f;
+  return APPROVED_RECLASSIFICATIONS.filter((a) => a.jurisdiction === c.county.slug).map((a) => {
+    const check = a.flow === 'revenue' ? rev : exp;
+    const pair = check.reconciliations
+      .filter((r) => r.fiscalYear === a.fiscalYear)
+      .flatMap(reclassificationPairs)
+      .find((p) => Math.abs(p.amount - a.amount) < 0.5);
+    if (!pair) throw new Error(`Approved reclassification ${c.county.slug} ${a.flow} FY ${a.fiscalYear} $${a.amount} not found in the LOGERX reconciliation; review config/approved-annotations.ts`);
+    const where = (x: { account: string; fundType: string }) => `account ${x.account} (${names.get(`${a.flow}|${x.account}`) ?? 'not in the EDR workbook'}), ${fundLabel(x.fundType)}`;
+    const amount = `$${a.amount.toLocaleString('en-US')}`;
+    const what = pair.edr.fundType !== pair.logerx.fundType && pair.edr.account === pair.logerx.account
+      ? `under ${fundLabel(pair.edr.fundType)} in the EDR workbook and under ${fundLabel(pair.logerx.fundType)} in the county's filing`
+      : `under account ${pair.edr.account} in the EDR workbook and under account ${pair.logerx.account} in the county's filing`;
+    return {
+      fiscalYear: a.fiscalYear,
+      label: `${amount} reported ${what}`,
+      kind: 'methodology' as const,
+      topic: 'reconciliation-difference' as const,
+      sourceId: sourceIds.afr(c.county, a.flow),
+      jurisdiction: c.county.slug,
+      flow: a.flow,
+      ...(a.funds ? { funds: a.funds } : {}),
+      ...(a.categories ? { categories: a.categories } : {}),
+      detail:
+        `${fiscalYearLabel(a.fiscalYear)} ${a.flow}s: ${amount} is in ${where(pair.edr)} in the EDR workbook (${pair.edr.ref}) and in ${where(pair.logerx)} in the Annual Financial Report data the county filed with the Florida Department of Financial Services (LOGERX). ` +
+        'Yearly totals are equal in both sources; the explorer shows the EDR classification.',
+      refs: [pair.edr.ref],
+    };
+  });
+}
+
 export function buildOutputs(inputs: Inputs): Map<string, string> {
   const files = new Map<string, string>();
   const sources: Source[] = [];
@@ -226,6 +262,7 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
       researchNotes: RESEARCH_NOTES,
     });
     generatedAnnotations.push(...generated.annotations);
+    generatedAnnotations.push(...reclassificationAnnotations(inputs.counties.find((c) => c.county.slug === county.slug)!, revCheck, expCheck));
     for (const [id, list] of generated.caveats) extraCaveats.set(id, [...(extraCaveats.get(id) ?? []), ...list]);
     for (const [id, list] of generated.sharedSourceCaveats) {
       const byCounty = sharedCaveats.get(id) ?? {};
@@ -250,6 +287,28 @@ export function buildOutputs(inputs: Inputs): Map<string, string> {
   }
 
   sources.push(populationSource(rel(inputs.populationFile), retrievalFor(inputs.retrieval, inputs.populationFile)));
+  sources.push(uasManualSource(rel(inputs.uasManualFile), retrievalFor(inputs.retrieval, inputs.uasManualFile)));
+  files.set('categories.json', stringifyRows(CATEGORIES.map((c) => ({
+    id: c.id,
+    flow: c.flow,
+    label: c.label,
+    section: c.section,
+    accountRanges: c.ranges.map(rangeLabel),
+    uasReference: `UAS Manual, 2025 edition, class ${c.uasClass}, p. ${c.uasPage}`,
+    sourceId: sourceIds.uasManual,
+  }))));
+  files.set('funds.json', stableStringify({
+    sourceId: sourceIds.uasManual,
+    funds: FUND_METADATA.map((f) => ({ id: f.id, label: f.label, group: f.group, description: f.description, ...(f.ownToggle ? { handledByToggle: 'custodial' } : {}) })),
+    groups: [
+      { id: 'governmental', label: 'Governmental funds' },
+      { id: 'proprietary', label: 'Proprietary funds' },
+      { id: 'fiduciary', label: 'Fiduciary funds' },
+      { id: 'component_unit', label: 'Component units' },
+    ],
+    presets: FUND_PRESETS,
+    note: 'Custodial amounts are controlled by the custodial toggle, so no preset lists the custodial fund.',
+  }, 2));
   sources.push(
     countyFiscalPageSource(rel(inputs.countyFiscalPageFile), retrievalFor(inputs.retrieval, inputs.countyFiscalPageFile)),
   );

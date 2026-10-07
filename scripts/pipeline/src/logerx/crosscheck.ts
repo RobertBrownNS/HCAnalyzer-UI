@@ -199,3 +199,36 @@ export function crossCheckSourceProblems(
   }
   return problems;
 }
+
+/** A LOGERX/EDR classification difference approved for a chart annotation (DR-47). */
+export interface ApprovedReclassification {
+  jurisdiction: string;
+  flow: Flow;
+  fiscalYear: number;
+  /** The amount that sits under a different account or fund in the two sources. */
+  amount: number;
+  /** Annotation scope (see Annotation.funds / Annotation.categories). */
+  funds?: string[];
+  categories?: string[];
+}
+
+export interface ReclassificationNote {
+  fiscalYear: number;
+  flow: Flow;
+  amount: number;
+  logerx: { account: string; fundType: string };
+  edr: { account: string; fundType: string; ref: string };
+}
+
+/** Pairs of one-sided cells with equal amounts (one amount classified differently), per reconciliation. */
+export function reclassificationPairs(r: Reconciliation): ReclassificationNote[] {
+  const edrOnly = [...r.onlyEdr];
+  const out: ReclassificationNote[] = [];
+  for (const d of r.onlyLogerx) {
+    const i = edrOnly.findIndex((e) => Math.abs(e.edr! - d.logerx!) < 0.5);
+    if (i < 0) continue;
+    const e = edrOnly.splice(i, 1)[0];
+    out.push({ fiscalYear: r.fiscalYear, flow: r.flow, amount: d.logerx!, logerx: { account: d.account, fundType: d.fundType }, edr: { account: e.account, fundType: e.fundType, ref: e.ref! } });
+  }
+  return out;
+}
