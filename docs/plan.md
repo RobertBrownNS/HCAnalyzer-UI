@@ -462,10 +462,10 @@ Branch: `feature/phase-3`, from `main` at `e7a6c23`. The scope comes from four d
 | P3-10 | QA: UI review (neutrality, a11y, CLS, URL, drawer, analytics) | QA | P3-05..P3-08, P3-09, P3-11 | done |
 | P3-11 | Cookieless analytics hook, off by default (D-21) | FE | none | done |
 | P3-12 | Favicon and app icons (D-22) | FE | none (design approved, D-22) | done |
-| P3-13 | Desktop fund filter: Simple / Advanced modes (D-23) | FE | P3-05 | todo |
-| P3-14 | Desktop Filters pane: accordion, single page scrollbar (D-24) | FE | P3-13 | todo |
+| P3-13 | Desktop fund filter: Simple / Advanced modes (D-23) | FE | P3-05 | done |
+| P3-14 | Desktop Filters pane: accordion, single page scrollbar (D-24) | FE | P3-13 | done |
 
-Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) and **P3-14** (D-24, Filters accordion) were added after approval and ship with Phase 3; both `todo`. (D-25, a table-mode switch, was withdrawn by the user.)
+Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `60a642f` (sign-off commit `e785c0d`, tag `phase-3-approved`). QA-39 to QA-45 are verified or closed. P3-11 (analytics) and P3-12 (favicon) are live on `main` and verified live. Open: QA-47, a minor county-chip shift on phone, being fixed; and QA-46, a note only. **P3-13** (D-23, fund filter modes) and **P3-14** (D-24, Filters accordion) were added after approval. Both passed QA at `f6d96be`, with QA-48 verified, and the `phase-3-approved` tag was moved to include them. QA-49 is a note: desktop fund controls are 34 px, which meets WCAG 2.5.8; phone sheets are ≥ 44 px (DR-57). (D-25, a table-mode switch, was withdrawn by the user.)
 
 ### Acceptance criteria
 
@@ -643,7 +643,7 @@ Phase 3 status notes: QA's conditional approval became a **final APPROVE** at `6
 **Phase 3 approved by QA** (2026-10-07, final sign-off at `60a642f`, tag `phase-3-approved`).
 - **DR-47 closed:** both LOGERX reclassifications are annotated in scoped views (fund, category and drawer; DR-50). **QA-07 / O-07 closed** (D-18).
 - **Still open:** QA-47 (minor county-chip shift on phone) is being fixed. QA-46 is a note only.
-- **Added after approval:** P3-13 (fund filter Simple / Advanced modes, D-23) and P3-14 (Filters accordion with a single scrollbar, D-24), both user requests on 2026-10-07, ship with Phase 3. Each needs its own QA check before the Phase 3 release.
+- **Added after approval:** P3-13 (fund filter Simple / Advanced modes, D-23) and P3-14 (Filters accordion with a single scrollbar, D-24), both user requests on 2026-10-07. **Both passed QA at `f6d96be`**, and the tag `phase-3-approved` now includes them. QA-48 is verified. QA-49 is a note on target size (DR-57).
 - **Not verifiable in this round:** real devices (including how browsers render the favicon in the tab bar), screen-reader output, and clicking bands on the canvas. The drawer was tested from table cells and rows.
 
 ---
